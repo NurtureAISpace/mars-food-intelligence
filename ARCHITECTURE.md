@@ -1,7 +1,7 @@
 # Mars Food Intelligence (Sol-450 Engine) - Technical Architecture
 
-> **NASA International Space Apps Challenge Baku 2026**  
-> Organization: `NASAInternatioSpaceAppChallengeBaku2026`  
+> **NASA International Space Apps Challenge Ganja 2026**  
+> Organization: `NASAInternationalSpaceAppsChallengeGanja2026`  
 > Author: Senior Software & Bio-System Architecture Team
 
 ---

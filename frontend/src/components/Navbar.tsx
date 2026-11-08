@@ -32,7 +32,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, mission
                   Sol-450 MVP
                 </span>
               </div>
-              <p className="text-xs text-slate-400">NASA Space Apps Baku 2026 • Autonomous Deep Space Nutrition System</p>
+              <p className="text-xs text-slate-400">NASA Space Apps Ganja 2026 • Autonomous Deep Space Nutrition System</p>
             </div>
           </div>
 

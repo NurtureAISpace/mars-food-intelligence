@@ -1,5 +1,5 @@
 # Mars Food Intelligence (Sol-450 Engine)
-## NASA International Space Apps Challenge Baku 2026 — Devpost & Pitch Kit
+## NASA International Space Apps Challenge Ganja 2026 — Devpost & Pitch Kit
 
 ---
 

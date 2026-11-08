@@ -36,7 +36,7 @@ export function App() {
           <div>
             <span className="text-white font-bold">MARS FOOD INTELLIGENCE</span> • Target MVP: Sol-450
             <span className="block text-[11px] text-slate-400 mt-0.5">
-              NASA International Space Apps Challenge Baku 2026 • Organization: NASAInternatioSpaceAppChallengeBaku2026
+              NASA International Space Apps Challenge Ganja 2026 • Organization: NASAInternationalSpaceAppsChallengeGanja2026
             </span>
           </div>
           <div className="flex items-center space-x-4">

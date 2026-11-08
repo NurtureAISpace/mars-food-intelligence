@@ -1,14 +1,14 @@
 # Mars Food Intelligence (Sol-450 Engine)
 
-[![CI/CD Pipeline](https://github.com/NASAInternatioSpaceAppChallengeBaku2026/mars-food-intelligence/actions/workflows/ci.yml/badge.svg)](https://github.com/NASAInternatioSpaceAppChallengeBaku2026/mars-food-intelligence/actions/workflows/ci.yml)
+[![CI/CD Pipeline](https://github.com/NASAInternationalSpaceAppsChallengeGanja2026/mars-food-intelligence/actions/workflows/ci.yml/badge.svg)](https://github.com/NASAInternationalSpaceAppsChallengeGanja2026/mars-food-intelligence/actions/workflows/ci.yml)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI%200.110-009688.svg)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/Frontend-React%2018%20%2B%20TypeScript-61DAFB.svg)](https://react.dev/)
 [![SciPy](https://img.shields.io/badge/Optimizer-SciPy%20Optimization-8CAAE6.svg)](https://scipy.org/)
 [![NASA STD-3001](https://img.shields.io/badge/Standard-NASA--STD--3001%20Compliant-red.svg)](https://www.nasa.gov/hhp/nasa-std-3001)
 
 > **Autonomous Space Nutrition, Shelf-Life Degradation Dynamics & Life Support Optimization System for Long-Duration Mars Missions**  
-> Developed for **NASA International Space Apps Challenge Baku 2026**  
-> GitHub Organization: [`NASAInternatioSpaceAppChallengeBaku2026`](https://github.com/NASAInternatioSpaceAppChallengeBaku2026)
+> Developed for **NASA International Space Apps Challenge Ganja 2026**  
+> GitHub Organization: [`NASAInternationalSpaceAppsChallengeGanja2026`](https://github.com/NASAInternationalSpaceAppsChallengeGanja2026)
 
 ---
 
@@ -33,7 +33,7 @@ Prerequisites: Python 3.10+, Node.js 18+
 
 ```bash
 # Clone the repository
-git clone https://github.com/NASAInternatioSpaceAppChallengeBaku2026/mars-food-intelligence.git
+git clone https://github.com/NASAInternationalSpaceAppsChallengeGanja2026/mars-food-intelligence.git
 cd mars-food-intelligence
 
 # Make start script executable and launch both frontend & backend
@@ -87,6 +87,6 @@ $$\min_{x} c^T x \quad \text{s.t.} \quad A_{\text{ub}} x \ge b_{\text{ub}}$$
 ---
 
 ## 👥 Organization & Credits
-- **Organization**: [NASA International Space Apps Challenge Baku 2026](https://github.com/NASAInternatioSpaceAppChallengeBaku2026)
+- **Organization**: [NASA International Space Apps Challenge Ganja 2026](https://github.com/NASAInternationalSpaceAppsChallengeGanja2026)
 - **Standard**: NASA-STD-3001 (Human Integration Design Handbook)
 - **Data References**: NASA Johnson Space Center Space Food Systems Laboratory & Cooper et al. (NASA/TM-2011-216157)

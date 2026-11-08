@@ -10,7 +10,7 @@ from app.api.routes_simulator import router as simulator_router
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.PROJECT_VERSION,
-    description="Mission-Grade Space Nutrition, Degradation Kinetics & Life Support Optimization System for NASA Space Apps Baku 2026",
+    description="Mission-Grade Space Nutrition, Degradation Kinetics & Life Support Optimization System for NASA Space Apps Ganja 2026",
     docs_url="/docs",
     redoc_url="/redoc"
 )
