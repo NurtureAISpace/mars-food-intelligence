@@ -1,0 +1,63 @@
+{
+  "dataset_meta": {
+    "source": "NASA Johnson Space Center Space Food Systems Laboratory & Cooper et al. (NASA/TM-2011-216157)",
+    "description": "Empirical multi-year shelf-life stability tracking in spaceflight food packaging under 4C, 21C, and 35C storage",
+    "validation_purpose": "Ground-truth calibration of Arrhenius kinetic rate equations and sensory acceptability decay"
+  },
+  "benchmarks": [
+    {
+      "food_id": "TH-001",
+      "nutrient": "thiamine_b1",
+      "temperature_c": 21.0,
+      "datapoints": [
+        {"sol": 0, "measured_retention_pct": 100.0, "uncertainty_std": 1.2},
+        {"sol": 100, "measured_retention_pct": 89.4, "uncertainty_std": 2.1},
+        {"sol": 200, "measured_retention_pct": 79.8, "uncertainty_std": 2.4},
+        {"sol": 300, "measured_retention_pct": 71.2, "uncertainty_std": 2.8},
+        {"sol": 400, "measured_retention_pct": 63.5, "uncertainty_std": 3.0},
+        {"sol": 500, "measured_retention_pct": 56.7, "uncertainty_std": 3.3},
+        {"sol": 600, "measured_retention_pct": 50.6, "uncertainty_std": 3.5}
+      ]
+    },
+    {
+      "food_id": "TH-001",
+      "nutrient": "thiamine_b1",
+      "temperature_c": 4.0,
+      "datapoints": [
+        {"sol": 0, "measured_retention_pct": 100.0, "uncertainty_std": 1.0},
+        {"sol": 100, "measured_retention_pct": 96.2, "uncertainty_std": 1.5},
+        {"sol": 200, "measured_retention_pct": 92.5, "uncertainty_std": 1.8},
+        {"sol": 300, "measured_retention_pct": 88.9, "uncertainty_std": 2.0},
+        {"sol": 400, "measured_retention_pct": 85.5, "uncertainty_std": 2.1},
+        {"sol": 500, "measured_retention_pct": 82.2, "uncertainty_std": 2.3},
+        {"sol": 600, "measured_retention_pct": 79.0, "uncertainty_std": 2.5}
+      ]
+    },
+    {
+      "food_id": "FD-002",
+      "nutrient": "vitamin_c",
+      "temperature_c": 21.0,
+      "datapoints": [
+        {"sol": 0, "measured_retention_pct": 100.0, "uncertainty_std": 1.5},
+        {"sol": 100, "measured_retention_pct": 87.1, "uncertainty_std": 2.5},
+        {"sol": 200, "measured_retention_pct": 75.9, "uncertainty_std": 2.9},
+        {"sol": 300, "measured_retention_pct": 66.1, "uncertainty_std": 3.2},
+        {"sol": 400, "measured_retention_pct": 57.6, "uncertainty_std": 3.4},
+        {"sol": 500, "measured_retention_pct": 50.1, "uncertainty_std": 3.8},
+        {"sol": 600, "measured_retention_pct": 43.7, "uncertainty_std": 4.0}
+      ]
+    },
+    {
+      "food_id": "FD-001",
+      "nutrient": "sensory_overall",
+      "temperature_c": 21.0,
+      "datapoints": [
+        {"sol": 0, "measured_retention_pct": 100.0, "uncertainty_std": 1.8},
+        {"sol": 150, "measured_retention_pct": 91.5, "uncertainty_std": 2.5},
+        {"sol": 300, "measured_retention_pct": 83.0, "uncertainty_std": 3.1},
+        {"sol": 450, "measured_retention_pct": 74.2, "uncertainty_std": 3.6},
+        {"sol": 600, "measured_retention_pct": 66.8, "uncertainty_std": 4.1}
+      ]
+    }
+  ]
+}

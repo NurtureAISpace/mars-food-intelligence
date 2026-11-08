@@ -1,0 +1,88 @@
+import {
+  DashboardTelemetry,
+  FoodItem,
+  DataAuditReport,
+  ValidationBenchmarks,
+  ShelfLifePrediction,
+  OptimizationResponse,
+  SimulationResult
+} from './types';
+
+const API_BASE = '/api/v1';
+
+export async function fetchDashboardTelemetry(sol: number = 450, crewSize: number = 4): Promise<DashboardTelemetry> {
+  const res = await fetch(`${API_BASE}/dashboard/telemetry?sol=${sol}&crew_size=${crewSize}`);
+  if (!res.ok) throw new Error(`Telemetry fetch failed: ${res.statusText}`);
+  return res.json();
+}
+
+export async function fetchFoodCatalog(): Promise<{ count: number; items: FoodItem[] }> {
+  const res = await fetch(`${API_BASE}/datalab/catalog`);
+  if (!res.ok) throw new Error(`Catalog fetch failed: ${res.statusText}`);
+  return res.json();
+}
+
+export async function fetchDatasetAudit(): Promise<DataAuditReport> {
+  const res = await fetch(`${API_BASE}/datalab/audit`);
+  if (!res.ok) throw new Error(`Audit fetch failed: ${res.statusText}`);
+  return res.json();
+}
+
+export async function fetchValidationBenchmarks(): Promise<ValidationBenchmarks> {
+  const res = await fetch(`${API_BASE}/datalab/validation-benchmarks`);
+  if (!res.ok) throw new Error(`Benchmarks fetch failed: ${res.statusText}`);
+  return res.json();
+}
+
+export async function predictShelfLife(params: {
+  food_id: string;
+  storage_temperature_c: number;
+  critical_nutrient: string;
+  degradation_threshold_pct: number;
+  max_sols: number;
+}): Promise<ShelfLifePrediction> {
+  const res = await fetch(`${API_BASE}/prediction/shelf-life`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  if (!res.ok) throw new Error(`Shelf life prediction failed: ${res.statusText}`);
+  return res.json();
+}
+
+export async function optimizeDailyDiet(params: {
+  crew_size: number;
+  mission_sol: number;
+  storage_temperature_c: number;
+  objective_mode: string;
+  max_biomass_available_g: number;
+  max_rehydration_water_l: number;
+}): Promise<OptimizationResponse> {
+  const res = await fetch(`${API_BASE}/optimization/solve-diet`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  if (!res.ok) throw new Error(`Diet optimization failed: ${res.statusText}`);
+  return res.json();
+}
+
+export async function runMissionSimulation(params: {
+  mission_duration_sols: number;
+  crew_size: number;
+  storage_regime: string;
+  cooling_failure_sol: number | null;
+  failure_duration_sols: number;
+  failure_peak_temp_c: number;
+  crop_failure_sol: number | null;
+  crop_area_m2: number;
+  ration_strategy: string;
+}): Promise<SimulationResult> {
+  const res = await fetch(`${API_BASE}/simulator/run`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  if (!res.ok) throw new Error(`Mission simulation failed: ${res.statusText}`);
+  return res.json();
+}

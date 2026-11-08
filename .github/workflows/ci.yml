@@ -1,0 +1,57 @@
+name: Mars Food Intelligence CI/CD
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  backend-test:
+    name: Backend Pytest & Scientific Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v2
+
+      - name: Install Backend Dependencies
+        working-directory: ./backend
+        run: |
+          uv pip install --system --no-cache fastapi "uvicorn[standard]" pydantic numpy scipy pandas scikit-learn python-multipart pytest httpx
+
+      - name: Execute Pytest Suite (Kinetics & Constraints)
+        working-directory: ./backend
+        run: |
+          pytest -v
+
+  frontend-build:
+    name: Frontend Build & Typecheck
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package.json
+
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm install
+
+      - name: Build Production Assets
+        working-directory: ./frontend
+        run: npm run build
