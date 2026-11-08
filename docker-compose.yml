@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: mars_food_backend
     ports:
-      - "8000:8000"
+      - "8001:8000"
     environment:
       - PYTHONUNBUFFERED=1
     restart: unless-stopped

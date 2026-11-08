@@ -42,7 +42,7 @@ chmod +x start.sh
 ```
 
 - **Frontend Dashboard**: [http://localhost:3000](http://localhost:3000)
-- **Backend OpenAPI Docs**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+- **Backend OpenAPI Docs**: [http://127.0.0.1:8001/docs](http://127.0.0.1:8001/docs)
 
 ### Option 2: Docker Compose (Production Setup)
 

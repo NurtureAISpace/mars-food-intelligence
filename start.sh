@@ -29,9 +29,9 @@ if [ "$1" == "test" ]; then
     exit 0
 fi
 
-echo "Starting Backend Service on http://127.0.0.1:8000 (API & Docs)..."
+echo "Starting Backend Service on http://127.0.0.1:8001 (API & Docs)..."
 cd "$BACKEND_DIR"
-$UVICORN_BIN app.main:app --host 127.0.0.1 --port 8000 &
+$UVICORN_BIN app.main:app --host 127.0.0.1 --port 8001 &
 BACKEND_PID=$!
 
 echo "Starting Frontend Vite App on http://localhost:3000..."
@@ -52,7 +52,7 @@ trap cleanup SIGINT SIGTERM
 echo ""
 echo "✅ Systems Operational:"
 echo "   - Frontend Dashboard: http://localhost:3000"
-echo "   - Backend API Docs:   http://127.0.0.1:8000/docs"
+echo "   - Backend API Docs:   http://127.0.0.1:8001/docs"
 echo "   - Press Ctrl+C to terminate services"
 echo ""
 
