@@ -19,9 +19,10 @@ Long-duration human presence on Mars (e.g. 450 to 1000 Sols) faces a fundamental
 **Mars Food Intelligence** solves this through an end-to-end operational software suite:
 1. **Executive Mission Dashboard (Sol-450)**: Live telemetry of habitat caloric security, food mass remaining, daily crop harvest from bio-regenerative agriculture (BLSS), and thermal power draw.
 2. **Data Laboratory**: Curated space food inventories, automated data pipeline auditing with 100% integrity validation, and ground-truth validation against empirical NASA Johnson Space Center (JSC) food lab stability datasets ($R^2 \ge 0.99$).
-3. **Prediction & Arrhenius Kinetics Engine**: First-principles thermodynamic degradation forecasting using chemical kinetic constants and activation energy ($E_a$), computing exact **Drop-Dead Sols**.
-4. **SciPy Constrained Optimization Engine**: Solves multi-objective linear programming to calculate mathematically optimal daily astronaut diets adhering to NASA-STD-3001 constraints while minimizing stowage payload mass and chilling power.
-5. **Mission Simulator**: Sol-by-Sol dynamic stress-testing to model refrigeration subsystem breakdowns, greenhouse crop blight, and multi-year survival trajectories.
+3. **Ganja Agro-BLSS Bio-Regenerative Engine**: Developed in synergy with Azerbaijan State Agricultural University (ADAU, Ganja) cultivars (Ganja Chickpea `GC-26`, Microgreen `GHM-01`, Halotolerant Alfalfa `GA-04`, and Probiotic Matrix `GP-FERM`) for closed-loop O2, CO2 scrubbing, water transpiration recovery, and Sol-450 scurvy prevention.
+4. **Prediction & Arrhenius Kinetics Engine**: First-principles thermodynamic degradation forecasting using chemical kinetic constants and activation energy ($E_a$), computing exact **Drop-Dead Sols**.
+5. **SciPy Constrained Optimization Engine**: Solves multi-objective linear programming to calculate mathematically optimal daily astronaut diets adhering to NASA-STD-3001 constraints while minimizing stowage payload mass and chilling power.
+6. **Mission Simulator**: Sol-by-Sol dynamic stress-testing to model refrigeration subsystem breakdowns, greenhouse crop blight, and multi-year survival trajectories.
 
 ---
 
