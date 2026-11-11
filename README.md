@@ -1,14 +1,16 @@
-# Mars Food Intelligence (Sol-450 Engine)
+# NurtureAI — Mars Food Intelligence (Sol-450 Engine)
 
-[![CI/CD Pipeline](https://github.com/NASAInternatiSpaceAppChallengeGanja2026/mars-food-intelligence/actions/workflows/ci.yml/badge.svg)](https://github.com/NASAInternatiSpaceAppChallengeGanja2026/mars-food-intelligence/actions/workflows/ci.yml)
+[![CI/CD Pipeline](https://github.com/NurtureAI-SpaceAppChallengeGanja2026/mars-food-intelligence/actions/workflows/ci.yml/badge.svg)](https://github.com/NurtureAI-SpaceAppChallengeGanja2026/mars-food-intelligence/actions/workflows/ci.yml)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI%200.110-009688.svg)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/Frontend-React%2018%20%2B%20TypeScript-61DAFB.svg)](https://react.dev/)
 [![SciPy](https://img.shields.io/badge/Optimizer-SciPy%20Optimization-8CAAE6.svg)](https://scipy.org/)
 [![NASA STD-3001](https://img.shields.io/badge/Standard-NASA--STD--3001%20Compliant-red.svg)](https://www.nasa.gov/hhp/nasa-std-3001)
 
 > **Autonomous Space Nutrition, Shelf-Life Degradation Dynamics & Life Support Optimization System for Long-Duration Mars Missions**  
-> Developed for **NASA International Space Apps Challenge Ganja 2026**  
-> GitHub Organization: [`NASAInternatiSpaceAppChallengeGanja2026`](https://github.com/NASAInternatiSpaceAppChallengeGanja2026)
+> Developed by **NurtureAI** for **NASA International Space Apps Challenge Ganja 2026**  
+> **Team:** Suleyman Hajizadeh (Lead Systems Architect), Banu Gurbanizada (Frontend & Design), Yunis (AI/ML), Faruk (Computer Engineering)  
+> GitHub Organization: [`NurtureAI-SpaceAppChallengeGanja2026`](https://github.com/NurtureAI-SpaceAppChallengeGanja2026)  
+> Live Interactive Portal: [https://nurtureai-spaceappchallengeganja2026.github.io](https://nurtureai-spaceappchallengeganja2026.github.io)
 
 ---
 

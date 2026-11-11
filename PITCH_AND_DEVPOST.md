@@ -1,12 +1,16 @@
-# Mars Food Intelligence (Sol-450 Engine)
+# NurtureAI — Mars Food Intelligence (Sol-450 Engine)
 ## NASA International Space Apps Challenge Ganja 2026 — Devpost & Pitch Kit
+
+**Team:** NurtureAI (Suleyman Hajizadeh, Banu Gurbanizada, Yunis, Faruk)  
+**Live Platform:** https://nurtureai-spaceappchallengeganja2026.github.io/  
+**Organization:** https://github.com/NurtureAI-SpaceAppChallengeGanja2026
 
 ---
 
 ## 1. Devpost Project Submission Text (Copy & Paste Ready)
 
 ### Project Title
-**Mars Food Intelligence: Autonomous Space Nutrition & Shelf-Life Dynamics System (Sol-450 Engine)**
+**Mars Food Intelligence (Sol-450 Engine) by NurtureAI**
 
 ### Tagline
 *Thermodynamic Arrhenius degradation forecasting, SciPy-driven crew diet optimization, and dynamic life-support stress testing for long-duration Mars missions.*
