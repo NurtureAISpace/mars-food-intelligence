@@ -1,7 +1,7 @@
-# NurtureAI — Autonomous Space Nutrition & Life Support Technical Architecture
+# NurtureAISpace — Autonomous Space Nutrition & Life Support Technical Architecture
 
-> Organization: `NurtureAI`  
-> Author: Team NurtureAI (Suleyman Hajizadeh, Banu Gurbanizada, Yunis, Faruk)
+> Organization: `NurtureAISpace`  
+> Author: Team NurtureAISpace (Suleyman Hajizadeh, Banu Gurbanizada, Yunis, Faruk)
 
 ---
 

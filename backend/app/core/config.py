@@ -5,7 +5,7 @@ from pydantic import BaseModel
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 class Settings(BaseModel):
-    PROJECT_NAME: str = "NurtureAI (Sol-450 Engine)"
+    PROJECT_NAME: str = "NurtureAISpace (Sol-450 Engine)"
     PROJECT_VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
     DATA_DIR: Path = BASE_DIR / "data"

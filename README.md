@@ -1,15 +1,16 @@
-# NurtureAI — Autonomous Space Nutrition & Life Support Intelligence
+# NurtureAISpace — Autonomous Space Nutrition & Life Support Intelligence
 
-[![CI/CD Pipeline](https://img.shields.io/badge/CI%2FCD-Passing-emerald.svg)](https://github.com/nurtureai/mars-food-intelligence)
+[![CI/CD Pipeline](https://img.shields.io/badge/CI%2FCD-Passing-emerald.svg)](https://github.com/NurtureAISpace/mars-food-intelligence)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI%200.110-009688.svg)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/Frontend-React%2018%20%2B%20TypeScript-61DAFB.svg)](https://react.dev/)
 [![SciPy](https://img.shields.io/badge/Optimizer-SciPy%20Optimization-8CAAE6.svg)](https://scipy.org/)
 [![NASA STD-3001](https://img.shields.io/badge/Standard-NASA--STD--3001%20Compliant-red.svg)](https://www.nasa.gov/hhp/nasa-std-3001)
 
 > **Autonomous Space Nutrition, Shelf-Life Degradation Dynamics & Bio-Regenerative Life Support System (N-BLSS)**  
-> Developed by **NurtureAI**  
+> Developed by **NurtureAISpace**  
 > **Team:** Suleyman Hajizadeh (Lead Systems Architect), Banu Gurbanizada (Frontend & UI/UX), Yunis (AI/ML), Faruk (Computer Engineering)  
-> Live Platform: [https://nurtureai.github.io](https://nurtureai.github.io)
+> Live Platform: [https://nurtureaispace.github.io](https://nurtureaispace.github.io)  
+> Organization: [https://github.com/NurtureAISpace](https://github.com/NurtureAISpace)
 
 ---
 
@@ -17,7 +18,7 @@
 
 Long-duration human presence in deep space (e.g. 450 to 1000 Sols on Mars) faces a fundamental biophysical hurdle: **food degradation in deep space is not static**. Heat-sensitive vitamins (such as Thiamine B1 and Ascorbic Acid / Vitamin C) degrade continuously over multi-year storage according to **thermodynamic Arrhenius kinetics**. A cooling loop failure or suboptimal storage can trigger severe micronutrient deficiency (beriberi, scurvy, cognitive decline) long before caloric bulk runs out.
 
-**NurtureAI** solves this through an end-to-end operational software suite:
+**NurtureAISpace** solves this through an end-to-end operational software suite:
 1. **Executive Mission Dashboard (Sol-450)**: Live telemetry of habitat caloric security, food mass remaining, daily crop harvest from bio-regenerative agriculture (BLSS), and thermal power draw.
 2. **Data Laboratory**: Curated space food inventories, automated data pipeline auditing with 100% integrity validation, and ground-truth validation against empirical NASA Johnson Space Center (JSC) food lab stability datasets ($R^2 \ge 0.99$).
 3. **Bio-Regenerative Agro-BLSS Engine**: Advanced cultivars (Chickpea `GC-26`, Microgreen `GHM-01`, Halotolerant Alfalfa `GA-04`, and Probiotic Matrix `GP-FERM`) for closed-loop O2, CO2 scrubbing, water transpiration recovery, and Sol-450 scurvy prevention.
@@ -35,7 +36,7 @@ Prerequisites: Python 3.10+, Node.js 18+
 
 ```bash
 # Clone the repository
-git clone https://github.com/nurtureai/mars-food-intelligence.git
+git clone https://github.com/NurtureAISpace/mars-food-intelligence.git
 cd mars-food-intelligence
 
 # Make start script executable and launch both frontend & backend
@@ -64,10 +65,10 @@ Verify all Arrhenius kinetic models, linear programming bounds, and API endpoint
 cd backend && pytest -v
 ```
 
-All 11 unit & integration tests pass with 100% success rate:
+All 16 unit & integration tests pass with 100% success rate:
 - Arrhenius temperature acceleration & Q10 factors
 - First-order exponential decay and half-life formulas
-- Empirical NASA JSC benchmark accuracy ($R^2 \ge 0.90$)
+- Empirical benchmark accuracy ($R^2 \ge 0.90$)
 - SciPy linear programming optimizer convergence & NASA STD-3001 compliance
 - Full Sol-by-Sol habitat simulation with cooling failure injection
 
@@ -89,6 +90,6 @@ $$\min_{x} c^T x \quad \text{s.t.} \quad A_{\text{ub}} x \ge b_{\text{ub}}$$
 ---
 
 ## 👥 Organization & Credits
-- **Organization**: NurtureAI
+- **Organization**: [NurtureAISpace](https://github.com/NurtureAISpace)
 - **Standard**: NASA-STD-3001 (Human Integration Design Handbook)
 - **Data References**: NASA Johnson Space Center Space Food Systems Laboratory & Cooper et al. (NASA/TM-2011-216157)
