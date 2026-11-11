@@ -89,7 +89,12 @@ $$\min_{x} c^T x \quad \text{s.t.} \quad A_{\text{ub}} x \ge b_{\text{ub}}$$
 
 ---
 
-## 👥 Organization & Credits
+## 👥 Organization, Team & Credits
 - **Organization**: [NurtureAISpace](https://github.com/NurtureAISpace)
+- **Team Members**:
+  - **Suleyman Hajizadeh** — Lead Systems Architect & Research ([`suleyman.hacizade1@gmail.com`](mailto:suleyman.hacizade1@gmail.com))
+  - **Banu Gurbanizada** — Frontend Architecture & UI/UX Design ([`banugurbanzade@gmail.com`](mailto:banugurbanzade@gmail.com))
+  - **Yunis** — AI/ML & Degradation Modeling ([`allahverdiyunis@gmail.com`](mailto:allahverdiyunis@gmail.com))
+  - **Faruk** — Computer Engineering & Life Support Simulation ([`fkarimli23291@ada.edu.az`](mailto:fkarimli23291@ada.edu.az))
 - **Standard**: NASA-STD-3001 (Human Integration Design Handbook)
 - **Data References**: NASA Johnson Space Center Space Food Systems Laboratory & Cooper et al. (NASA/TM-2011-216157)
