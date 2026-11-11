@@ -1,7 +1,7 @@
 [project]
-name = "mars-food-intelligence-backend"
+name = "nurtureai-backend"
 version = "1.0.0"
-description = "NASA Space Apps: Mars Food Intelligence & Shelf-Life Dynamics System"
+description = "NurtureAI: Autonomous Space Nutrition & Shelf-Life Dynamics System"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

@@ -1,8 +1,7 @@
-# Mars Food Intelligence (Sol-450 Engine) - Technical Architecture
+# NurtureAI — Autonomous Space Nutrition & Life Support Technical Architecture
 
-> **NASA International Space Apps Challenge Ganja 2026**  
-> Organization: `NASAInternatiSpaceAppChallengeGanja2026`  
-> Author: Senior Software & Bio-System Architecture Team
+> Organization: `NurtureAI`  
+> Author: Team NurtureAI (Suleyman Hajizadeh, Banu Gurbanizada, Yunis, Faruk)
 
 ---
 

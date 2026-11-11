@@ -7,8 +7,8 @@ BACKEND_DIR="$SCRIPT_DIR/backend"
 FRONTEND_DIR="$SCRIPT_DIR/frontend"
 
 echo "=========================================================="
-echo "   MARS FOOD INTELLIGENCE (SOL-450 MVP SYSTEM)            "
-echo "   NASA Space Apps Challenge Ganja 2026                    "
+echo "   NURTUREAI — AUTONOMOUS SPACE NUTRITION SYSTEM          "
+echo "   Team NurtureAI • Sol-450 Mission Architecture          "
 echo "=========================================================="
 
 # Check Python environment

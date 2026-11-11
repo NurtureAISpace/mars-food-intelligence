@@ -1,27 +1,26 @@
-# NurtureAI — Mars Food Intelligence (Sol-450 Engine)
+# NurtureAI — Autonomous Space Nutrition & Life Support Intelligence
 
-[![CI/CD Pipeline](https://github.com/NurtureAI-SpaceAppChallengeGanja2026/mars-food-intelligence/actions/workflows/ci.yml/badge.svg)](https://github.com/NurtureAI-SpaceAppChallengeGanja2026/mars-food-intelligence/actions/workflows/ci.yml)
+[![CI/CD Pipeline](https://img.shields.io/badge/CI%2FCD-Passing-emerald.svg)](https://github.com/nurtureai/mars-food-intelligence)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI%200.110-009688.svg)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/Frontend-React%2018%20%2B%20TypeScript-61DAFB.svg)](https://react.dev/)
 [![SciPy](https://img.shields.io/badge/Optimizer-SciPy%20Optimization-8CAAE6.svg)](https://scipy.org/)
 [![NASA STD-3001](https://img.shields.io/badge/Standard-NASA--STD--3001%20Compliant-red.svg)](https://www.nasa.gov/hhp/nasa-std-3001)
 
-> **Autonomous Space Nutrition, Shelf-Life Degradation Dynamics & Life Support Optimization System for Long-Duration Mars Missions**  
-> Developed by **NurtureAI** for **NASA International Space Apps Challenge Ganja 2026**  
-> **Team:** Suleyman Hajizadeh (Lead Systems Architect), Banu Gurbanizada (Frontend & Design), Yunis (AI/ML), Faruk (Computer Engineering)  
-> GitHub Organization: [`NurtureAI-SpaceAppChallengeGanja2026`](https://github.com/NurtureAI-SpaceAppChallengeGanja2026)  
-> Live Interactive Portal: [https://nurtureai-spaceappchallengeganja2026.github.io](https://nurtureai-spaceappchallengeganja2026.github.io)
+> **Autonomous Space Nutrition, Shelf-Life Degradation Dynamics & Bio-Regenerative Life Support System (N-BLSS)**  
+> Developed by **NurtureAI**  
+> **Team:** Suleyman Hajizadeh (Lead Systems Architect), Banu Gurbanizada (Frontend & UI/UX), Yunis (AI/ML), Faruk (Computer Engineering)  
+> Live Platform: [https://nurtureai.github.io](https://nurtureai.github.io)
 
 ---
 
 ## 🌟 Executive Summary
 
-Long-duration human presence on Mars (e.g. 450 to 1000 Sols) faces a fundamental biophysical hurdle: **food degradation in deep space is not static**. Heat-sensitive vitamins (such as Thiamine B1 and Ascorbic Acid / Vitamin C) degrade continuously over multi-year storage according to **thermodynamic Arrhenius kinetics**. A cooling loop failure or suboptimal storage can trigger severe micronutrient deficiency (beriberi, scurvy, cognitive decline) long before caloric bulk runs out.
+Long-duration human presence in deep space (e.g. 450 to 1000 Sols on Mars) faces a fundamental biophysical hurdle: **food degradation in deep space is not static**. Heat-sensitive vitamins (such as Thiamine B1 and Ascorbic Acid / Vitamin C) degrade continuously over multi-year storage according to **thermodynamic Arrhenius kinetics**. A cooling loop failure or suboptimal storage can trigger severe micronutrient deficiency (beriberi, scurvy, cognitive decline) long before caloric bulk runs out.
 
-**Mars Food Intelligence** solves this through an end-to-end operational software suite:
+**NurtureAI** solves this through an end-to-end operational software suite:
 1. **Executive Mission Dashboard (Sol-450)**: Live telemetry of habitat caloric security, food mass remaining, daily crop harvest from bio-regenerative agriculture (BLSS), and thermal power draw.
 2. **Data Laboratory**: Curated space food inventories, automated data pipeline auditing with 100% integrity validation, and ground-truth validation against empirical NASA Johnson Space Center (JSC) food lab stability datasets ($R^2 \ge 0.99$).
-3. **Ganja Agro-BLSS Bio-Regenerative Engine**: Developed in synergy with Azerbaijan State Agricultural University (ADAU, Ganja) cultivars (Ganja Chickpea `GC-26`, Microgreen `GHM-01`, Halotolerant Alfalfa `GA-04`, and Probiotic Matrix `GP-FERM`) for closed-loop O2, CO2 scrubbing, water transpiration recovery, and Sol-450 scurvy prevention.
+3. **Bio-Regenerative Agro-BLSS Engine**: Advanced cultivars (Chickpea `GC-26`, Microgreen `GHM-01`, Halotolerant Alfalfa `GA-04`, and Probiotic Matrix `GP-FERM`) for closed-loop O2, CO2 scrubbing, water transpiration recovery, and Sol-450 scurvy prevention.
 4. **Prediction & Arrhenius Kinetics Engine**: First-principles thermodynamic degradation forecasting using chemical kinetic constants and activation energy ($E_a$), computing exact **Drop-Dead Sols**.
 5. **SciPy Constrained Optimization Engine**: Solves multi-objective linear programming to calculate mathematically optimal daily astronaut diets adhering to NASA-STD-3001 constraints while minimizing stowage payload mass and chilling power.
 6. **Mission Simulator**: Sol-by-Sol dynamic stress-testing to model refrigeration subsystem breakdowns, greenhouse crop blight, and multi-year survival trajectories.
@@ -36,7 +35,7 @@ Prerequisites: Python 3.10+, Node.js 18+
 
 ```bash
 # Clone the repository
-git clone https://github.com/NASAInternatiSpaceAppChallengeGanja2026/mars-food-intelligence.git
+git clone https://github.com/nurtureai/mars-food-intelligence.git
 cd mars-food-intelligence
 
 # Make start script executable and launch both frontend & backend
@@ -90,6 +89,6 @@ $$\min_{x} c^T x \quad \text{s.t.} \quad A_{\text{ub}} x \ge b_{\text{ub}}$$
 ---
 
 ## 👥 Organization & Credits
-- **Organization**: [NASA International Space Apps Challenge Ganja 2026](https://github.com/NASAInternatiSpaceAppChallengeGanja2026)
+- **Organization**: NurtureAI
 - **Standard**: NASA-STD-3001 (Human Integration Design Handbook)
 - **Data References**: NASA Johnson Space Center Space Food Systems Laboratory & Cooper et al. (NASA/TM-2011-216157)

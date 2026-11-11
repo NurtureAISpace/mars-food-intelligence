@@ -11,7 +11,7 @@ from app.api.routes_ganja import router as ganja_router
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.PROJECT_VERSION,
-    description="Mission-Grade Space Nutrition, Degradation Kinetics & Life Support Optimization System for NASA Space Apps Ganja 2026",
+    description="Mission-Grade Space Nutrition, Degradation Kinetics & Bio-Regenerative Life Support Intelligence System by NurtureAI",
     docs_url="/docs",
     redoc_url="/redoc"
 )

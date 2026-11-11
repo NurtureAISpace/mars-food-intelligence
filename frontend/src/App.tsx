@@ -34,9 +34,9 @@ export function App() {
       <footer className="border-t border-mars-border bg-mars-dark/80 py-6 mt-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs font-mono text-slate-500 gap-4">
           <div>
-            <span className="text-white font-bold">MARS FOOD INTELLIGENCE</span> • Target MVP: Sol-450
+            <span className="text-white font-bold">NURTUREAI</span> • Sol-450 Deep Space Engine
             <span className="block text-[11px] text-slate-400 mt-0.5">
-              NASA International Space Apps Challenge Ganja 2026 • Organization: NASAInternatiSpaceAppChallengeGanja2026
+              Autonomous Space Nutrition & Bio-Regenerative Life Support System (N-BLSS)
             </span>
           </div>
           <div className="flex items-center space-x-4">

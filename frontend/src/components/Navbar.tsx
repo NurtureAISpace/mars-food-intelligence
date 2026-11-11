@@ -27,12 +27,12 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, mission
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="font-bold tracking-tight text-white text-lg font-mono">MARS FOOD INTELLIGENCE</span>
+                <span className="font-bold tracking-tight text-white text-lg font-mono">NURTURE<span className="text-orange-400">AI</span></span>
                 <span className="bg-orange-500/20 text-orange-400 border border-orange-500/40 text-[10px] font-mono px-2 py-0.5 rounded font-semibold uppercase">
                   Sol-450 MVP
                 </span>
               </div>
-              <p className="text-xs text-slate-400">NASA Space Apps Ganja 2026 • Autonomous Deep Space Nutrition System</p>
+              <p className="text-xs text-slate-400">Autonomous Space Nutrition & Bio-Life Support System (N-BLSS)</p>
             </div>
           </div>
 

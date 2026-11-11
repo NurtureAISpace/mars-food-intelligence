@@ -1,6 +1,6 @@
 # Confidential Research & Mission Ideas Repository
 
-> 🔒 **Məxfi / Private Materiallar — NASA Space Apps Ganja 2026**  
+> 🔒 **Məxfi / Private Materiallar — NurtureAI**  
 > Bu qovluq "Mars Food Intelligence" layihəsinin ilkin ideya konsepsiyalarını, təqdimat slaydlarını və torpaq rütubəti/reqolit hidro-idarəetmə platforması sənədlərini ehtiva edir.
 
 ---
@@ -15,4 +15,4 @@
 
 ---
 
-Bu materiallar yalnız `NASAInternatiSpaceAppChallengeGanja2026/mars-food-intelligence` private repozitoriyasında saxlanılır və xarici mühitə sızdırılmır.
+Bu materiallar yalnız `NurtureAI/mars-food-intelligence` private repozitoriyasında saxlanılır və xarici mühitə sızdırılmır.
