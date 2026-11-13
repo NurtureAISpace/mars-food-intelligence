@@ -3,6 +3,62 @@
 > **Prototype — not a medical device.** All astronaut physiology in this module is **synthetic**.
 > Every API response carries `"data_provenance": "synthetic crew data; vitamin degradation from Arrhenius model"`.
 
+## Plain-language overview
+
+*For teammates who don't need the maths.*
+
+**The idea in one picture: a water tank.** Picture each astronaut's body store of a vitamin as a water tank:
+- **Tap = intake.** The vitamins they eat each day flow in.
+- **Drain = turnover.** The body uses up and gets rid of a fixed share of the tank every day.
+- **Water level = body pool.** When the tap and drain are balanced the level stays steady. If the tap is turned down
+  (less food, or food that has lost its vitamins in storage), the level slowly falls.
+
+We watch the level and the trend. We warn the crew while the tank is still well above "empty" and say how to turn the
+tap back up.
+
+**What is a Sol?** A Mars day, about 24 h 40 min (1.027 Earth days). The mission lasts 450 Sols.
+
+**The default story (Sols 0 → 449):**
+- **Sols 0–20:** we learn what "normal" looks like for *each* astronaut (their personal baseline). Up to Sol 27 the
+  status shows **CALIBRATING**.
+- **Sol 150:** the food storage cooling fails for 45 Sols (storage rises to 29.5 °C, so vitamins in packaged food break
+  down faster). The same power event takes the **greenhouse offline for 120 Sols** (no fresh vegetables), and the crew
+  moves to reduced rations.
+- **Sols ~160–195:** vitamin intake drops sharply, tanks start draining, and the alerts fire.
+- **After ~Sol 270:** the greenhouse is back, and the tanks refill.
+
+**What each status means:**
+
+| Status | Meaning | What to do |
+|---|---|---|
+| CALIBRATING | Still learning this astronaut's normal (first 28 Sols) | Nothing |
+| NOMINAL | Within their personal normal, no risk forecast | Nothing |
+| WATCH | Something is drifting: a vital sign is unusual for *this* person, or the tank is forecast to hit the risk line within 120 Sols | Keep an eye on it; consider the suggested food |
+| ACT | The tank is forecast to hit the risk line within 45 Sols | Follow the recommended action now |
+
+**How to read the charts (Crew Health tab):**
+- **Coloured line:** the astronaut's tank level (vitamin pool) up to the current Sol. Nothing after the current Sol is shown.
+- **Red dashed line:** the risk threshold, an early-warning level set *above* real deficiency.
+- **Orange shaded band:** the period when the cooling system was broken (the faint green band behind it is the greenhouse outage).
+- **White dashed line:** the forecast. Where the tank is heading if the astronaut keeps eating like they did in the last 7 Sols.
+- **Red dot:** the Sol on which the ACT alert fired.
+- **Vitals chart, green band:** this astronaut's own normal range (their average ± 2 standard deviations over Sols 0–20).
+  A line leaving the band means "unusual for this person", even if it would be normal for someone else.
+
+**Demo walkthrough (4 steps):**
+1. **Sol 149:** all four astronauts are NOMINAL; vitals sit inside their green bands.
+2. **Sol 165:** the cooling failure at Sol 150 has knocked out the greenhouse. PLT-02 and MS-03 are on **WATCH**:
+   their thiamine intake is down about 50% since Sol 152 and their fatigue is above their personal normal.
+3. **Sol 192:** MS-03 goes to **ACT**. The forecast says vitamin C will hit the risk line around Sol 227. The alert
+   recommends about 1.9 servings/Sol of lentil stew. The real crossing happens at Sol 242, so the warning came
+   **about 50 Sols early**.
+4. **Turn the cooling failure off:** no WATCH and no ACT for anyone over the whole mission. The alerts react to the
+   real problem, not to noise.
+
+Remember: **all crew data is synthetic**, and this is a prototype, not a medical device.
+
+---
+
 NASA Space Apps 2026 challenge: *Create Health Monitoring Software for Astronauts on Space Missions.*
 
 The rest of NurtureAISpace models how food degrades in storage. This module follows that degradation into the
