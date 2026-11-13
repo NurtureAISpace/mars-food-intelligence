@@ -7,6 +7,7 @@ from app.api.routes_prediction import router as prediction_router
 from app.api.routes_optimization import router as optimization_router
 from app.api.routes_simulator import router as simulator_router
 from app.api.routes_ganja import router as ganja_router
+from app.api.routes_health import router as health_router
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -33,6 +34,7 @@ app.include_router(prediction_router, prefix=api_prefix)
 app.include_router(optimization_router, prefix=api_prefix)
 app.include_router(simulator_router, prefix=api_prefix)
 app.include_router(ganja_router, prefix=api_prefix)
+app.include_router(health_router, prefix=api_prefix)
 
 
 @app.get("/")
@@ -53,7 +55,10 @@ def root():
             f"{api_prefix}/optimization/solve-diet",
             f"{api_prefix}/simulator/run",
             f"{api_prefix}/ganja/cultivars",
-            f"{api_prefix}/ganja/simulate-blss"
+            f"{api_prefix}/ganja/simulate-blss",
+            f"{api_prefix}/health/crew",
+            f"{api_prefix}/health/astronaut/{{astronaut_id}}/timeline",
+            f"{api_prefix}/health/alerts"
         ]
     }
 
