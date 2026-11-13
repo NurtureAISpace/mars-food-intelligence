@@ -5,7 +5,11 @@ import {
   ValidationBenchmarks,
   ShelfLifePrediction,
   OptimizationResponse,
-  SimulationResult
+  SimulationResult,
+  CrewHealthScenario,
+  CrewHealthSnapshot,
+  AstronautTimeline,
+  CrewAlertsResponse
 } from './types';
 
 const API_BASE = '/api/v1';
@@ -84,5 +88,32 @@ export async function runMissionSimulation(params: {
     body: JSON.stringify(params),
   });
   if (!res.ok) throw new Error(`Mission simulation failed: ${res.statusText}`);
+  return res.json();
+}
+
+function crewScenarioQuery(s: CrewHealthScenario): string {
+  return new URLSearchParams({
+    failure_enabled: String(s.failure_enabled),
+    cooling_failure_sol: String(s.cooling_failure_sol),
+    failure_duration_sols: String(s.failure_duration_sols),
+    failure_peak_temp_c: String(s.failure_peak_temp_c),
+  }).toString();
+}
+
+export async function fetchCrewHealth(sol: number, scenario: CrewHealthScenario): Promise<CrewHealthSnapshot> {
+  const res = await fetch(`${API_BASE}/health/crew?sol=${sol}&${crewScenarioQuery(scenario)}`);
+  if (!res.ok) throw new Error(`Crew health fetch failed: ${res.statusText}`);
+  return res.json();
+}
+
+export async function fetchAstronautTimeline(astronautId: string, scenario: CrewHealthScenario): Promise<AstronautTimeline> {
+  const res = await fetch(`${API_BASE}/health/astronaut/${encodeURIComponent(astronautId)}/timeline?${crewScenarioQuery(scenario)}`);
+  if (!res.ok) throw new Error(`Astronaut timeline fetch failed: ${res.statusText}`);
+  return res.json();
+}
+
+export async function fetchCrewAlerts(sol: number, scenario: CrewHealthScenario): Promise<CrewAlertsResponse> {
+  const res = await fetch(`${API_BASE}/health/alerts?sol=${sol}&${crewScenarioQuery(scenario)}`);
+  if (!res.ok) throw new Error(`Crew alerts fetch failed: ${res.statusText}`);
   return res.json();
 }
