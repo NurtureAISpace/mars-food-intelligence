@@ -126,9 +126,9 @@ raised and no pool crosses a threshold.
 - **Synthetic data only.** No real astronaut data has been used for training or validation.
 - Only two water-soluble vitamins are modeled, each with a single-compartment first-order pool.
 - The forecast assumes the intake of the last 7 Sols continues, so it does not anticipate planned changes.
-- Body mass follows a random walk in the synthetic generator. Over long missions this can produce occasional WATCH
-  states without any failure (e.g. CDR-01 at Sol 314 and MS-03 at Sol 375 with `failure_enabled=false`). ACT is never raised
-  in that case.
+- Synthetic body mass = personal baseline + cumulative deficit-driven loss + mean-reverting AR(1) noise (reversion 0.2/Sol),
+  so it does not drift without a deficit. With `failure_enabled=false` no WATCH or ACT is raised over the full mission
+  (seed 42). Real body-mass data would drift (e.g. bone/muscle loss), and that drift would need its own model.
 - Alerts are reported at the first WATCH and the first ACT per astronaut. The snapshot endpoint gives the live status
   at any Sol.
 - The cache is in-process only (LRU, 16 scenarios). It is lost on restart and not shared between workers.

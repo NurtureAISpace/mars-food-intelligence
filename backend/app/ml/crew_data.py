@@ -27,6 +27,10 @@ PACKAGED_MENU: Dict[str, float] = {"FD-001": 1, "FD-002": 1, "FD-003": 1, "TH-00
 FRESH_MENU: Dict[str, float] = {"BIO-002": 1.0, "BIO-001": 0.5}
 FRESH_PREFIX = "BIO-"
 
+# Per-Sol pull of body-mass noise back to the astronaut's baseline (AR(1) mean reversion).
+# Prevents a pure random walk from drifting outside the personal baseline without any deficit.
+BODY_MASS_REVERSION = 0.2
+
 
 @dataclass(frozen=True)
 class CrewScenario:
@@ -168,7 +172,9 @@ def generate_crew(sc: CrewScenario = CrewScenario()) -> CrewData:
                    / population_turnover_per_sol(cfg, profile["turnover_scale"]))
             for n, cfg in NUTRIENTS.items()
         }
-        body_mass = profile["body_mass_kg"]
+        # body mass = personal baseline + cumulative deficit-driven loss + mean-reverting (AR(1)) noise
+        deficit_mass_loss = 0.0
+        mass_noise = 0.0
 
         for sol in sols:
             record = {"astronaut": astronaut, "sol": int(sol)}
@@ -185,7 +191,9 @@ def generate_crew(sc: CrewScenario = CrewScenario()) -> CrewData:
                 deficit_signal = max(deficit_signal, float(np.clip(1 - 2 * margin, 0, 1)))
 
             # Demonstration-only mapping from deficiency signal to observable vitals
-            body_mass += -0.001 - 0.03 * deficit_signal + rng.normal(0, 0.04)
+            deficit_mass_loss -= 0.03 * deficit_signal
+            mass_noise = (1 - BODY_MASS_REVERSION) * mass_noise + rng.normal(0, 0.04)
+            body_mass = profile["body_mass_kg"] + deficit_mass_loss + mass_noise
             record["hr_rest"] = profile["hr_rest"] + 7 * deficit_signal + rng.normal(0, 1.8)
             record["sleep_h"] = profile["sleep_h"] - 0.9 * deficit_signal + rng.normal(0, 0.3)
             record["body_mass_kg"] = body_mass

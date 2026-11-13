@@ -31,6 +31,14 @@ def test_no_act_without_cooling_failure(no_failure_analysis):
         assert all(v is None for v in res.threshold_crossing_sol.values())
 
 
+def test_no_watch_or_act_without_cooling_failure(no_failure_analysis):
+    statuses = set(no_failure_analysis.timeline["status"])
+    assert statuses <= {"CALIBRATING", "NOMINAL"}, statuses
+    assert no_failure_analysis.alerts == []
+    for res in no_failure_analysis.astronauts.values():
+        assert res.first_status == {}
+
+
 def test_act_raised_before_pool_crosses_threshold(default_analysis):
     crossed = 0
     for res in default_analysis.astronauts.values():
