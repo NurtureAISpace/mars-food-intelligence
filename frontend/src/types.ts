@@ -154,3 +154,151 @@ export interface SimulationResult {
     active_alarm_count: number;
   }>;
 }
+
+// ---------------------------------------------------------------------------
+// Crew Health (synthetic crew data; vitamin degradation from Arrhenius model)
+// ---------------------------------------------------------------------------
+export type CrewStatus = 'CALIBRATING' | 'NOMINAL' | 'WATCH' | 'ACT';
+export type NutrientKey = 'vitamin_c' | 'thiamine_b1';
+export type VitalKey = 'hr_rest' | 'sleep_h' | 'body_mass_kg' | 'fatigue_score';
+
+export interface CrewHealthScenario {
+  failure_enabled: boolean;
+  cooling_failure_sol: number;
+  failure_duration_sols: number;
+  failure_peak_temp_c: number;
+}
+
+export interface CrewNutrientMeta {
+  label: string;
+  pool_max_mg: number;
+  risk_threshold_mg: number;
+  absorption: number;
+  population_turnover_per_day: number;
+}
+
+export interface CrewEvents {
+  cooling_failure: { start_sol: number; end_sol: number; peak_temp_c: number } | null;
+  greenhouse_outage: { start_sol: number; end_sol: number } | null;
+}
+
+export interface CrewAlertChange {
+  signal: string;
+  label: string;
+  baseline: number | null;
+  current: number | null;
+  pct_change_vs_baseline: number | null;
+  z: number | null;
+}
+
+export interface CrewAlert {
+  astronaut_id: string;
+  sol: number;
+  status: CrewStatus;
+  nutrient: NutrientKey;
+  pool_mg: number | null;
+  risk_threshold_mg: number;
+  sols_to_risk: number | null;
+  projected_risk_sol: number | null;
+  top_vital_driver: VitalKey;
+  driver_z: number | null;
+  anomaly_score: number | null;
+  since_sol: number | null;
+  since_signal: string | null;
+  changes: CrewAlertChange[];
+  intake_gap_mg_per_sol: number | null;
+  recommendation: {
+    food_id: string;
+    food_name: string;
+    source: string;
+    nutrient_per_serving_mg: number;
+    servings_per_sol: number | null;
+    feasible: boolean;
+  } | null;
+  action: string;
+  message: string;
+}
+
+export interface CrewMemberStatus {
+  astronaut_id: string;
+  status: CrewStatus;
+  worst_nutrient: NutrientKey | null;
+  sols_to_risk: number | null;
+  top_driver: VitalKey | null;
+  driver_z: number | null;
+  anomaly_score: number | null;
+  iso_outlier: boolean;
+  vitals: Record<VitalKey, number | null>;
+  z_scores: Record<VitalKey, number | null>;
+  nutrients: Record<NutrientKey, {
+    pool_mg: number | null;
+    pool_pct_of_max: number | null;
+    personal_turnover_per_sol: number | null;
+    equilibrium_pool_mg: number | null;
+    sols_to_risk: number | null;
+  }>;
+  first_watch_sol: number | null;
+  first_act_sol: number | null;
+  assessment: CrewAlert | null;
+}
+
+export interface CrewHealthSnapshot {
+  data_provenance: string;
+  scenario: Record<string, unknown> & { mission_sols: number; calibration_sols: number; failure_enabled: boolean };
+  events: CrewEvents;
+  sol: number;
+  storage_temp_c: number;
+  greenhouse_online: boolean;
+  crew_status: CrewStatus;
+  status_counts: Record<CrewStatus, number>;
+  status_rules: Record<CrewStatus, string>;
+  nutrients: Record<NutrientKey, CrewNutrientMeta>;
+  crew: CrewMemberStatus[];
+  active_alerts: CrewAlert[];
+}
+
+export interface AstronautTimelinePoint {
+  sol: number;
+  storage_temp_c: number;
+  vitamin_c_intake_mg: number;
+  vitamin_c_pool_mg: number;
+  vitamin_c_sols_to_risk: number | null;
+  thiamine_b1_intake_mg: number;
+  thiamine_b1_pool_mg: number;
+  thiamine_b1_sols_to_risk: number | null;
+  hr_rest: number;
+  sleep_h: number;
+  body_mass_kg: number;
+  fatigue_score: number;
+  z_hr_rest: number | null;
+  z_sleep_h: number | null;
+  z_body_mass_kg: number | null;
+  z_fatigue_score: number | null;
+  anomaly_score: number;
+  status: CrewStatus;
+  worst_nutrient: NutrientKey | null;
+  sols_to_risk: number | null;
+  top_driver: VitalKey | null;
+  driver_z: number | null;
+}
+
+export interface AstronautTimeline {
+  data_provenance: string;
+  astronaut_id: string;
+  events: CrewEvents;
+  nutrients: Record<NutrientKey, CrewNutrientMeta>;
+  baseline: Record<VitalKey, { mean: number; sd: number; band_low: number; band_high: number }>;
+  pool_baseline_mg: Record<NutrientKey, number>;
+  first_watch_sol: number | null;
+  first_act_sol: number | null;
+  threshold_crossing_sol: Record<NutrientKey, number | null>;
+  alerts: CrewAlert[];
+  timeline: AstronautTimelinePoint[];
+}
+
+export interface CrewAlertsResponse {
+  data_provenance: string;
+  sol: number;
+  count: number;
+  alerts: CrewAlert[];
+}

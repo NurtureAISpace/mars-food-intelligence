@@ -28,6 +28,16 @@ Long-duration human presence in deep space (e.g. 450 to 1000 Sols on Mars) faces
 
 ---
 
+## 🩺 Crew Health Monitoring
+
+NurtureAISpace now follows food degradation all the way to the astronaut. Vitamin C and thiamine B1 losses from Arrhenius food kinetics drive each astronaut's **body vitamin pool**. Each astronaut is compared with **their own personal baseline**, and the module raises explainable early-warning alerts, **NOMINAL / WATCH / ACT**, that say what changed, since which Sol, and how many Sols remain until a risk threshold is crossed.
+Every alert ends with a corrective action: which available food to add, and how many servings per Sol, to close the intake gap.
+In the default scenario (cooling failure at Sol 150), ACT is raised about 50 Sols before the vitamin C pool actually crosses the risk threshold.
+**Crew physiology data is synthetic**; this is a prototype, not a medical device.
+Details, equations and limitations: [docs/CREW_HEALTH.md](docs/CREW_HEALTH.md). API: `GET /api/v1/health/crew`, `/health/astronaut/{id}/timeline`, `/health/alerts`; UI: **Crew Health** tab.
+
+---
+
 ## 🚀 Quick Start Guide
 
 ### Option 1: Native Run with Shell Script (Fastest)

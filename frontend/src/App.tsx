@@ -5,6 +5,7 @@ import { DataLabView } from './components/DataLabView';
 import { PredictionView } from './components/PredictionView';
 import { OptimizationView } from './components/OptimizationView';
 import { SimulatorView } from './components/SimulatorView';
+import { CrewHealthView } from './components/CrewHealthView';
 
 export function App() {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
@@ -28,6 +29,7 @@ export function App() {
         {activeTab === 'prediction' && <PredictionView />}
         {activeTab === 'optimization' && <OptimizationView />}
         {activeTab === 'simulator' && <SimulatorView />}
+        {activeTab === 'crewhealth' && <CrewHealthView />}
       </main>
 
       {/* Footer */}
