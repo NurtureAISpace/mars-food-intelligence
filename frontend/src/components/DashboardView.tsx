@@ -224,7 +224,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, missio
               <h3 className="font-mono font-bold text-white text-sm">HABITAT HEALTH & ACTIVE ADVISORIES</h3>
             </div>
             <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded">
-              NASA-STD-3001 VERIFIED
+              SYNTHETIC SCENARIO
             </span>
           </div>
 
@@ -259,7 +259,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, missio
             <div className="text-xs font-mono">
               <span className="text-orange-400 font-bold block">SCIENTIFIC PREDICTION PRINCIPLE</span>
               <span className="text-slate-400">
-                Nutrient breakdown is simulated via 1st-order Arrhenius kinetics ($k = A e^{'{'}-E_a / RT{'}'}$) calibrated against NASA Johnson Space Center empirical food datasets.
+                Nutrient breakdown is simulated via 1st-order Arrhenius kinetics ($k = A e^{'{'}-E_a / RT{'}'}$); kinetic constants in this view are illustrative; see Data Lab for the comparison with published retention data.
               </span>
             </div>
             <button

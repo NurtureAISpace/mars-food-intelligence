@@ -43,7 +43,7 @@ export const OptimizationView: React.FC = () => {
           <h2 className="text-xl font-bold font-mono text-white">SCIPY DIET & PAYLOAD OPTIMIZATION ENGINE</h2>
         </div>
         <p className="text-xs text-slate-400 font-mono mt-1">
-          Solves multi-objective linear programming ($\min c^T x$ subject to $A x \ge b$) to fulfill NASA-STD-3001 nutritional constraints.
+          Solves multi-objective linear programming ($\min c^T x$ subject to $A x \ge b$) to meet daily nutrient targets (vitamin C/B1: NASA JSC 2005; others assumed).
         </p>
       </div>
 
@@ -185,7 +185,7 @@ export const OptimizationView: React.FC = () => {
                     <span className="text-base font-bold text-white">
                       {result.optimal_daily_metrics.total_protein_g} g
                     </span>
-                    <span className="text-[10px] text-slate-400 block">NASA STD-3001 Pass</span>
+                    <span className="text-[10px] text-slate-400 block">Daily target met</span>
                   </div>
 
                   <div className="p-3 rounded-lg bg-mars-dark border border-mars-border">
@@ -208,7 +208,7 @@ export const OptimizationView: React.FC = () => {
 
               {/* Compliance Gauges */}
               <div>
-                <h4 className="text-xs font-mono font-bold text-slate-300 mb-3 uppercase">NASA-STD-3001 Compliance Index</h4>
+                <h4 className="text-xs font-mono font-bold text-slate-300 mb-3 uppercase">Daily Target Coverage</h4>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-xs">
                   {Object.entries(result.nasa_std_3001_compliance).map(([key, pct]) => (
                     <div key={key} className="p-2.5 rounded-lg bg-mars-dark border border-mars-border">
