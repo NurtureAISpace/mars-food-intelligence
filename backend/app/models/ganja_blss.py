@@ -7,7 +7,6 @@ and NASA JSC Advanced Life Support Baseline Values (NASA/TP-2015-218570).
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 import math
-import numpy as np
 
 
 @dataclass

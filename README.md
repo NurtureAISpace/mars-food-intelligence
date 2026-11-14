@@ -38,6 +38,17 @@ Details, equations and limitations: [docs/CREW_HEALTH.md](docs/CREW_HEALTH.md). 
 
 ---
 
+## 🌿 ECLSS & Smart Regolith Hydro-Management Simulation
+
+Engineered by **Faruk (Computer Engineering & Life Support Simulation)**:
+Closing the loop on life support consumables, this module models the complete Environmental Control and Life Support System (ECLSS) and IoT soil moisture tele-management:
+- **Oxygen Generation & Sabatier Recovery:** Water electrolysis ($2\text{H}_2\text{O} \to 2\text{H}_2 + \text{O}_2$) paired with catalytic Sabatier ${\text{CO}_2}$ reduction (${\text{CO}_2 + 4\text{H}_2 \to \text{CH}_4 + 2\text{H}_2\text{O}}$) achieving $\ge 96.8\%$ closed-loop water recovery.
+- **Smart Regolith Moisture Platform:** IoT capacitive soil sensor telemetry (Volumetric Water Content VWC %, EC salinity, root temperature) with automated micro-controller pulse irrigation valves for Martian regolith simulant (MGS-1) and ADAU Ganja agro-chambers.
+- **Contingency Resilience:** Sol-by-Sol dynamic stress testing against Martian Dust Storms (-72% solar output) and cabin micro-depressurization leaks with buffer gas auto-stabilization.
+Details & equations: [docs/LIFE_SUPPORT_SIMULATION.md](docs/LIFE_SUPPORT_SIMULATION.md). API: `GET /api/v1/life-support/telemetry`, `/life-support/regolith-sensors`, `/life-support/simulate`; UI: **Life Support Sim** tab.
+
+---
+
 ## 🚀 Quick Start Guide
 
 ### Option 1: Native Run with Shell Script (Fastest)

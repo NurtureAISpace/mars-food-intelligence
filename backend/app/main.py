@@ -8,6 +8,7 @@ from app.api.routes_optimization import router as optimization_router
 from app.api.routes_simulator import router as simulator_router
 from app.api.routes_ganja import router as ganja_router
 from app.api.routes_health import router as health_router
+from app.api.routes_life_support import router as life_support_router
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -35,6 +36,7 @@ app.include_router(optimization_router, prefix=api_prefix)
 app.include_router(simulator_router, prefix=api_prefix)
 app.include_router(ganja_router, prefix=api_prefix)
 app.include_router(health_router, prefix=api_prefix)
+app.include_router(life_support_router, prefix=api_prefix)
 
 
 @app.get("/")
@@ -58,11 +60,14 @@ def root():
             f"{api_prefix}/ganja/simulate-blss",
             f"{api_prefix}/health/crew",
             f"{api_prefix}/health/astronaut/{{astronaut_id}}/timeline",
-            f"{api_prefix}/health/alerts"
+            f"{api_prefix}/health/alerts",
+            f"{api_prefix}/life-support/telemetry",
+            f"{api_prefix}/life-support/regolith-sensors",
+            f"{api_prefix}/life-support/simulate"
         ]
     }
 
 
 @app.get("/healthz")
 def healthcheck():
-    return {"status": "HEALTHY", "subsystems": ["Arrhenius-Kinetics", "SciPy-Optimizer", "Sol-Simulator", "Data-Pipeline"]}
+    return {"status": "HEALTHY", "subsystems": ["Arrhenius-Kinetics", "SciPy-Optimizer", "Sol-Simulator", "Data-Pipeline", "ECLSS-LifeSupport"]}
