@@ -12,6 +12,7 @@ import {
   VitalKey,
 } from '../types';
 import { HeartPulse, AlertTriangle, FlaskConical, ThermometerSun, Sprout, UserRound, Activity, Info } from 'lucide-react';
+import { DailyCheckinPanel } from './DailyCheckinPanel';
 
 const MISSION_SOLS = 450;
 const FORECAST_HORIZON = 120;
@@ -407,6 +408,9 @@ export const CrewHealthView: React.FC = () => {
       {error && (
         <div className="p-3 rounded-lg border border-red-500/40 bg-red-500/10 text-red-300 text-xs font-mono">Backend error: {error}</div>
       )}
+
+      {/* Astronaut self-assessment (Daily Check-in) */}
+      <DailyCheckinPanel />
 
       {/* Astronaut status cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
