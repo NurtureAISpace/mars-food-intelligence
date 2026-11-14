@@ -114,6 +114,11 @@ export const PredictionView: React.FC<{ onBack?: () => void }> = ({ onBack }) =>
       onBack={onBack}
       tags={<DataTag kind="simulated" />}
     >
+      {current && (
+        <p className="-mt-2 text-sm text-slate-300">
+          Simulated {current.snap.scenario.mission_sols}-Sol Mars mission crew ({current.snap.crew.map((m) => m.astronaut_id).join(', ')}) — not the Inspiration4 crew.
+        </p>
+      )}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <SelectCard selected={selected === NORMAL_ID} onClick={() => setSelected(NORMAL_ID)} icon={Snowflake}
           title="Normal mission"
