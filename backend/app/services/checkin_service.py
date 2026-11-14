@@ -10,6 +10,8 @@ Two evaluation layers per indicator:
 
 Overall status:  any red -> ACT (contact flight surgeon); any amber or baseline flag -> WATCH; else NOMINAL.
 Check-ins are kept in memory and persisted to a JSON file (backend/data/runtime/, gitignored).
+Optional client_id (idempotency key, e.g. a UUID from the offline Astronaut App): resubmitting the same client_id
+returns the stored record instead of inserting again. Optional measured_at keeps the real time of offline entries.
 Decision-support prototype, not a medical device.
 """
 
@@ -44,6 +46,7 @@ INPUT_LIMITS: Dict[str, Tuple[float, float]] = {
     "mood_1_5": (1, 5),
 }
 MEASUREMENT_FIELDS = list(INPUT_LIMITS)
+CLIENT_ID_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9_-]{7,63}$"     # UUIDs and similar opaque client keys
 # Synthetic crew vitals usable as personal history (app.ml.crew_data column -> check-in field)
 SYNTHETIC_HISTORY_COLUMNS = {"heart_rate_bpm": "hr_rest", "sleep_hours": "sleep_h"}
 
@@ -63,12 +66,31 @@ class CheckinIn(BaseModel):
     sleep_hours: float = Field(..., ge=_lim("sleep_hours", 0), le=_lim("sleep_hours", 1))
     mood_1_5: int = Field(..., ge=1, le=5)
     notes: Optional[str] = Field(None, max_length=500)
+    # Optional, for offline clients: idempotency key and the real measurement time (server keeps recorded_at too)
+    client_id: Optional[str] = Field(None, pattern=CLIENT_ID_PATTERN,
+                                     examples=["3f2b8c1e-6a4d-4e2f-9b1a-0c7d5e8f9a10"])
+    measured_at: Optional[datetime] = Field(None, description="When the values were measured (ISO 8601). "
+                                                               "Naive timestamps are treated as UTC.")
 
     @model_validator(mode="after")
     def _diastolic_below_systolic(self) -> "CheckinIn":
         if self.diastolic_mmHg >= self.systolic_mmHg:
             raise ValueError("diastolic_mmHg must be lower than systolic_mmHg")
         return self
+
+    def to_entry(self) -> Dict[str, Any]:
+        """JSON-ready stored fields; client_id / measured_at only when given (old payloads keep the old shape)."""
+        d = self.model_dump(exclude={"client_id", "measured_at"})
+        if self.client_id is not None:
+            d["client_id"] = self.client_id
+        if self.measured_at is not None:
+            m = self.measured_at if self.measured_at.tzinfo else self.measured_at.replace(tzinfo=timezone.utc)
+            d["measured_at"] = m.astimezone(timezone.utc).isoformat(timespec="seconds")
+        return d
+
+
+class ClientIdConflict(ValueError):
+    """client_id already used by a check-in of a different astronaut."""
 
 
 # ---------------------------------------------------------------------------
@@ -151,13 +173,27 @@ class CheckinStore:
         tmp.write_text(json.dumps({"checkins": self._entries}, indent=1), encoding="utf-8")
         os.replace(tmp, self.path)
 
-    def upsert(self, entry: Dict[str, Any]) -> None:
+    def upsert(self, entry: Dict[str, Any]) -> Tuple[Dict[str, Any], bool]:
+        """Insert/replace by (astronaut, Sol). If the entry's client_id is already stored, nothing is written and
+        (existing entry, True) is returned. The check runs under the same lock as the write, so concurrent retries
+        of one client_id cannot both insert. Otherwise returns (entry, False)."""
         with self._lock:
+            cid = entry.get("client_id")
+            if cid is not None:
+                existing = next((e for e in self._entries if e.get("client_id") == cid), None)
+                if existing is not None:
+                    return dict(existing), True
             self._entries = [e for e in self._entries
                              if not (e["astronaut_id"] == entry["astronaut_id"] and e["sol"] == entry["sol"])]
             self._entries.append(entry)
             self._entries.sort(key=lambda e: (e["astronaut_id"], e["sol"]))
             self._save()
+            return dict(entry), False
+
+    def by_client_id(self, client_id: str) -> Optional[Dict[str, Any]]:
+        with self._lock:
+            e = next((e for e in self._entries if e.get("client_id") == client_id), None)
+            return dict(e) if e is not None else None
 
     def for_astronaut(self, astronaut_id: str) -> List[Dict[str, Any]]:
         with self._lock:
@@ -353,20 +389,48 @@ class CheckinService:
         }
 
     def submit(self, payload: CheckinIn) -> Dict[str, Any]:
+        """Evaluate + store. With a client_id that is already stored (a client retry) nothing new is stored and the
+        response describes the existing record (duplicate=True, record=stored entry).
+        Raises ClientIdConflict if that client_id belongs to another astronaut's check-in."""
+        if payload.client_id is not None:
+            existing = self.store.by_client_id(payload.client_id)
+            if existing is not None:
+                return self._duplicate_response(payload, existing)
         own = self.store.for_astronaut(payload.astronaut_id)
         synthetic = self._synthetic_history(payload.astronaut_id)
         result = self.evaluate(payload, own, synthetic)
-        entry = {**payload.model_dump(), "recorded_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        entry = {**payload.to_entry(), "recorded_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
                  "overall_status": result["overall"]["status"],
                  "colors": {i["key"]: i["status_color"] for i in result["indicators"]},
                  "baseline_flags": [i["key"] for i in result["indicators"] if i["personal_baseline"]["flag"]]}
-        self.store.upsert(entry)
+        stored, duplicate = self.store.upsert(entry)
+        if duplicate:                      # same client_id stored concurrently between the check above and here
+            return self._duplicate_response(payload, stored)
+        return self._response(payload, result, stored, synthetic, duplicate=False)
+
+    def _duplicate_response(self, payload: CheckinIn, existing: Dict[str, Any]) -> Dict[str, Any]:
+        if existing["astronaut_id"] != payload.astronaut_id:
+            raise ClientIdConflict(f"client_id {payload.client_id} already belongs to another astronaut's check-in")
+        # Evaluate the STORED values (not the retried body) so the cards describe the stored record;
+        # record.overall_status is the status given when it was first recorded.
+        stored_payload = CheckinIn(**{k: existing[k] for k in CheckinIn.model_fields if k in existing})
+        own = self.store.for_astronaut(existing["astronaut_id"])
+        synthetic = self._synthetic_history(existing["astronaut_id"])
+        result = self.evaluate(stored_payload, own, synthetic)
+        return self._response(stored_payload, result, existing, synthetic, duplicate=True)
+
+    def _response(self, payload: CheckinIn, result: Dict[str, Any], entry: Dict[str, Any],
+                  synthetic: Dict[str, List[float]], duplicate: bool) -> Dict[str, Any]:
         sols = [e["sol"] for e in self.store.for_astronaut(payload.astronaut_id)]
         return {
             "disclaimer": load_ranges()["meta"]["disclaimer"],
             "astronaut_id": payload.astronaut_id,
             "sol": payload.sol,
             "recorded_at": entry["recorded_at"],
+            "client_id": entry.get("client_id"),
+            "measured_at": entry.get("measured_at"),
+            "duplicate": duplicate,
+            "record": entry,
             "notes": payload.notes,
             **result,
             "nutrition_link": self.nutrition_link(payload.astronaut_id, payload.sol),

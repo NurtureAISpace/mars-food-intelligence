@@ -241,3 +241,66 @@ def test_api_guide(api_svc):
     assert {i["key"] for i in g["indicators"]} == EXPECTED_INDICATORS
     assert all(i["how_to_measure"] and i["sources"] for i in g["indicators"])
     assert g["baseline"]["min_prior_entries"] == 5
+
+
+# --- offline clients: client_id idempotency + measured_at ------------------------
+CID = "3f2b8c1e-6a4d-4e2f-9b1a-0c7d5e8f9a10"
+
+
+def test_api_same_client_id_is_deduplicated(api_svc):
+    body = {**GREEN, "sol": 3, "client_id": CID, "measured_at": "2026-11-14T06:30:00Z"}
+    r1 = client.post("/api/v1/health/checkin", json=body)
+    assert r1.status_code == 200 and r1.json()["duplicate"] is False
+    # retry (e.g. the response was lost) - even with a changed body, the stored record wins
+    r2 = client.post("/api/v1/health/checkin", json={**body, "heart_rate_bpm": 130})
+    assert r2.status_code == 200
+    d1, d2 = r1.json(), r2.json()
+    assert d2["duplicate"] is True and d2["record"] == d1["record"]
+    assert d2["recorded_at"] == d1["recorded_at"] and d2["client_id"] == CID
+    assert _ind(d2, "heart_rate")["value"] == GREEN["heart_rate_bpm"]
+    h = client.get("/api/v1/health/checkins", params={"astronaut_id": "TEST-01"}).json()
+    assert h["count"] == 1 and h["checkins"][0]["client_id"] == CID
+    assert h["checkins"][0]["heart_rate_bpm"] == GREEN["heart_rate_bpm"]
+
+
+def test_api_old_payload_without_client_id_still_works(api_svc):
+    r = client.post("/api/v1/health/checkin", json={**GREEN, "sol": 4})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["duplicate"] is False and d["client_id"] is None and d["measured_at"] is None
+    assert d["overall"]["status"] == "NOMINAL" == d["record"]["overall_status"]
+    # resubmitting without client_id keeps the old behaviour: same Sol replaces, no dedupe needed
+    assert client.post("/api/v1/health/checkin", json={**GREEN, "sol": 4, "heart_rate_bpm": 70}).status_code == 200
+    h = client.get("/api/v1/health/checkins", params={"astronaut_id": "TEST-01"}).json()
+    assert h["count"] == 1 and h["checkins"][0]["heart_rate_bpm"] == 70
+    assert "client_id" not in h["checkins"][0] and "measured_at" not in h["checkins"][0]
+
+
+def test_api_measured_at_is_stored_in_utc(api_svc):
+    r = client.post("/api/v1/health/checkin",
+                    json={**GREEN, "sol": 5, "client_id": CID, "measured_at": "2026-11-14T09:30:00+03:00"})
+    assert r.json()["record"]["measured_at"] == "2026-11-14T06:30:00+00:00"
+    naive = client.post("/api/v1/health/checkin",
+                        json={**GREEN, "sol": 6, "client_id": CID + "-b", "measured_at": "2026-11-14T06:30:00"})
+    assert naive.json()["measured_at"] == "2026-11-14T06:30:00+00:00"
+
+
+def test_api_client_id_of_another_astronaut_conflicts(api_svc):
+    assert client.post("/api/v1/health/checkin", json={**GREEN, "client_id": CID}).status_code == 200
+    r = client.post("/api/v1/health/checkin", json={**GREEN, "astronaut_id": "TEST-02", "client_id": CID})
+    assert r.status_code == 409
+    assert client.get("/api/v1/health/checkins", params={"astronaut_id": "TEST-02"}).json()["count"] == 0
+
+
+@pytest.mark.parametrize("bad", ["short", "bad id with spaces", "x" * 65, "-leading-dash-123"])
+def test_api_invalid_client_id_rejected(api_svc, bad):
+    assert client.post("/api/v1/health/checkin", json={**GREEN, "client_id": bad}).status_code == 422
+
+
+def test_store_upsert_dedupes_client_id(tmp_path):
+    store = CheckinStore(tmp_path / "c.json")
+    first, dup = store.upsert({**GREEN, "sol": 1, "client_id": CID})
+    assert dup is False
+    again, dup = store.upsert({**GREEN, "sol": 2, "client_id": CID})
+    assert dup is True and again["sol"] == 1
+    assert [e["sol"] for e in store.for_astronaut("TEST-01")] == [1]

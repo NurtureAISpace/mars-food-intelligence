@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, Query
 
 from app.ml.crew_data import CrewScenario
-from app.services.checkin_service import CheckinIn, CheckinService
+from app.services.checkin_service import CheckinIn, CheckinService, ClientIdConflict
 from app.services.crew_health_service import CrewHealthService
 
 router = APIRouter(prefix="/health", tags=["Crew Health Monitoring"])
@@ -94,8 +94,14 @@ def get_crew_alerts(
 @router.post("/checkin")
 def post_checkin(payload: CheckinIn):
     """Submit today's self-measurements; returns colour-coded, explained result per indicator and overall
-    NOMINAL / WATCH / ACT. Decision-support prototype, not a medical device."""
-    return checkin_service.submit(payload)
+    NOMINAL / WATCH / ACT. Decision-support prototype, not a medical device.
+
+    Optional `client_id` makes retries idempotent: a client_id that is already stored returns that record
+    (200, `duplicate: true`) instead of inserting again. Optional `measured_at` keeps the real measurement time."""
+    try:
+        return checkin_service.submit(payload)
+    except ClientIdConflict as e:
+        raise HTTPException(status_code=409, detail=str(e))
 
 
 @router.get("/checkins")
