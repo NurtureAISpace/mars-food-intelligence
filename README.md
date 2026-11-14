@@ -7,7 +7,7 @@
 > **Space nutrition and astronaut health early-warning prototype**  
 > NASA Space Apps Challenge 2026: *Create Health Monitoring Software for Astronauts on Space Missions*  
 > Developed by **NurtureAISpace**  
-> **Team:** Suleyman Hajizadeh (Lead Systems Architect), Banu Gurbanizada (Frontend & UI/UX), Yunis (AI/ML), Faruk (Computer Engineering)  
+> **Team:** Suleyman Hajizadeh (Lead Systems Architect), Banu Gurbanizada (Frontend & UI/UX), Yunis (AI/ML), Faruk Karimli (Computer Engineering)  
 > Live Platform: [https://nurtureaispace.github.io](https://nurtureaispace.github.io)  
 > Organization: [https://github.com/NurtureAISpace](https://github.com/NurtureAISpace)
 
@@ -69,7 +69,7 @@ idea to **real** Inspiration4 blood panels from NASA OSDR (OSD-569, OSD-575). It
 
 ## 🌿 ECLSS & Smart Regolith Hydro-Management Simulation
 
-Engineered by **Faruk (Computer Engineering & Life Support Simulation)**. This module models the life-support
+Engineered by **Faruk Karimli (Computer Engineering & Life Support Simulation)**. This module models the life-support
 consumables loop:
 
 - **Oxygen generation and Sabatier recovery:** water electrolysis ($2\text{H}_2\text{O} \to 2\text{H}_2 + \text{O}_2$)
@@ -202,5 +202,5 @@ work was committed, not when it was written.
   - **Suleyman Hajizadeh** — Lead Systems Architect & Research ([`suleyman.hacizade1@gmail.com`](mailto:suleyman.hacizade1@gmail.com))
   - **Banu Gurbanizada** — Frontend Architecture & UI/UX Design ([`banugurbanzade@gmail.com`](mailto:banugurbanzade@gmail.com))
   - **Yunis** — AI/ML & Degradation Modeling ([`allahverdiyunis@gmail.com`](mailto:allahverdiyunis@gmail.com))
-  - **Faruk** — Computer Engineering & Life Support Simulation ([`fkarimli23291@ada.edu.az`](mailto:fkarimli23291@ada.edu.az))
+  - **Faruk Karimli** — Computer Engineering & Life Support Simulation ([`fkarimli23291@ada.edu.az`](mailto:fkarimli23291@ada.edu.az))
 - **Data references**: see [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md)

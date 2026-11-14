@@ -1,6 +1,6 @@
 """
 NurtureAISpace — Life Support System Service.
-Author: Faruk (Computer Engineering & Life Support Simulation)
+Author: Faruk Karimli (Computer Engineering & Life Support Simulation)
 
 Orchestrates ECLSS life support mass-balance, regolith IoT sensors,
 power generation, and contingency simulation.
@@ -205,7 +205,7 @@ class LifeSupportService:
             ],
             "active_alerts": alerts,
             "overall_eclss_status": status,
-            "author": "Faruk (Computer Engineering & Life Support Simulation)",
+            "author": "Faruk Karimli (Computer Engineering & Life Support Simulation)",
             "data_provenance": LIFE_SUPPORT_DATA_PROVENANCE
         }
 
@@ -323,6 +323,6 @@ class LifeSupportService:
             },
             "timeline": timeline,
             "alerts": alerts_log,
-            "author": "Faruk (Computer Engineering & Life Support Simulation)",
+            "author": "Faruk Karimli (Computer Engineering & Life Support Simulation)",
             "data_provenance": LIFE_SUPPORT_DATA_PROVENANCE
         }

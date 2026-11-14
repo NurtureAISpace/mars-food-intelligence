@@ -1,7 +1,7 @@
 # ECLSS & Regolith Hydro-Management Simulation Module
 
 > **NASA Space Apps Challenge 2026**  
-> **Lead Life Support Architect & Computer Engineering:** Faruk ([`fkarimli23291@ada.edu.az`](mailto:fkarimli23291@ada.edu.az))  
+> **Lead Life Support Architect & Computer Engineering:** Faruk Karimli ([`fkarimli23291@ada.edu.az`](mailto:fkarimli23291@ada.edu.az))  
 > **Team:** NurtureAISpace
 
 ---
@@ -16,7 +16,7 @@ This module delivers a complete **Computer Engineering and Life Support Simulati
    - Sabatier carbon-loop reactor (${\text{CO}_2 + 4\text{H}_2 \to \text{CH}_4 + 2\text{H}_2\text{O}}$) to close the loop on human metabolic ${\text{CO}_2}$.
    - Intra-habitat atmospheric partial pressure monitoring ($p\text{O}_2 = 21.3\text{ kPa}$, $p\text{CO}_2 < 0.53\text{ kPa}$, total pressure $101.3\text{ kPa}$; assumed nominal values).
 2. **Smart Soil & Regolith Moisture Platform (IoT Embedded Microcontroller):**
-   - Derived from Faruk's **`ideas/Soil Moisture Platform (locked).pptx`** research.
+   - Derived from Faruk Karimli's **`ideas/Soil Moisture Platform (locked).pptx`** research.
    - Volumetric Water Content (VWC %) monitoring via capacitive soil probes across 3 illustrative greenhouse beds (microgreens, chickpea, alfalfa). Sensor readings and per-bed gas exchange are **synthetic**.
    - Automated microcontroller-driven micro-irrigation pulse valves: auto-trigger at $\text{VWC} \le 38\%$ and auto-cutoff at $\text{VWC} \ge 50\%$.
    - Electrical Conductivity (EC) monitoring to mitigate hyper-saline regolith osmotic shock.
