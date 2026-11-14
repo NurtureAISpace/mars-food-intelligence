@@ -12,7 +12,8 @@ import {
   CrewAlertsResponse,
   LifeSupportTelemetryData,
   RegolithSensorNodeData,
-  LifeSupportSimulationResult
+  LifeSupportSimulationResult,
+  RealDataI4
 } from './types';
 
 const API_BASE = '/api/v1';
@@ -165,5 +166,11 @@ export async function runLifeSupportSimulation(params: {
     body: JSON.stringify(params),
   });
   if (!res.ok) throw new Error(`Life support simulation failed: ${res.statusText}`);
+  return res.json();
+}
+
+export async function fetchRealDataI4(): Promise<RealDataI4> {
+  const res = await fetch(`${API_BASE}/real-data/i4`);
+  if (!res.ok) throw new Error(`Real data fetch failed: ${res.statusText}`);
   return res.json();
 }

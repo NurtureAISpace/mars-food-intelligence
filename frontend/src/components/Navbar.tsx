@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, Cpu, Database, Activity, TrendingUp, Compass, HeartPulse, Droplets } from 'lucide-react';
+import { ShieldCheck, Cpu, Database, Activity, TrendingUp, Compass, HeartPulse, Droplets, Satellite } from 'lucide-react';
 
 interface NavbarProps {
   activeTab: string;
@@ -16,6 +16,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, mission
     { id: 'simulator', label: 'Mission Simulator', icon: Compass },
     { id: 'crewhealth', label: 'Crew Health', icon: HeartPulse },
     { id: 'lifesupport', label: 'Life Support Sim', icon: Droplets },
+    { id: 'realdata', label: 'Real NASA Data', icon: Satellite },
   ];
 
   return (

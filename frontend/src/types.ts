@@ -384,3 +384,113 @@ export interface LifeSupportSimulationResult {
   alerts: string[];
   author: string;
 }
+
+// ---------------------------------------------------------------------------
+// Real NASA data: Inspiration4 blood panels (NASA OSDR OSD-569 CBC, OSD-575 CMP)
+// ---------------------------------------------------------------------------
+export type RefStatus = 'in' | 'LOW' | 'HIGH' | 'n/a';
+
+export interface RealDataPoint {
+  timepoint: string;
+  value: number | null;
+  ref_low: number | null;
+  ref_high: number | null;
+  ref_status: RefStatus;
+  z: number | null;
+  flagged: boolean;
+}
+
+export interface RealDataSeries {
+  astronaut: string;
+  analyte: string;
+  unit: string;
+  panel: string;
+  baseline: {
+    timepoints: string[];
+    n: number;
+    mean: number | null;
+    sd: number | null;
+    sd_source: 'personal' | 'floor' | 'none';
+    band_low: number | null;
+    band_high: number | null;
+  };
+  points: RealDataPoint[];
+}
+
+export interface RealDataSharedFinding {
+  analyte: string;
+  label: string;
+  unit: string;
+  timepoint: string;
+  direction: 'up' | 'down';
+  n_crew_flagged: number;
+  n_crew: number;
+  mean_pct_change: number | null;
+  n_beyond_all_preflight_values: number;
+  n_inside_reference_range: number;
+  per_astronaut: Array<{
+    astronaut: string;
+    value: number | null;
+    baseline_mean: number | null;
+    z: number | null;
+    flagged: boolean;
+    pct_change: number | null;
+    beyond_all_preflight_values: boolean;
+    ref_status: RefStatus;
+  }>;
+  sensitivity: { sd_floor_fraction_of_range: number; n_crew_flagged: number; plain_text: string };
+  other_all_crew_analytes: string[];
+  plain_text: string;
+}
+
+export interface RealDataNoiseControl {
+  control_timepoint: string;
+  control_baseline: string[];
+  control_flagged: number;
+  control_tests: number;
+  control_pct: number | null;
+  flight_timepoint: string;
+  flight_flagged: number;
+  flight_tests: number;
+  flight_pct: number | null;
+  single_flags_mostly_noise: boolean;
+  n_analytes: number;
+  expected_all_crew_by_chance: number | null;
+  chance_note: string;
+  plain_text: string;
+}
+
+export interface RealDataI4 {
+  source: {
+    name: string;
+    mission: string;
+    osd_ids: string[];
+    panels: Record<string, string>;
+    urls: Array<{ label: string; url: string }>;
+    license: string;
+    citation: string;
+    mission_days: number;
+  };
+  crew: Array<{ id: string; sex: string | null }>;
+  timepoints: Array<{ id: string; phase: 'pre' | 'post'; day: number; label: string; is_baseline: boolean }>;
+  baseline_timepoints: string[];
+  post_flight_timepoints: string[];
+  analytes: Array<{
+    name: string;
+    label: string;
+    unit: string;
+    panel: string;
+    reference_range: { low: number | null; high: number | null };
+  }>;
+  default_analyte: string | null;
+  series: RealDataSeries[];
+  method: { flag_z: number; sd_floor_fraction_of_range: number; plain_text: string };
+  summary: {
+    flag_z: number;
+    flags_per_timepoint: Array<{ timepoint: string; flagged: number; tests: number; pct: number | null }>;
+    shared_finding: RealDataSharedFinding | null;
+    crew_consistent_shifts: Array<{ analyte: string; label: string; direction: 'up' | 'down'; astronauts: string[]; z: Array<number | null> }>;
+    noise_control: RealDataNoiseControl;
+  };
+  limitations: Array<{ key: string; title: string; text: string }>;
+}
