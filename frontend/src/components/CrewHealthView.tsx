@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { fetchCrewHealth, fetchAstronautTimeline } from '../api';
+import { fetchCrewHealth, fetchAstronautTimeline, fetchCrewScenarios } from '../api';
 import {
   AstronautTimeline,
   CrewAlert,
   CrewEvents,
   CrewHealthScenario,
+  CrewScenarioPreset,
   CrewHealthSnapshot,
   CrewMemberStatus,
   CrewStatus,
@@ -289,6 +290,24 @@ export const CrewHealthView: React.FC = () => {
   const [timeline, setTimeline] = useState<AstronautTimeline | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [presets, setPresets] = useState<CrewScenarioPreset[]>([]);
+
+  useEffect(() => {
+    fetchCrewScenarios().then((d) => setPresets(d.scenarios)).catch((e) => setError(String(e)));
+  }, []);
+
+  const applyPreset = (p: CrewScenarioPreset) => {
+    if (!p.parameters) return;
+    const q = p.parameters;
+    setScenario({
+      failure_enabled: q.failure_enabled,
+      // nominal: failure fields are null; keep the slider defaults
+      cooling_failure_sol: q.cooling_failure_sol ?? 150,
+      failure_duration_sols: q.failure_duration_sols ?? 45,
+      failure_peak_temp_c: q.failure_peak_temp_c ?? 29.5,
+    });
+  };
+  const activePreset = snapshot?.scenario_preset ?? null;
 
   const dSol = useDebounced(sol, 120);
   const dScenario = useDebounced(scenario, 350);
@@ -424,6 +443,33 @@ export const CrewHealthView: React.FC = () => {
         {/* Controls */}
         <div className="glass-panel rounded-xl p-5 border border-mars-border space-y-5 font-mono text-xs">
           <h3 className="font-bold text-white text-sm border-b border-mars-border pb-3 uppercase">Mission Timeline & Scenario</h3>
+
+          {presets.length > 0 && (
+            <div className="space-y-2">
+              <div className="grid grid-cols-3 gap-2">
+                {presets.map((p) => (
+                  <button key={p.id} onClick={() => applyPreset(p)}
+                    className={`px-2 py-1.5 rounded border font-bold text-[11px] ${activePreset?.id === p.id
+                      ? 'bg-orange-500/20 border-orange-500/50 text-orange-300' : 'bg-mars-dark border-mars-border text-slate-400'}`}>
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+              {activePreset ? (
+                <div className="space-y-1.5">
+                  <span className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded border border-amber-500/50 bg-amber-500/10 text-amber-300 text-[11px] font-mono font-bold uppercase">
+                    <FlaskConical className="w-3.5 h-3.5" />
+                    <span>Simulated scenario</span>
+                  </span>
+                  <p className="text-[10px] text-slate-400 leading-relaxed">
+                    {activePreset.description} <span className="text-slate-500">({activePreset.scenario_type})</span>
+                  </p>
+                </div>
+              ) : (
+                <p className="text-[10px] text-slate-500">Custom scenario (sliders below).</p>
+              )}
+            </div>
+          )}
 
           <div>
             <div className="flex justify-between mb-1.5">

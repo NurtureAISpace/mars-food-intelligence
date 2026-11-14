@@ -7,6 +7,7 @@ import {
   OptimizationResponse,
   SimulationResult,
   CrewHealthScenario,
+  CrewScenarioPresets,
   CrewHealthSnapshot,
   AstronautTimeline,
   CrewAlertsResponse,
@@ -106,6 +107,12 @@ function crewScenarioQuery(s: CrewHealthScenario): string {
     failure_duration_sols: String(s.failure_duration_sols),
     failure_peak_temp_c: String(s.failure_peak_temp_c),
   }).toString();
+}
+
+export async function fetchCrewScenarios(): Promise<CrewScenarioPresets> {
+  const res = await fetch(`${API_BASE}/health/scenarios`);
+  if (!res.ok) throw new Error(`Scenario presets fetch failed: ${res.statusText}`);
+  return res.json();
 }
 
 export async function fetchCrewHealth(sol: number, scenario: CrewHealthScenario): Promise<CrewHealthSnapshot> {

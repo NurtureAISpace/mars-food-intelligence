@@ -242,8 +242,22 @@ export interface CrewMemberStatus {
   assessment: CrewAlert | null;
 }
 
+export interface CrewScenarioPreset {
+  id: string;
+  label: string;
+  description: string;
+  scenario_type: string;
+  parameters?: CrewHealthScenario & Record<string, unknown>;
+}
+
+export interface CrewScenarioPresets {
+  default: string;
+  scenarios: CrewScenarioPreset[];
+}
+
 export interface CrewHealthSnapshot {
   data_provenance: string;
+  scenario_preset: CrewScenarioPreset | null;
   scenario: Record<string, unknown> & { mission_sols: number; calibration_sols: number; failure_enabled: boolean };
   events: CrewEvents;
   sol: number;
