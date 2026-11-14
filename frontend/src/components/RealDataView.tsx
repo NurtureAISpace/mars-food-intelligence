@@ -12,8 +12,7 @@ const PersonCard: React.FC<{
   p: RealDataSharedFinding['per_astronaut'][number];
   f: RealDataSharedFinding;
   nTests: number | null;
-  afterLabel: string;
-}> = ({ p, f, nTests, afterLabel }) => {
+}> = ({ p, f, nTests }) => {
   const lower = f.direction === 'down';
   const Trend = lower ? TrendingDown : TrendingUp;
   return (
@@ -25,21 +24,18 @@ const PersonCard: React.FC<{
         <span className="text-4xl font-bold tabular-nums">{num(p.value)}</span>
         <span className="text-base text-slate-300">{f.unit}</span>
       </div>
-      <span className="text-base text-slate-300">
-        Before flight{nTests ? ` (avg of ${nTests} tests)` : ''} → {afterLabel}
-      </span>
       <div className="flex flex-col items-start gap-2">
         {p.beyond_all_preflight_values ? (
           <Chip tone="amber" icon={Trend}>
-            {lower ? 'Lower' : 'Higher'} than all {nTests ?? ''} of their own pre-flight tests
+            {lower ? 'Lower' : 'Higher'} than all {nTests ?? ''} own pre-flight tests
           </Chip>
         ) : (
           <Chip tone="neutral">Within their own pre-flight tests</Chip>
         )}
         {p.ref_status === 'in' ? (
-          <Chip tone="green" icon={CheckCircle2}>Still in the normal lab range</Chip>
+          <Chip tone="green" icon={CheckCircle2}>Still in normal lab range</Chip>
         ) : p.ref_status !== 'n/a' ? (
-          <Chip tone="red">Outside the normal lab range</Chip>
+          <Chip tone="red">Outside normal lab range</Chip>
         ) : null}
       </div>
     </div>
@@ -59,7 +55,8 @@ export const RealDataView: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
   const testsFor = (astronaut: string) =>
     data?.series.find((s) => s.astronaut === astronaut && s.analyte === f?.analyte)?.baseline.n ?? null;
   const limits = (data?.limitations ?? []).filter((l) => ['small_crew', 'few_baseline_points', 'short_mission'].includes(l.key));
-  const dirWord = f?.direction === 'down' ? 'lower' : 'higher';
+  const dirWord = f?.direction === 'down' ? 'below' : 'above';
+  const nTests0 = f ? testsFor(f.per_astronaut[0]?.astronaut ?? '') : null;
 
   return (
     <GlassPanel
@@ -78,18 +75,21 @@ export const RealDataView: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       {data && f && (
         <>
           <Section icon={Users} title={f.label}>
+            <p className="-mt-2 mb-4 text-base text-slate-300">
+              Before flight{nTests0 ? ` (average of ${nTests0} tests)` : ''} → {afterLabel}
+            </p>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {f.per_astronaut.map((p) => (
-                <PersonCard key={p.astronaut} p={p} f={f} nTests={testsFor(p.astronaut)} afterLabel={afterLabel} />
+                <PersonCard key={p.astronaut} p={p} f={f} nTests={testsFor(p.astronaut)} />
               ))}
             </div>
           </Section>
 
           <Section icon={Lightbulb} title="What this shows">
             <p className="text-lg text-white">
-              {f.n_beyond_all_preflight_values} of {f.n_crew} were {dirWord} than every one of their own pre-flight
-              tests, yet {f.n_inside_reference_range} of {f.n_crew} stayed in the normal lab range. A standard lab check
-              misses this — comparing each person with their own normal catches it.
+              {f.n_beyond_all_preflight_values} of {f.n_crew} went {dirWord} all their own pre-flight tests, yet{' '}
+              {f.n_inside_reference_range} of {f.n_crew} stayed in the normal lab range. A standard lab check misses
+              this; comparing each person with their own normal catches it.
             </p>
           </Section>
 

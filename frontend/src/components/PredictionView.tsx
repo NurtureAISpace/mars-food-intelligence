@@ -110,7 +110,7 @@ export const PredictionView: React.FC<{ onBack?: () => void }> = ({ onBack }) =>
   return (
     <GlassPanel
       title="Food & Vitamins"
-      subtitle="Stored food loses vitamins, faster when warm. We warn before the crew runs low."
+      subtitle="Stored food loses vitamins. We warn before the crew runs low."
       onBack={onBack}
       tags={<DataTag kind="simulated" />}
     >
