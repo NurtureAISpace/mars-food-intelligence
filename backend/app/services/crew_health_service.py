@@ -23,6 +23,35 @@ from app.ml.physiology import BIOMARKERS, NUTRIENTS, VITALS, VITAMIN_D
 
 _CACHE_MAX = 16
 
+SCENARIO_TYPE = "hypothetical stress test"
+
+# Demo presets. Physics / literature parameters / detector thresholds are identical in every preset;
+# only the hypothetical cooling-failure event changes.
+SCENARIO_PRESETS: Dict[str, Dict[str, Any]] = {
+    "nominal": {
+        "label": "Normal mission",
+        "description": ("No equipment failure. Food storage stays cold for the whole 450-Sol mission, so vitamins "
+                        "in the packaged food degrade only at the normal rate."),
+        "params": {"failure_enabled": False},
+    },
+    "mild_cooling_failure": {
+        "label": "Small storage failure",
+        "description": ("At Sol 150 the food-storage cooling fails for 45 Sols and peaks at 29.5 °C; the greenhouse "
+                        "goes offline. Vitamins in stored food break down faster. This is the default scenario."),
+        "params": {"failure_enabled": True, "cooling_failure_sol": 150, "failure_duration_sols": 45,
+                   "failure_peak_temp_c": 29.5},
+    },
+    "severe_cooling_failure": {
+        "label": "Major storage failure",
+        "description": ("At Sol 150 the food-storage cooling fails for 60 Sols and peaks at 30 °C; the greenhouse goes "
+                        "offline. This is the mildest failure (searched over 60-240 Sols x 30-45 °C) in which an "
+                        "astronaut's vitamin B1 body store actually falls below its risk threshold."),
+        "params": {"failure_enabled": True, "cooling_failure_sol": 150, "failure_duration_sols": 60,
+                   "failure_peak_temp_c": 30.0},
+    },
+}
+DEFAULT_PRESET = "mild_cooling_failure"
+
 
 def _clean(x: Any, nd: int = 3) -> Any:
     """JSON-safe scalar: numpy -> python, NaN/inf -> None, floats rounded."""
@@ -58,6 +87,28 @@ class CrewHealthService:
             failure_duration_sols=failure_duration_sols,
             failure_peak_temp_c=failure_peak_temp_c,
         ).normalized()
+
+    @classmethod
+    def preset_scenario(cls, name: str) -> CrewScenario:
+        if name not in SCENARIO_PRESETS:
+            raise KeyError(f"Unknown scenario '{name}'. Valid: {list(SCENARIO_PRESETS)}")
+        return cls.build_scenario(**SCENARIO_PRESETS[name]["params"])
+
+    @classmethod
+    def preset_name(cls, scenario: CrewScenario) -> Optional[str]:
+        key = scenario.normalized()
+        return next((n for n in SCENARIO_PRESETS if cls.preset_scenario(n) == key), None)
+
+    @classmethod
+    def scenarios(cls) -> Dict[str, Any]:
+        return {
+            "default": DEFAULT_PRESET,
+            "scenarios": [
+                {"id": n, "label": p["label"], "description": p["description"], "scenario_type": SCENARIO_TYPE,
+                 "parameters": cls._scenario_dict(cls.preset_scenario(n))}
+                for n, p in SCENARIO_PRESETS.items()
+            ],
+        }
 
     def get_analysis(self, scenario: CrewScenario) -> CrewAnalysis:
         key = scenario.normalized()
@@ -149,8 +200,12 @@ class CrewHealthService:
 
     def _base(self, analysis: CrewAnalysis) -> Dict[str, Any]:
         sc = analysis.data.scenario
+        name = self.preset_name(sc)
+        preset = None if name is None else {
+            "id": name, "label": SCENARIO_PRESETS[name]["label"],
+            "description": SCENARIO_PRESETS[name]["description"], "scenario_type": SCENARIO_TYPE}
         return {"data_provenance": DATA_PROVENANCE, "parameter_sources": parameter_provenance(),
-                "scenario": self._scenario_dict(sc), "events": self._events(sc)}
+                "scenario": self._scenario_dict(sc), "scenario_preset": preset, "events": self._events(sc)}
 
     # ------------------------------------------------------------------
     # Public API
