@@ -27,8 +27,11 @@ const DEST_ICON: Record<string, typeof Globe> = { earth_orbit: Satellite, moon: 
 const vit = (key: string | null | undefined) => (key ? VITAMIN[key] ?? key.replace(/_/g, ' ') : 'A vitamin');
 
 type Rec = NonNullable<CrewHorizon['first_warning']>['recommendation'];
-/** Plain action from the model's recommendation ("change the menu" when it is a food). */
+/** Plain action for a vitamin running low. B1 and D use sourced wording (docs/DATA_SOURCES.md, "Supporting
+ *  references"): the catalog food the model picks for B1 is illustrative, not from the NASA menu, so it is not named. */
 function actionOf(rec: Rec, nutrient: string): string {
+  if (nutrient === 'vitamin_d') return 'take the daily vitamin D3 supplement (ISS crews: 800 IU/day) — check with the flight surgeon';
+  if (nutrient === 'thiamine_b1') return 'change the menu: add more vitamin-B1-rich foods (NASA found B1 stays higher in breads than in meats)';
   if (!rec) return 'measure again and check with the flight surgeon';
   return rec.food_id ? `change the menu: add ${rec.food_name}` : `consider a ${vit(nutrient)} supplement (check with the flight surgeon)`;
 }
