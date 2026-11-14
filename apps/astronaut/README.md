@@ -100,6 +100,23 @@ On a phone: open `http://<your-PC-IP>:3001`. Note that browsers only enable serv
 `localhost`, so over plain http on the LAN the app works online but is not installable/offline-capable (see
 limitations).
 
+### Demo seed for the Crew screen
+
+Crew screen demo check-ins for C001–C003 are seeded test entries, not real astronaut data. They fill the
+dashboard Crew screen before the demo; seat C004 stays empty so you can check in live from this app.
+
+```powershell
+cd backend; .venv\Scripts\python scripts\seed_demo_checkins.py
+```
+
+- Posts Sol 1 check-ins through the normal API (backend must be running on 8001), each with `notes = "demo seed"`.
+- Pseudonyms are made with the same algorithm and salt as `src/pseudonym.ts`, from the placeholder names
+  "Demo Crew One/Two/Three" (never real names).
+- Values come from the backend reference ranges (`/checkin/guide`): C001 and C002 are inside every range,
+  C003 has sleep in the amber band, so its card shows "Take care".
+- Safe to re-run: fixed `client_id`s (`demo-seed-C00k-sol1`) mean the server returns the stored record instead of
+  adding a duplicate.
+
 ## Known limitations
 
 - **Offline needs one online start** to download the check-in guide. Before that, the form shows a message
