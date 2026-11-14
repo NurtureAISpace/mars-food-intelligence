@@ -14,9 +14,12 @@ from typing import Dict, Any, List, Optional
 import numpy as np
 
 from app.ml import DATA_PROVENANCE
-from app.ml.anomaly import CrewAnalysis, analyze_crew, explain, STATUS_RANK, WATCH_Z, WATCH_SOLS_TO_RISK, ACT_SOLS_TO_RISK
+from app.ml.anomaly import (CrewAnalysis, analyze_crew, explain, STATUS_RANK, WATCH_Z, WATCH_SOLS_TO_RISK,
+                            ACT_SOLS_TO_RISK, VITD, VITALS_REFERENCE_LAG_SOLS)
 from app.ml.crew_data import CrewScenario, generate_crew
-from app.ml.physiology import NUTRIENTS, VITALS
+from app.ml.literature_check import run_checks, summary
+from app.ml.params import parameter_provenance, parameter_table, load_params_file
+from app.ml.physiology import BIOMARKERS, NUTRIENTS, VITALS, VITAMIN_D
 
 _CACHE_MAX = 16
 
@@ -95,8 +98,11 @@ class CrewHealthService:
     @staticmethod
     def _rules() -> Dict[str, Any]:
         return {
-            "ACT": f"forecast Sols-to-risk <= {ACT_SOLS_TO_RISK}",
-            "WATCH": f"forecast Sols-to-risk <= {WATCH_SOLS_TO_RISK} or |z| of any vital >= {WATCH_Z}",
+            "ACT": f"forecast Sols-to-risk <= {ACT_SOLS_TO_RISK} (vitamin C, B1 pools or vitamin D status)",
+            "WATCH": (f"forecast Sols-to-risk <= {WATCH_SOLS_TO_RISK} or |z| of any vital >= {WATCH_Z} "
+                      f"(vs a trend-following personal reference lagged {VITALS_REFERENCE_LAG_SOLS} Sols)"),
+            "driver": (f"largest contributor relative to its rule threshold: {WATCH_SOLS_TO_RISK} / Sols-to-risk "
+                       f"(nutrient forecast) vs |z| / {WATCH_Z} (vital); ACT is always forecast-driven"),
             "NOMINAL": "otherwise",
             "CALIBRATING": "personal baseline + trend window not yet available",
         }
@@ -104,8 +110,25 @@ class CrewHealthService:
     @staticmethod
     def _nutrient_meta() -> Dict[str, Any]:
         return {n: {"label": c["label"], "pool_max_mg": c["pool_max_mg"], "risk_threshold_mg": c["risk_threshold_mg"],
-                    "absorption": c["absorption"], "population_turnover_per_day": c["turnover_per_day"]}
+                    "absorption": c["absorption"], "population_turnover_per_day": c["turnover_per_day"],
+                    "requirement_mg_day": c["requirement_mg_day"]}
                 for n, c in NUTRIENTS.items()}
+
+    @staticmethod
+    def _vitamin_d_meta() -> Dict[str, Any]:
+        vd = VITAMIN_D
+        return {
+            "label": vd["label"],
+            "status_unit": vd["status_unit"],
+            "intake_unit": vd["intake_unit"],
+            "risk_threshold_nmol_l": vd["risk_threshold_nmol_l"],
+            "optimal_nmol_l": vd["optimal_nmol_l"],
+            "requirement_ug_day": vd["requirement_ug_day"],
+            "supplement_ug_day": vd["supplement_ug_day"],
+            "iss_decline_rate_per_day": vd["decline_rate_per_day_iss"],
+            "uv_synthesis": False,
+            "model": "25-OH-D declines exponentially (no UV in flight); rate scales with intake shortfall vs 25 ug/day",
+        }
 
     @staticmethod
     def _events(sc: CrewScenario) -> Dict[str, Any]:
@@ -126,7 +149,8 @@ class CrewHealthService:
 
     def _base(self, analysis: CrewAnalysis) -> Dict[str, Any]:
         sc = analysis.data.scenario
-        return {"data_provenance": DATA_PROVENANCE, "scenario": self._scenario_dict(sc), "events": self._events(sc)}
+        return {"data_provenance": DATA_PROVENANCE, "parameter_sources": parameter_provenance(),
+                "scenario": self._scenario_dict(sc), "events": self._events(sc)}
 
     # ------------------------------------------------------------------
     # Public API
@@ -149,10 +173,23 @@ class CrewHealthService:
                 }
                 for n in NUTRIENTS
             }
+            d_col = VITAMIN_D["status_col"]
+            d_now, d_pre = float(row[d_col]), float(res.frame[d_col].iloc[0])
+            vitamin_d = {
+                "status_nmol_l": _clean(d_now, 2),
+                "preflight_nmol_l": _clean(d_pre, 2),
+                "pct_change_vs_preflight": _clean(100.0 * (d_now - d_pre) / d_pre, 1),
+                "intake_ug_day": _clean(row[VITAMIN_D["intake_col"]], 2),
+                "personal_decline_per_sol": _clean(row[f"{VITD}_k_per_sol"], 5),
+                "sols_to_risk": _clean(row[f"{VITD}_sols_to_risk"], 1),
+                "z": _clean(row[f"z_{d_col}"], 2),
+            }
             crew.append({
                 "astronaut_id": astronaut,
                 "status": row["status"],
                 "worst_nutrient": row["worst_nutrient"],
+                "driver_kind": row["driver_kind"],
+                "driver_signal": row["driver_signal"],
                 "sols_to_risk": _clean(row["sols_to_risk"], 1),
                 "top_driver": row["top_driver"],
                 "driver_z": _clean(row["driver_z"], 2),
@@ -161,6 +198,8 @@ class CrewHealthService:
                 "vitals": {v: _clean(row[v], 2) for v in VITALS},
                 "z_scores": {v: _clean(row[f"z_{v}"], 2) for v in VITALS},
                 "nutrients": forecast,
+                "vitamin_d": vitamin_d,
+                "biomarker_z_scores": {b: _clean(row[f"z_{b}"], 2) for b in BIOMARKERS},
                 "first_watch_sol": res.first_status.get("WATCH") if res.first_status.get("WATCH", sol + 1) <= sol else None,
                 "first_act_sol": res.first_status.get("ACT") if res.first_status.get("ACT", sol + 1) <= sol else None,
                 "assessment": explain(res, analysis.data, sol) if row["status"] in ("WATCH", "ACT") else None,
@@ -176,6 +215,7 @@ class CrewHealthService:
             "status_counts": counts,
             "status_rules": self._rules(),
             "nutrients": self._nutrient_meta(),
+            "vitamin_d_meta": self._vitamin_d_meta(),
             "crew": crew,
             "active_alerts": [a for a in analysis.alerts if a["sol"] <= sol],
         }
@@ -188,8 +228,10 @@ class CrewHealthService:
         fr = res.frame
         cols = (["sol", "storage_temp_c"]
                 + [f"{n}_{s}" for n in NUTRIENTS for s in ("intake_mg", "pool_mg", "sols_to_risk")]
-                + VITALS + [f"z_{v}" for v in VITALS]
-                + ["anomaly_score", "status", "worst_nutrient", "sols_to_risk", "top_driver", "driver_z"])
+                + [VITAMIN_D["intake_col"], VITAMIN_D["status_col"], f"z_{VITAMIN_D['status_col']}", f"{VITD}_sols_to_risk"]
+                + VITALS + [f"z_{v}" for v in VITALS] + [f"ref_{v}" for v in VITALS]
+                + ["anomaly_score", "status", "worst_nutrient", "sols_to_risk", "top_driver", "driver_z",
+                   "driver_kind", "driver_signal"])
         records = [{c: _clean(v) for c, v in zip(cols, rec)} for rec in fr[cols].itertuples(index=False, name=None)]
         baseline = {
             v: {"mean": _clean(res.baseline.mean[v]), "sd": _clean(res.baseline.sd[v]),
@@ -202,13 +244,28 @@ class CrewHealthService:
             "astronaut_id": astronaut_id,
             "profile": {k: _clean(v) for k, v in analysis.data.profiles[astronaut_id].items()},
             "nutrients": self._nutrient_meta(),
+            "vitamin_d_meta": self._vitamin_d_meta(),
             "baseline": baseline,
+            "vitals_reference_lag_sols": VITALS_REFERENCE_LAG_SOLS,
             "pool_baseline_mg": {n: _clean(v, 2) for n, v in res.pool_baseline.items()},
             "first_watch_sol": res.first_status.get("WATCH"),
             "first_act_sol": res.first_status.get("ACT"),
             "threshold_crossing_sol": res.threshold_crossing_sol,
             "alerts": res.alerts,
             "timeline": records,
+        }
+
+    @staticmethod
+    def parameters() -> Dict[str, Any]:
+        """Every model parameter with source/status, plus the literature range check."""
+        checks = run_checks()
+        meta = load_params_file()["meta"]
+        return {
+            "data_provenance": DATA_PROVENANCE,
+            "parameter_sources": parameter_provenance(),
+            "status_definitions": meta["status_definitions"],
+            "parameters": parameter_table(),
+            "literature_check": {"summary": summary(checks), "checks": checks},
         }
 
     def alerts(self, scenario: CrewScenario, sol: Optional[int] = None) -> Dict[str, Any]:
