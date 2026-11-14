@@ -15,7 +15,7 @@ import numpy as np
 
 from app.ml import DATA_PROVENANCE
 from app.ml.anomaly import (CrewAnalysis, analyze_crew, explain, STATUS_RANK, WATCH_Z, WATCH_SOLS_TO_RISK,
-                            ACT_SOLS_TO_RISK, VITD)
+                            ACT_SOLS_TO_RISK, VITD, VITALS_REFERENCE_LAG_SOLS)
 from app.ml.crew_data import CrewScenario, generate_crew
 from app.ml.literature_check import run_checks, summary
 from app.ml.params import parameter_provenance, parameter_table, load_params_file
@@ -99,7 +99,10 @@ class CrewHealthService:
     def _rules() -> Dict[str, Any]:
         return {
             "ACT": f"forecast Sols-to-risk <= {ACT_SOLS_TO_RISK} (vitamin C, B1 pools or vitamin D status)",
-            "WATCH": f"forecast Sols-to-risk <= {WATCH_SOLS_TO_RISK} or |z| of any vital >= {WATCH_Z}",
+            "WATCH": (f"forecast Sols-to-risk <= {WATCH_SOLS_TO_RISK} or |z| of any vital >= {WATCH_Z} "
+                      f"(vs a trend-following personal reference lagged {VITALS_REFERENCE_LAG_SOLS} Sols)"),
+            "driver": (f"largest contributor relative to its rule threshold: {WATCH_SOLS_TO_RISK} / Sols-to-risk "
+                       f"(nutrient forecast) vs |z| / {WATCH_Z} (vital); ACT is always forecast-driven"),
             "NOMINAL": "otherwise",
             "CALIBRATING": "personal baseline + trend window not yet available",
         }
@@ -185,6 +188,8 @@ class CrewHealthService:
                 "astronaut_id": astronaut,
                 "status": row["status"],
                 "worst_nutrient": row["worst_nutrient"],
+                "driver_kind": row["driver_kind"],
+                "driver_signal": row["driver_signal"],
                 "sols_to_risk": _clean(row["sols_to_risk"], 1),
                 "top_driver": row["top_driver"],
                 "driver_z": _clean(row["driver_z"], 2),
@@ -224,8 +229,9 @@ class CrewHealthService:
         cols = (["sol", "storage_temp_c"]
                 + [f"{n}_{s}" for n in NUTRIENTS for s in ("intake_mg", "pool_mg", "sols_to_risk")]
                 + [VITAMIN_D["intake_col"], VITAMIN_D["status_col"], f"z_{VITAMIN_D['status_col']}", f"{VITD}_sols_to_risk"]
-                + VITALS + [f"z_{v}" for v in VITALS]
-                + ["anomaly_score", "status", "worst_nutrient", "sols_to_risk", "top_driver", "driver_z"])
+                + VITALS + [f"z_{v}" for v in VITALS] + [f"ref_{v}" for v in VITALS]
+                + ["anomaly_score", "status", "worst_nutrient", "sols_to_risk", "top_driver", "driver_z",
+                   "driver_kind", "driver_signal"])
         records = [{c: _clean(v) for c, v in zip(cols, rec)} for rec in fr[cols].itertuples(index=False, name=None)]
         baseline = {
             v: {"mean": _clean(res.baseline.mean[v]), "sd": _clean(res.baseline.sd[v]),
@@ -240,6 +246,7 @@ class CrewHealthService:
             "nutrients": self._nutrient_meta(),
             "vitamin_d_meta": self._vitamin_d_meta(),
             "baseline": baseline,
+            "vitals_reference_lag_sols": VITALS_REFERENCE_LAG_SOLS,
             "pool_baseline_mg": {n: _clean(v, 2) for n, v in res.pool_baseline.items()},
             "first_watch_sol": res.first_status.get("WATCH"),
             "first_act_sol": res.first_status.get("ACT"),

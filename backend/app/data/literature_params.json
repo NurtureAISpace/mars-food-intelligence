@@ -85,11 +85,11 @@
     },
     {
       "name": "vitamin_c.absorption",
-      "value": 0.70, "unit": "fraction", "old_value": 0.70,
-      "source": "MODEL_ASSUMPTION",
-      "where_in_source": null,
-      "status": "assumed",
-      "note": "TODO: no accessible source read for fractional absorption at these intakes. Kept old value."
+      "value": 0.375, "unit": "fraction (effective: absorbed and retained in the body pool)", "old_value": 0.70,
+      "source": "NASA_JSC_2005_REQ",
+      "where_in_source": "Derived from Vitamin C, 'Body stores and relative time to depletion' (printed p. 53): tissue saturation at intakes of 100-140 mg/day, catabolic turnover up to 45 mg/day, maximum body pool ~2 g.",
+      "status": "derived",
+      "note": "Steady-state calibration. First-order pool P_eq = a * I / k. Require P_eq = P_max (2000 mg) at the saturation intake I_sat = 120 mg/day (midpoint of 100-140) with k = 0.0225/day (vitamin_c.turnover_per_day): a = k * P_max / I_sat = 45 / 120 = 0.375 (0.32-0.45 across 100-140 mg/day). Anchored to the saturation intake, not the 90 mg/day requirement, because ~2 g is the MAXIMUM pool, reached at saturation. Effective efficiency (intestinal absorption x renal retention), not intestinal absorption alone: the linear model has no saturable renal-excretion term, so urinary loss of unmetabolised ascorbate is folded into a. Old 0.70 (assumed) implied saturation at 64 mg/day, below the literature range."
     },
     {
       "name": "vitamin_c.requirement_mg_day",
@@ -113,7 +113,7 @@
       "source": "NASA_JSC_2005_REQ",
       "where_in_source": "Vitamin C (printed p. 53): 'Blood cell and tissue concentrations become saturated at intakes from 100 to 140 mg/day'.",
       "status": "literature",
-      "note": "Literature check only (intake that holds the model pool at capacity)."
+      "note": "Calibration anchor for vitamin_c.absorption (midpoint 120 mg/day). The literature check of the saturating intake is therefore a calibration identity."
     },
     {
       "name": "thiamine_b1.pool_max_mg",
@@ -129,31 +129,31 @@
       "source": "NASA_JSC_2005_REQ",
       "where_in_source": "Thiamin (printed p. 60): 'The biological half-life of thiamin is in the range of 9 to 18 days.'",
       "status": "literature",
-      "note": "Used to derive turnover_per_day and in the literature check."
+      "note": "Upper bound (18 d) used to derive turnover_per_day (see its note: the only part of the range consistent with the 30 mg store at 1.2 mg/day and absorption <= 1); range used in the literature check."
     },
     {
       "name": "thiamine_b1.turnover_per_day",
-      "value": 0.0513442, "unit": "1/day", "old_value": 0.03,
+      "value": 0.0385082, "unit": "1/day", "old_value": 0.0513442,
       "source": "NASA_JSC_2005_REQ",
-      "where_in_source": "Derived from printed p. 60 (half-life 9-18 days).",
+      "where_in_source": "Derived from printed p. 60 (half-life 9-18 days; ~30 mg body store; RDA 1.2 mg/day for men).",
       "status": "derived",
-      "note": "k = ln 2 / 13.5 days (midpoint of the 9-18 day half-life range). Old value 0.03/day implied a 23-day half-life, outside the literature range."
+      "note": "k = ln 2 / 18 days (upper end of the 9-18 day half-life range). Chosen jointly with thiamine_b1.absorption: the steady-state store anchor (30 mg at 1.2 mg/day) needs a = 30 k / 1.2 <= 1, i.e. t1/2 >= 30 ln2 / 1.2 = 17.3 days. The previous midpoint 13.5 days (k = 0.0513/day) would need a = 1.28, physically impossible, so the three literature anchors are only mutually consistent for t1/2 in [17.3, 18] days; 18 days is the literature-stated bound inside that interval."
     },
     {
-      "name": "thiamine_b1.risk_threshold_mg",
-      "value": 10.0, "unit": "mg", "old_value": 10.0,
+      "name": "thiamine_b1.risk_threshold_fraction_of_store",
+      "value": 0.333333, "unit": "fraction of thiamine_b1.pool_max_mg (x 30 mg = 10 mg)", "old_value": "10.0 mg (absolute)",
       "source": "MODEL_ASSUMPTION",
       "where_in_source": null,
       "status": "assumed",
-      "note": "TODO: the NASA standard defines thiamin status by erythrocyte transketolase activation, not by body pool mass; no pool-mass deficiency threshold found. Kept old value."
+      "note": "Risk crossing at 1/3 of the ~30 mg body store (= 10 mg, unchanged value). Searched NASA_JSC_2005_REQ thiamin section (printed pp. 60-61) and SMITH_ZWART_NTRS_2006 (no thiamin content): neither states a body-pool level or a depletion time at which deficiency signs appear. NASA assesses thiamin status by erythrocyte transketolase activation (green 0%, yellow 15%, red >25%) and sets intake bands (Req. 14, men: green 1.2, yellow 0.8-1.0, red <0.8 per day). Not used: the red intake edge maps to a steady-state pool of 30 * 0.8 / 1.2 = 20 mg in this model, but it is an intake band, not a level at which deficiency signs appear."
     },
     {
       "name": "thiamine_b1.absorption",
-      "value": 0.60, "unit": "fraction", "old_value": 0.60,
-      "source": "MODEL_ASSUMPTION",
-      "where_in_source": null,
-      "status": "assumed",
-      "note": "TODO: no accessible source read. Kept old value."
+      "value": 0.962704, "unit": "fraction (effective: absorbed and retained in the body pool)", "old_value": 0.60,
+      "source": "NASA_JSC_2005_REQ",
+      "where_in_source": "Derived from Thiamin (printed p. 60): 'Approximately 30 mg of thiamin is stored in the human body', half-life 9-18 days; RDA 1.2 mg/day for men.",
+      "status": "derived",
+      "note": "Steady-state calibration: a = P_store * k / I_RDA = 30 mg * (ln2 / 18 d) / 1.2 mg/day = 0.963. Assumes the ~30 mg store is the steady state of an adult eating the RDA (the source does not state the intake behind the 30 mg figure). Old 0.60 (assumed) gave a 14 mg steady state at the RDA."
     },
     {
       "name": "thiamine_b1.requirement_mg_day",

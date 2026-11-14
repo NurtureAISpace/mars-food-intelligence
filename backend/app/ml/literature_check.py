@@ -99,7 +99,7 @@ def run_checks() -> List[Dict[str, Any]]:
     sat = c["turnover_per_day"] * c["pool_max_mg"] / c["absorption"]
     out.append(_check("Vit C intake that keeps pool saturated (k * P_max / a)", sat,
                       param("vitamin_c.saturation_intake_mg_day"), "mg/day", "vitamin_c.saturation_intake_mg_day",
-                      "independent", note="depends on assumed absorption"))
+                      "calibration identity", note="absorption is derived from this range (steady-state calibration)"))
 
     # --- Thiamine body pool ---------------------------------------------------------------
     t = NUTRIENTS["thiamine_b1"]
@@ -107,8 +107,8 @@ def run_checks() -> List[Dict[str, Any]]:
                       param("thiamine_b1.half_life_days"), "days", "thiamine_b1.half_life_days", "calibration identity"))
     pool_rda = t["absorption"] * t["requirement_mg_day"] / t["turnover_per_day"]
     out.append(_check("B1 steady-state pool at RDA intake (a * RDA / k)", pool_rda,
-                      param("thiamine_b1.pool_max_mg"), "mg", "thiamine_b1.pool_max_mg", "independent",
-                      note="body store ~30 mg in a healthy adult on the RDA; depends on assumed absorption"))
+                      param("thiamine_b1.pool_max_mg"), "mg", "thiamine_b1.pool_max_mg", "calibration identity",
+                      note="absorption is derived from this store (steady-state calibration)"))
 
     # --- Vitamin D (ISS, Mir, Skylab) ------------------------------------------------------
     vd = VITAMIN_D

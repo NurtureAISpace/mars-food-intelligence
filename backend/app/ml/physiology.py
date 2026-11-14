@@ -38,14 +38,24 @@ from app.ml.params import param
 # ---------------------------------------------------------------------------
 # Water-soluble vitamin pools (values + sources in literature_params.json)
 # ---------------------------------------------------------------------------
+def _risk_threshold_mg(key: str) -> float:
+    """Absolute risk threshold (vitamin C, literature) or a fraction of the body store (thiamine, assumed)."""
+    try:
+        return float(param(f"{key}.risk_threshold_mg"))
+    except KeyError:
+        return float(param(f"{key}.risk_threshold_fraction_of_store")) * param(f"{key}.pool_max_mg")
+
+
 def _pool_nutrient(key: str, label: str, catalog_field: str) -> Dict[str, Any]:
+    # absorption: effective intake efficiency from the steady-state calibration P_eq = a * I / k
+    # (P_eq = literature body store at the literature intake anchor; see literature_params.json)
     return {
         "label": label,
         "catalog_field": catalog_field,
         "absorption": param(f"{key}.absorption"),
         "turnover_per_day": param(f"{key}.turnover_per_day"),
         "pool_max_mg": param(f"{key}.pool_max_mg"),
-        "risk_threshold_mg": param(f"{key}.risk_threshold_mg"),
+        "risk_threshold_mg": _risk_threshold_mg(key),
         "requirement_mg_day": param(f"{key}.requirement_mg_day"),
     }
 

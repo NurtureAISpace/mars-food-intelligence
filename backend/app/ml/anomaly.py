@@ -4,7 +4,11 @@ Personal-baseline anomaly detection and explainable early-warning alerts.
 For every astronaut:
   1. Personal baseline = mean / SD of each signal over the first `baseline_sols` Sols
      (SD floored at a measurement-noise level so a quiet baseline does not inflate z).
-  2. z-scores vs that baseline, smoothed with a rolling mean.
+  2. z-scores, smoothed with a rolling mean. Vitals use a trend-following reference level: the mean
+     of a `baseline_sols` window that ends VITALS_REFERENCE_LAG_SOLS before the current Sol (the fixed
+     personal baseline before that window exists), divided by the personal-baseline SD. Slow, sustained
+     drifts are covered by the mechanistic nutrient forecast (step 4); the vitals channel flags changes
+     faster than the lag, so an expected slow decline is not re-alarmed indefinitely.
   3. IsolationForest trained on that astronaut's baseline window only -> anomaly score
      (supporting evidence, not part of the status rules).
   4. Causal per-Sol forecast: personal turnover k estimated from history up to that Sol,
@@ -14,12 +18,14 @@ For every astronaut:
         ACT     if Sols-to-risk <= ACT_SOLS_TO_RISK
         WATCH   if Sols-to-risk <= WATCH_SOLS_TO_RISK or |z| of any vital >= WATCH_Z
         NOMINAL otherwise   (CALIBRATING before baseline + trend window is available)
+     Status driver = largest contributor relative to its rule threshold:
+        nutrient forecast: WATCH_SOLS_TO_RISK / Sols-to-risk;  vital: |z| / WATCH_Z  (ACT is always forecast).
   6. Alerts at the first WATCH / first ACT, explaining what changed, by how much vs
      baseline, since which Sol, and food + servings to close the intake gap.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -49,6 +55,9 @@ GAP_WINDOW_SOLS = 3                # recent intake window used to size the intak
 MAX_PRACTICAL_SERVINGS = 3.0       # above this, the recommendation is flagged as not feasible
 ISO_N_ESTIMATORS = 200
 ISO_CONTAMINATION = 0.02
+VITALS_REFERENCE_LAG_SOLS = 28     # trend-following vitals reference window ends this many Sols back
+DRIVER_FORECAST = "nutrient_forecast"
+DRIVER_VITAL = "vital_zscore"
 
 INTAKE_COLS = [f"{n}_intake_mg" for n in NUTRIENTS]
 MODEL_FEATURES = VITALS + INTAKE_COLS
@@ -68,6 +77,8 @@ SIGNAL_LABELS = {
     VITAMIN_D["status_col"]: "Serum 25-hydroxyvitamin D",
     VITAMIN_D["intake_col"]: "Vitamin D intake (food + supplement)",
 }
+NUTRIENT_LABELS = {**{n: cfg["label"] for n, cfg in NUTRIENTS.items()}, VITD: VITAMIN_D["label"]}
+VITAL_UNITS = {"hr_rest": "bpm", "sleep_h": "h", "body_mass_kg": "kg", "fatigue_score": "score"}
 
 
 @dataclass
@@ -104,10 +115,37 @@ def personal_baseline(g: pd.DataFrame, baseline_sols: int) -> PersonalBaseline:
     return PersonalBaseline(mean=mu, sd=sd)
 
 
-def baseline_zscores(g: pd.DataFrame, baseline: PersonalBaseline, smoothing_sols: int) -> pd.DataFrame:
+def vitals_reference(g: pd.DataFrame, baseline: PersonalBaseline, baseline_sols: int,
+                     lag_sols: int = VITALS_REFERENCE_LAG_SOLS) -> pd.DataFrame:
+    """
+    Causal trend-following reference level per vital: mean over Sols [i - lag - W + 1, i - lag]
+    (W = baseline_sols); the fixed personal-baseline mean before that window exists.
+    """
+    ref = g[VITALS].rolling(baseline_sols, min_periods=baseline_sols).mean().shift(lag_sols)
+    return ref.fillna(baseline.mean[VITALS])
+
+
+def baseline_zscores(g: pd.DataFrame, baseline: PersonalBaseline, smoothing_sols: int,
+                     reference: Optional[pd.DataFrame] = None) -> pd.DataFrame:
+    """z vs the fixed personal baseline; vitals vs `reference` (trend-following level) when given."""
     cols = list(baseline.mean.index)
     z = (g[cols] - baseline.mean) / baseline.sd
+    if reference is not None:
+        z[VITALS] = (g[VITALS] - reference[VITALS]) / baseline.sd[VITALS]
     return z.rolling(smoothing_sols, min_periods=smoothing_sols).mean()
+
+
+def status_driver(status: str, worst_nutrient: str, worst_sols_to_risk: float, vital: str,
+                  vital_abs_z: float) -> Tuple[str, str]:
+    """
+    Largest contributor to the status, each signal relative to its own rule threshold:
+    forecast WATCH_SOLS_TO_RISK / Sols-to-risk vs vital |z| / WATCH_Z. ACT can only come from the forecast.
+    """
+    forecast_ratio = np.inf if worst_sols_to_risk <= 0 else WATCH_SOLS_TO_RISK / worst_sols_to_risk
+    vital_ratio = vital_abs_z / WATCH_Z
+    if status == "ACT" or forecast_ratio >= vital_ratio:
+        return DRIVER_FORECAST, worst_nutrient
+    return DRIVER_VITAL, vital
 
 
 def fit_baseline_isolation_forest(g: pd.DataFrame, baseline_sols: int, seed: int) -> IsolationForest:
@@ -191,7 +229,9 @@ def explain(res: AstronautResult, data: CrewData, sol: int) -> Optional[Dict[str
     status = row["status"]
     if status == "CALIBRATING":
         return None
-    nutrient = row["worst_nutrient"]
+    if row["driver_kind"] == DRIVER_VITAL:
+        return _explain_vital(res, data, sol)
+    nutrient = row["driver_signal"]
     if nutrient == VITD:
         return _explain_vitamin_d(res, data, sol)
     cfg = NUTRIENTS[nutrient]
@@ -255,6 +295,8 @@ def explain(res: AstronautResult, data: CrewData, sol: int) -> Optional[Dict[str
         "astronaut_id": res.astronaut,
         "sol": int(sol),
         "status": status,
+        "driver_kind": DRIVER_FORECAST,
+        "driver_signal": nutrient,
         "nutrient": nutrient,
         "pool_mg": _num(pool_now, 1),
         "risk_threshold_mg": cfg["risk_threshold_mg"],
@@ -331,6 +373,8 @@ def _explain_vitamin_d(res: AstronautResult, data: CrewData, sol: int) -> Dict[s
         "astronaut_id": res.astronaut,
         "sol": int(sol),
         "status": row["status"],
+        "driver_kind": DRIVER_FORECAST,
+        "driver_signal": VITD,
         "nutrient": VITD,
         "pool_mg": None,
         "risk_threshold_mg": None,
@@ -354,6 +398,70 @@ def _explain_vitamin_d(res: AstronautResult, data: CrewData, sol: int) -> Dict[s
     }
 
 
+def _explain_vital(res: AstronautResult, data: CrewData, sol: int) -> Dict[str, Any]:
+    """Assessment when a vital-sign change (not a nutrient forecast) is the largest contributor to WATCH."""
+    fr = res.frame
+    row = fr.iloc[sol]
+    v = row["driver_signal"]
+    z = float(row[f"z_{v}"])
+    recent = fr.iloc[sol - data.scenario.smoothing_sols + 1: sol + 1]
+    current, ref = float(recent[v].mean()), float(row[f"ref_{v}"])
+    since_sol = _run_start((fr[f"z_{v}"].abs() >= WATCH_Z).to_numpy(), sol)
+    nearest, s2r = row["worst_nutrient"], float(row["sols_to_risk"])
+
+    def pct(cur: float, b: float) -> Optional[float]:
+        return _num(100.0 * (cur - b) / b, 1) if b else None
+
+    context = []
+    for n in ALL_NUTRIENTS:
+        col = VITAMIN_D["status_col"] if n == VITD else f"{n}_pool_mg"
+        context.append({"nutrient": n, "sols_to_risk": _num(row[f"{n}_sols_to_risk"], 0),
+                        "status_value": _num(row[col]),
+                        "pct_change_vs_baseline": pct(float(row[col]), res.pool_baseline[n])})
+    changes = [{"signal": v, "label": SIGNAL_LABELS[v], "baseline": _num(ref), "current": _num(current),
+                "pct_change_vs_baseline": pct(current, ref), "z": _num(z)}]
+    nearest_txt = (f"nearest forecast: {NUTRIENT_LABELS[nearest]} in {s2r:.0f} Sols" if np.isfinite(s2r)
+                   else "no nutrient forecast to cross its threshold")
+    moved = min(context, key=lambda c: c["pct_change_vs_baseline"] if c["pct_change_vs_baseline"] is not None else 0.0)
+    if moved["pct_change_vs_baseline"] is not None and moved["pct_change_vs_baseline"] < 0:
+        nearest_txt += (f"; largest nutrient change: {NUTRIENT_LABELS[moved['nutrient']]} "
+                        f"{moved['pct_change_vs_baseline']:+.0f}% vs baseline, above its threshold")
+    action = f"re-measure {SIGNAL_LABELS[v].lower()} and review crew log; no diet change indicated by the nutrient model"
+    message = (
+        f"{SIGNAL_LABELS[v]} {current:.1f} {VITAL_UNITS[v]} vs personal reference {ref:.1f} "
+        f"({pct(current, ref):+.0f}%, z {z:+.1f}) since Sol {since_sol}: largest contributor to {row['status']}. "
+        f"Not explained by a nutrient forecast within {WATCH_SOLS_TO_RISK} Sols ({nearest_txt}). Action: {action}."
+    )
+    return {
+        "astronaut_id": res.astronaut,
+        "sol": int(sol),
+        "status": row["status"],
+        "driver_kind": DRIVER_VITAL,
+        "driver_signal": v,
+        "nutrient": None,
+        "pool_mg": None,
+        "risk_threshold_mg": None,
+        "status_value": _num(current),
+        "status_unit": VITAL_UNITS[v],
+        "risk_threshold": None,
+        "sols_to_risk": _num(s2r, 0),
+        "projected_risk_sol": int(round(sol + s2r)) if np.isfinite(s2r) else None,
+        "top_vital_driver": v,
+        "driver_z": _num(z),
+        "anomaly_score": _num(row["anomaly_score"], 3),
+        "since_sol": since_sol,
+        "since_signal": v,
+        "changes": changes,
+        "nutrient_context": context,
+        "intake_gap_mg_per_sol": None,
+        "intake_gap": None,
+        "intake_gap_unit": None,
+        "recommendation": None,
+        "action": action,
+        "message": message,
+    }
+
+
 def analyze_astronaut(g: pd.DataFrame, data: CrewData) -> AstronautResult:
     sc = data.scenario
     g = g.sort_values("sol").reset_index(drop=True).copy()
@@ -361,9 +469,12 @@ def analyze_astronaut(g: pd.DataFrame, data: CrewData) -> AstronautResult:
     n_sols = len(g)
 
     baseline = personal_baseline(g, sc.baseline_sols)
-    z = baseline_zscores(g, baseline, sc.smoothing_sols)
+    reference = vitals_reference(g, baseline, sc.baseline_sols)
+    z = baseline_zscores(g, baseline, sc.smoothing_sols, reference)
     for c in z.columns:
         g[f"z_{c}"] = z[c].values
+    for v in VITALS:
+        g[f"ref_{v}"] = reference[v].values
 
     iso = fit_baseline_isolation_forest(g, sc.baseline_sols, sc.seed)
     g["anomaly_score"] = -iso.score_samples(g[MODEL_FEATURES])
@@ -381,6 +492,8 @@ def analyze_astronaut(g: pd.DataFrame, data: CrewData) -> AstronautResult:
     worst_s2r = np.full(n_sols, np.nan)
     driver = np.array([None] * n_sols, dtype=object)
     driver_z = np.full(n_sols, np.nan)
+    driver_kind = np.array([None] * n_sols, dtype=object)
+    driver_signal = np.array([None] * n_sols, dtype=object)
 
     for i in range(sc.calibration_sols, n_sols):
         w0 = i - sc.trend_window_sols + 1
@@ -407,6 +520,7 @@ def analyze_astronaut(g: pd.DataFrame, data: CrewData) -> AstronautResult:
             best_n = min(NUTRIENTS, key=lambda n: pools[n][i] / NUTRIENTS[n]["pool_max_mg"])
         worst_n[i], worst_s2r[i] = best_n, best_s
         status[i] = classify_status(best_s, abs(zv[i, d]))
+        driver_kind[i], driver_signal[i] = status_driver(status[i], best_n, best_s, VITALS[d], abs(zv[i, d]))
 
     for n in ALL_NUTRIENTS:
         g[f"{n}_k_per_sol"] = per_n[n]["k"]
@@ -416,6 +530,8 @@ def analyze_astronaut(g: pd.DataFrame, data: CrewData) -> AstronautResult:
     g["sols_to_risk"] = worst_s2r
     g["top_driver"] = driver
     g["driver_z"] = driver_z
+    g["driver_kind"] = driver_kind
+    g["driver_signal"] = driver_signal
     g["status"] = status
 
     res = AstronautResult(

@@ -66,8 +66,8 @@ for astronaut, res in analysis.astronauts.items():
 print("\nCrew status summary:")
 print(pd.DataFrame(status_rows))
 
-alert_cols = ["astronaut_id", "sol", "status", "nutrient", "pool_mg", "sols_to_risk", "since_sol",
-              "top_vital_driver", "driver_z", "intake_gap_mg_per_sol", "action"]
+alert_cols = ["astronaut_id", "sol", "status", "driver_kind", "driver_signal", "status_value", "sols_to_risk",
+              "since_sol", "top_vital_driver", "driver_z", "intake_gap_mg_per_sol", "action"]
 print("\nFirst alerts (explainable):")
 print(pd.DataFrame(analysis.alerts)[alert_cols].sort_values(["astronaut_id", "sol"]).to_string(index=False))
 for a in sorted(analysis.alerts, key=lambda a: (a["astronaut_id"], a["sol"])):
@@ -79,22 +79,38 @@ if scenario.failure_enabled:
     print("\nMean anomaly score before vs after cooling failure:")
     print(timeline.groupby(np.where(pre_event, "before", "after"))["anomaly_score"].mean().round(3))
 
-print("\nWarning lead time (first ACT -> first threshold crossing of the ACT nutrient):")
-for astronaut, res in analysis.astronauts.items():
-    act = res.first_status.get("ACT")
-    if act is None:
-        print(f"  {astronaut}: no ACT")
-        continue
-    n = res.frame.loc[act, "worst_nutrient"]
-    cross = res.threshold_crossing_sol.get(n)
-    lead = f"{cross - act} Sols" if cross is not None else "no crossing in mission"
-    print(f"  {astronaut}: ACT Sol {act} on {n}, crossing Sol {cross}, lead {lead}")
+def demo_table(an):
+    """Per astronaut: first WATCH / first ACT with their driver, threshold crossings, ACT lead time."""
+    rows = []
+    for astronaut, res in an.astronauts.items():
+        fr = res.frame
+        w, a = res.first_status.get("WATCH"), res.first_status.get("ACT")
+        n = fr.loc[a, "driver_signal"] if a is not None else None
+        cross = res.threshold_crossing_sol.get(n) if n is not None else None
+        rows.append({
+            "astronaut": astronaut,
+            "first_WATCH": w,
+            "WATCH_driver": f"{fr.loc[w, 'driver_signal']} ({fr.loc[w, 'driver_kind']})" if w is not None else None,
+            "first_ACT": a,
+            "ACT_driver": n,
+            "crossings": {k: v for k, v in res.threshold_crossing_sol.items() if v is not None} or None,
+            "ACT_lead_sols": (cross - a) if cross is not None else None,
+            "min_C_mg": round(fr["vitamin_c_pool_mg"].min(), 1),
+            "min_B1_mg": round(fr["thiamine_b1_pool_mg"].min(), 2),
+        })
+    return pd.DataFrame(rows).sort_values("astronaut").to_string(index=False)
 
-print("\nNo-cooling-failure control run (false alarms = WATCH/ACT without the event):")
+
 control = analyze_crew(generate_crew(CrewScenario(failure_enabled=False)))
+print("\nDEMO TABLE - with cooling failure (Sol 150):")
+print(demo_table(analysis))
+print("\nDEMO TABLE - without cooling failure (control):")
+print(demo_table(control))
+print("  ACT_lead_sols = first threshold crossing of the ACT nutrient - first ACT Sol (None = no crossing in mission)")
+print("\nControl-run alerts (any WATCH/ACT without the event):")
 for a in control.alerts:
-    print(f"  {a['astronaut_id']} Sol {a['sol']} {a['status']} on {a['nutrient']} (sols_to_risk {a['sols_to_risk']}, "
-          f"driver {a['top_vital_driver']} z {a['driver_z']})")
+    print(f"  {a['astronaut_id']} Sol {a['sol']} {a['status']} driver {a['driver_signal']} ({a['driver_kind']}), "
+          f"sols_to_risk {a['sols_to_risk']}")
 if not control.alerts:
     print("  none")
 
