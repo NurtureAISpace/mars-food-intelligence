@@ -3,6 +3,7 @@
 // Seeded demo entries are tagged "Demo check-in"; real ones "From Astronaut App".
 import React, { useEffect, useMemo, useState } from 'react';
 import { ClipboardList, Clock, ExternalLink, Globe, QrCode, Rocket, Smartphone, UserPlus, Users } from 'lucide-react';
+import { HealthAvatar } from './HealthAvatar';
 import { JoinCrewModal } from './JoinCrewModal';
 import { fetchCrewScenarios } from '../api';
 import {
@@ -122,7 +123,7 @@ export const CrewHealthView: React.FC<{ crew: CrewCheckinsState; onNavigate: (ta
         </ErrorBox>
       )}
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_1fr]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.15fr_0.75fr_1.5fr]">
         <Section icon={Globe} title="Mission">
           <KVList>
             <KVRow label="Destination" value={
@@ -140,6 +141,7 @@ export const CrewHealthView: React.FC<{ crew: CrewCheckinsState; onNavigate: (ta
           <StatTile label="Need attention" value={seats ? needAttention : '—'} tone={needAttention ? 'text-watch' : 'text-white'}
             source={seats ? <SeatSources seats={seats} /> : undefined} />
         </div>
+        {seats ? <HealthAvatar person={selected} /> : <div />}
       </div>
 
       <Section icon={Users} title="Crew: latest readings">
