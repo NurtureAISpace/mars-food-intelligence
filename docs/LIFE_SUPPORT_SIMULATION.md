@@ -111,6 +111,6 @@ Where evapotranspiration rate $\text{ET}(T) = 1.8 \times (1 + 0.04(T_{\text{ambi
 
 All life-support API responses carry a `data_provenance` field. See [DATA_SOURCES.md](DATA_SOURCES.md).
 
-**Known issue for the module owner:** in `life_support_service.py`, the Sabatier hydrogen limit uses
-`h2_produced_kg * 8.9`. By stoichiometry (CO₂ + 4H₂ → CH₄ + 2H₂O) it should be 36/8 = 4.5 kg H₂O per kg H₂. Left unchanged
-for Faruk to fix.
+**Sabatier hydrogen limit:** water recovered is `min(CO₂ × 0.818, H₂ × 4.5)`. The factor 4.5 = 36/8 kg H₂O per kg H₂
+comes from the stoichiometry (CO₂ + 4H₂ → CH₄ + 2H₂O); it was previously 8.9. With the default crew the hydrogen limit
+binds, giving about 1.36 L/Sol of Sabatier water.

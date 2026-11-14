@@ -15,6 +15,9 @@ from app.models.life_support_eclss import (
     LIFE_SUPPORT_DATA_PROVENANCE,
 )
 
+# Sabatier stoichiometry, CO2 + 4H2 -> CH4 + 2H2O: 2 x 18 g water per 4 x 2 g hydrogen = 36/8.
+SABATIER_WATER_PER_KG_H2 = 4.5
+
 # Greenhouse gas/water exchange per crop bed: SYNTHETIC illustrative values (no source).
 # Per m2 per Sol: O2 released (g), CO2 absorbed (g), water transpired (L); bed area in m2.
 SYNTHETIC_GREENHOUSE_BEDS: Dict[str, Dict[str, float]] = {
@@ -121,9 +124,13 @@ class LifeSupportService:
         electrolysis_water_needed_l = remaining_o2_needed * ECLSSLifeSupportEngine.WATER_TO_O2_ELECTROLYSIS_RATIO
         h2_produced_kg = remaining_o2_needed * ECLSSLifeSupportEngine.H2_YIELD_PER_KG_O2
 
-        # Sabatier Reactor: reacts crew CO2 with H2 to recover water
+        # Sabatier Reactor: reacts crew CO2 with H2 to recover water.
+        # Limited by CO2 or by H2: CO2 + 4H2 -> CH4 + 2H2O gives 36/8 = 4.5 kg H2O per kg H2.
         crew_co2_kg = demands["co2_output_kg_sol"]
-        sabutier_water_recovered_l = min(crew_co2_kg * ECLSSLifeSupportEngine.SABATIER_WATER_RECOVERY_RATIO, h2_produced_kg * 8.9)
+        sabutier_water_recovered_l = min(
+            crew_co2_kg * ECLSSLifeSupportEngine.SABATIER_WATER_RECOVERY_RATIO,
+            h2_produced_kg * SABATIER_WATER_PER_KG_H2,
+        )
 
         # Water Recovery System (WRS): graywater + urine recovery + plant transpiration
         hygiene_and_humidity_water = (
