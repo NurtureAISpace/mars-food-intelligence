@@ -21,8 +21,6 @@ export default {
         act: '#F43F5E',
         real: '#34D399',          // real-data badge (emerald)
         series: { 1: '#199EB8', 2: '#9A7AEA' }, // chart series (validated pair, dark surface)
-        // LEGACY aliases for screens not yet migrated — removed once every view uses the tokens above.
-        mars: { dark: 'rgba(0,0,0,0.3)', card: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.10)' },
       },
       fontFamily: {
         display: ['"Space Grotesk"', '"Segoe UI"', 'system-ui', 'sans-serif'],

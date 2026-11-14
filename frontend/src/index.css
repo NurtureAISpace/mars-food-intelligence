@@ -169,10 +169,6 @@
 
   /* Entrance motion */
   .reveal { @apply animate-fade-up; }
-
-  /* LEGACY aliases for screens not yet migrated (removed in the final step). */
-  .glass-panel { @apply card; }
-  .glass-panel-glow { @apply card border-accent/30; }
 }
 
 /* ------------------------------------------------------------------------
