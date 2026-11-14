@@ -45,6 +45,13 @@ button {
   touch-action: manipulation;
 }
 
+/* Desktop/laptop (>= 1024px): same 80 % scale as browser zoom 80 % (phones unchanged). vh lengths inside the
+   zoomed root are zoomed too, so full-height rules are divided by the zoom. */
+@media (min-width: 1024px) {
+  html { zoom: 0.8; }
+  body, .min-h-screen { min-height: calc(100vh / 0.8); }
+}
+
 :focus-visible {
   outline: 3px solid #a5b4fc;
   outline-offset: 2px;
