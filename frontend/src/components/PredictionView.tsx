@@ -1,7 +1,94 @@
 import React, { useEffect, useState } from 'react';
 import { fetchFoodCatalog, predictShelfLife } from '../api';
 import { FoodItem, ShelfLifePrediction } from '../types';
-import { TrendingUp, Thermometer, ShieldCheck, AlertCircle, Info, Sparkles } from 'lucide-react';
+import { Hero } from '../ui/Hero';
+import { Card, DataBadge, SectionHead, Stat, TonePill } from '../ui/primitives';
+import { C } from '../ui/tokens';
+import {
+  ANNOT, AXIS_TITLE, ChartLegend, GlowFilter, HaloDot, SvgTooltip, TICK, nearest, useHoverX, useSvgId,
+} from '../ui/chart';
+
+const MAX_SOL = 800;
+const TARGET_SOL = 450;
+
+// Storage temperature band → text tone (warmer = faster vitamin loss)
+const tempTone = (t: number) => (t <= 4 ? 'text-fg' : t <= 21 ? 'text-watch' : 'text-act');
+
+const RetentionChart: React.FC<{ prediction: ShelfLifePrediction | null; thresholdPct: number; loading: boolean }> = ({
+  prediction, thresholdPct, loading,
+}) => {
+  const W = 800, H = 300, L = 62, R = 20, T = 34, B = 50;
+  const glowId = useSvgId('glow');
+  const fadeId = useSvgId('fade');
+  const sx = (sol: number) => L + (sol / MAX_SOL) * (W - L - R);
+  const sy = (pct: number) => H - B - (pct / 100) * (H - T - B);
+  const pts: Array<[number, number]> = (prediction?.retention_curve ?? []).map((p) => [p.sol, p.retention_pct]);
+  const line = pts.map(([s, r], i) => `${i ? 'L' : 'M'} ${sx(s).toFixed(1)} ${sy(r).toFixed(1)}`).join(' ');
+  const area = pts.length ? `${line} L ${sx(pts[pts.length - 1][0]).toFixed(1)} ${sy(0)} L ${sx(pts[0][0]).toFixed(1)} ${sy(0)} Z` : '';
+  const { hx, bind } = useHoverX({ x0: L, x1: W - R, d0: 0, d1: MAX_SOL, width: W });
+  const hp = hx !== null ? nearest(pts, hx) : null;
+  const dd = prediction?.drop_dead_sol;
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className={`h-auto w-full min-w-[560px] transition-opacity ${loading ? 'opacity-60' : ''}`}
+      role="img" aria-label="Nutrient retention over mission Sols">
+      <defs>
+        <GlowFilter id={glowId} />
+        <linearGradient id={fadeId} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor={C.series1} stopOpacity={0.22} />
+          <stop offset="100%" stopColor={C.series1} stopOpacity={0} />
+        </linearGradient>
+      </defs>
+
+      {[0, 25, 50, 75, 100].map((v) => (
+        <g key={v}>
+          <line x1={L} y1={sy(v)} x2={W - R} y2={sy(v)} stroke={C.grid} />
+          <text x={L - 10} y={sy(v) + 4} textAnchor="end" {...TICK} fontSize={12}>{v}%</text>
+        </g>
+      ))}
+      {[0, 200, 400, 600, 800].map((s) => (
+        <text key={s} x={sx(s)} y={H - B + 19} textAnchor="middle" {...TICK} fontSize={12}>{s}</text>
+      ))}
+      <line x1={L} y1={sy(0)} x2={W - R} y2={sy(0)} stroke={C.axis} />
+      <text x={(L + W - R) / 2} y={H - 6} textAnchor="middle" {...AXIS_TITLE} fontSize={11.5}>MISSION SOL</text>
+      <text transform={`translate(16 ${(T + H - B) / 2}) rotate(-90)`} textAnchor="middle" {...AXIS_TITLE} fontSize={11.5}>
+        THIAMINE (B1) RETAINED (%)
+      </text>
+
+      {/* Sol-450 mission target */}
+      <line x1={sx(TARGET_SOL)} y1={T} x2={sx(TARGET_SOL)} y2={H - B} stroke={C.accent} strokeWidth="1" strokeDasharray="4 4" />
+      <text x={sx(TARGET_SOL)} y={T - 12} textAnchor="middle" {...ANNOT} fontSize={12} fontWeight={600}>MISSION TARGET · SOL 450</text>
+
+      {/* Viability cut-off (glowing, status red) */}
+      <line x1={L} y1={sy(thresholdPct)} x2={W - R} y2={sy(thresholdPct)} stroke={C.act} strokeWidth="1.5" strokeDasharray="6 4"
+        filter={`url(#${glowId})`} />
+      <text x={L + 8} y={sy(thresholdPct) + 18} {...ANNOT} fontSize={12}>cut-off {thresholdPct}%</text>
+
+      {area && <path d={area} fill={`url(#${fadeId})`} />}
+      {line && <path d={line} fill="none" stroke={C.series1} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />}
+
+      {dd !== undefined && dd !== null && dd <= MAX_SOL && (
+        <g>
+          <HaloDot cx={sx(dd)} cy={sy(thresholdPct)} color={C.act} r={4.5} />
+          <text x={sx(dd) > W * 0.65 ? sx(dd) - 12 : sx(dd) + 12} y={sy(thresholdPct) - 14}
+            textAnchor={sx(dd) > W * 0.65 ? 'end' : 'start'} {...ANNOT} fontSize={12} fontWeight={600} fill={C.fg}>
+            Below cut-off at Sol {dd}
+          </text>
+        </g>
+      )}
+
+      {hp && (
+        <g pointerEvents="none">
+          <line x1={sx(hp[0])} y1={T} x2={sx(hp[0])} y2={H - B} stroke={C.fg} opacity={0.25} />
+          <circle cx={sx(hp[0])} cy={sy(hp[1])} r={4} fill={C.series1} stroke={C.ink} strokeWidth={1.5} />
+          <SvgTooltip x={sx(hp[0])} y={T + 6} maxX={W - R}
+            lines={[{ text: `Sol ${Math.round(hp[0])}` }, { text: `${hp[1].toFixed(1)}% retained`, color: C.series1 }]} />
+        </g>
+      )}
+      <rect x={L} y={T} width={W - L - R} height={H - T - B} fill="transparent" {...bind} />
+    </svg>
+  );
+};
 
 export const PredictionView: React.FC = () => {
   const [catalog, setCatalog] = useState<FoodItem[]>([]);
@@ -43,258 +130,111 @@ export const PredictionView: React.FC = () => {
   }, [selectedFoodId, storageTemp, thresholdPct]);
 
   const selectedItem = catalog.find((i) => i.id === selectedFoodId);
-
-  // SVG Chart Dimensions
-  const chartWidth = 700;
-  const chartHeight = 260;
-  const padding = 45;
-
-  const points = prediction?.retention_curve || [];
-  const maxSol = 800;
-
-  const getCoordinates = (sol: number, retention: number) => {
-    const x = padding + (sol / maxSol) * (chartWidth - padding * 2);
-    const y = chartHeight - padding - (retention / 100.0) * (chartHeight - padding * 2);
-    return { x, y };
-  };
-
-  const pathD = points.reduce((acc, pt, idx) => {
-    const { x, y } = getCoordinates(pt.sol, pt.retention_pct);
-    return idx === 0 ? `M ${x} ${y}` : `${acc} L ${x} ${y}`;
-  }, '');
-
-  const thresholdY = chartHeight - padding - (thresholdPct / 100.0) * (chartHeight - padding * 2);
+  const stable = prediction?.status === 'STABLE';
+  const survives = (prediction?.drop_dead_sol ?? 0) >= TARGET_SOL;
 
   return (
-    <div className="space-y-6">
-      {/* View Header */}
-      <div>
-        <div className="flex items-center space-x-2">
-          <TrendingUp className="w-5 h-5 text-orange-400" />
-          <h2 className="text-xl font-bold font-mono text-white">PREDICTION & ARRHENIUS DEGRADATION ENGINE</h2>
-        </div>
-        <p className="text-xs text-slate-400 font-mono mt-1">
-          First-principles thermodynamic degradation forecasting using chemical kinetic constants and activation energy ($E_a$).
-        </p>
-      </div>
+    <div>
+      <Hero
+        index="03"
+        label="Food & Vitamins"
+        lines={['Food fades.']}
+        subtitle="Stored space food loses vitamins over time — faster when it's warm."
+        planet="mars"
+      >
+        <DataBadge kind="synthetic">Model forecast · Arrhenius kinetics</DataBadge>
+      </Hero>
 
-      {/* Main Interactive Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: Interactive Sliders & Parameters */}
-        <div className="glass-panel rounded-xl p-5 border border-mars-border space-y-5">
-          <h3 className="font-mono font-bold text-white text-sm border-b border-mars-border pb-3 uppercase">
-            Simulation Parameters
-          </h3>
+      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,2.2fr)] lg:gap-5">
+        {/* Controls */}
+        <Card className="space-y-6">
+          <SectionHead index="04" label="Storage conditions" title="Pick food & heat" />
 
-          {/* Food Selection */}
-          <div>
-            <label className="block text-xs font-mono text-slate-300 mb-1.5">Select Space Ration Item:</label>
-            <select
-              value={selectedFoodId}
-              onChange={(e) => setSelectedFoodId(e.target.value)}
-              className="w-full bg-mars-dark border border-mars-border rounded-lg p-2.5 text-xs font-mono text-white focus:outline-none focus:border-orange-500"
-            >
+          <label className="block">
+            <span className="eyebrow mb-2 block">Space ration item</span>
+            <select value={selectedFoodId} onChange={(e) => setSelectedFoodId(e.target.value)} className="field">
               {catalog.map((item) => (
                 <option key={item.id} value={item.id}>
                   [{item.id}] {item.name} ({item.category})
                 </option>
               ))}
             </select>
-          </div>
+          </label>
 
-          {/* Temperature Slider */}
-          <div>
-            <div className="flex justify-between items-center mb-1.5 font-mono text-xs">
-              <span className="text-slate-300">Storage Temperature:</span>
-              <span className={`font-bold ${storageTemp <= 4 ? 'text-cyan-400' : storageTemp <= 21 ? 'text-amber-400' : 'text-red-400'}`}>
-                {storageTemp}°C
-              </span>
-            </div>
-            <input
-              type="range"
-              min="-20"
-              max="40"
-              step="1"
-              value={storageTemp}
-              onChange={(e) => setStorageTemp(Number(e.target.value))}
-              className="w-full accent-orange-500 cursor-pointer"
-            />
-            <div className="flex justify-between text-[10px] font-mono text-slate-500 mt-1">
-              <span>-20°C (Deep Freeze)</span>
-              <span className="text-cyan-400 font-bold">4°C (Chilled)</span>
-              <span>21°C (Ambient)</span>
-              <span className="text-red-400">35°C (Overheat)</span>
-            </div>
-          </div>
+          <label className="block">
+            <span className="flex items-baseline justify-between">
+              <span className="eyebrow">Storage temperature</span>
+              <span className={`font-mono text-2xl font-semibold ${tempTone(storageTemp)}`}>{storageTemp}°C</span>
+            </span>
+            <input type="range" min="-20" max="40" step="1" value={storageTemp}
+              onChange={(e) => setStorageTemp(Number(e.target.value))} className="range mt-3 h-4" />
+            <span className="mt-1.5 flex justify-between font-mono text-[11px] text-muted">
+              <span>−20 freeze</span><span className="text-fg">4 chilled</span><span>21 ambient</span><span>35 overheat</span>
+            </span>
+          </label>
 
-          {/* Degradation Threshold Slider */}
-          <div>
-            <div className="flex justify-between items-center mb-1.5 font-mono text-xs">
-              <span className="text-slate-300">Viability Cutoff Threshold:</span>
-              <span className="text-orange-400 font-bold">{thresholdPct}% Retention</span>
-            </div>
-            <input
-              type="range"
-              min="20"
-              max="80"
-              step="5"
-              value={thresholdPct}
-              onChange={(e) => setThresholdPct(Number(e.target.value))}
-              className="w-full accent-orange-500 cursor-pointer"
-            />
-            <p className="text-[10px] text-slate-500 font-mono mt-1">
-              User-selected threshold (not a NASA standard).
-            </p>
-          </div>
+          <label className="block">
+            <span className="flex items-baseline justify-between">
+              <span className="eyebrow">Viability cut-off</span>
+              <span className="font-mono text-2xl font-semibold text-accent">{thresholdPct}%</span>
+            </span>
+            <input type="range" min="20" max="80" step="5" value={thresholdPct}
+              onChange={(e) => setThresholdPct(Number(e.target.value))} className="range mt-3 h-4" />
+            <span className="mt-1.5 block text-xs text-muted">User-selected threshold (not a NASA standard).</span>
+          </label>
 
-          {/* Item Kinetics Summary Box */}
           {selectedItem && (
-            <div className="p-3.5 rounded-lg bg-mars-dark border border-mars-border space-y-2 text-xs font-mono">
-              <span className="text-orange-400 font-bold uppercase text-[11px] block">Item Arrhenius Constants</span>
-              <div className="flex justify-between text-slate-300">
-                <span>Activation Energy (Ea):</span>
-                <span className="text-white font-bold">{selectedItem.activation_energy_Ea_kJ_mol} kJ/mol</span>
-              </div>
-              <div className="flex justify-between text-slate-300">
-                <span>Frequency Factor (A):</span>
-                <span className="text-white font-bold">{selectedItem.arrhenius_A.toLocaleString()} day⁻¹</span>
-              </div>
-              <div className="flex justify-between text-slate-300">
-                <span>Reaction Kinetic Order:</span>
-                <span className="text-white font-bold">{selectedItem.kinetic_order}-Order Exponential</span>
-              </div>
+            <div className="well space-y-2 p-4 text-sm">
+              <span className="eyebrow block">Item Arrhenius constants</span>
+              {([
+                ['Activation energy (Ea)', `${selectedItem.activation_energy_Ea_kJ_mol} kJ/mol`],
+                ['Frequency factor (A)', `${selectedItem.arrhenius_A.toLocaleString()} day⁻¹`],
+                ['Reaction order', `${selectedItem.kinetic_order}-order exponential`],
+              ] as const).map(([k, v]) => (
+                <div key={k} className="flex justify-between gap-3 border-b border-line pb-2 last:border-0 last:pb-0">
+                  <span className="text-muted">{k}</span>
+                  <span className="text-right font-mono text-fg">{v}</span>
+                </div>
+              ))}
             </div>
           )}
-        </div>
+        </Card>
 
-        {/* Right 2 Columns: Degradation Curve Visualization & Drop-Dead Milestone */}
-        <div className="glass-panel rounded-xl p-5 border border-mars-border lg:col-span-2 space-y-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-mars-border pb-3 gap-2">
-            <div>
-              <h3 className="font-mono font-bold text-white text-sm">
-                DYNAMIC NUTRIENT RETENTION CURVE: {selectedItem?.name}
-              </h3>
-              <p className="text-xs text-slate-400 font-mono">
-                Storage: <strong className="text-cyan-400">{storageTemp}°C</strong> • Rate constant $k$: <strong className="text-orange-400">{prediction?.rate_constant_k_per_day} day⁻¹</strong>
-              </p>
-            </div>
+        {/* Curve */}
+        <Card className="space-y-5">
+          <SectionHead
+            index="05"
+            label="Nutrient retention curve"
+            title={selectedItem?.name ?? '—'}
+            right={prediction && (
+              <TonePill tone={stable ? 'nominal' : 'act'} pulse={!stable} size="md">
+                {stable ? 'Stable past Sol 450' : 'Critical degradation'}
+              </TonePill>
+            )}
+          />
+          <p className="-mt-2 font-mono text-xs text-muted">
+            Storage <span className="text-fg">{storageTemp}°C</span> · rate constant k = <span className="text-fg">{prediction?.rate_constant_k_per_day ?? '—'} day⁻¹</span>
+          </p>
 
-            <div className={`px-3 py-1.5 rounded-lg border font-mono text-xs font-bold ${
-              prediction?.status === 'STABLE'
-                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                : 'bg-red-500/10 border-red-500/30 text-red-400'
-            }`}>
-              {prediction?.status === 'STABLE' ? 'STABLE PAST SOL-450' : 'CRITICAL DEGRADATION'}
-            </div>
+          <p className="-mb-2 font-mono text-[11px] uppercase tracking-[0.12em] text-muted md:hidden">Swipe the chart to see all 800 Sols →</p>
+          <div className="well overflow-x-auto p-3 sm:p-4">
+            <RetentionChart prediction={prediction} thresholdPct={thresholdPct} loading={loading} />
           </div>
+          <ChartLegend items={[
+            { kind: 'line', color: C.series1, label: 'Thiamine (B1) retained (model)' },
+            { kind: 'threshold', color: C.act, label: 'Viability cut-off' },
+            { kind: 'dash', color: C.accent, label: 'Mission target Sol 450' },
+            { kind: 'dot', color: C.act, label: 'Falls below cut-off' },
+          ]} />
 
-          {/* SVG Line Chart */}
-          <div className="relative bg-mars-dark/90 rounded-lg p-3 border border-mars-border overflow-hidden">
-            <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto">
-              {/* Grid Lines */}
-              {[0, 25, 50, 75, 100].map((val) => {
-                const y = chartHeight - padding - (val / 100.0) * (chartHeight - padding * 2);
-                return (
-                  <g key={val}>
-                    <line x1={padding} y1={y} x2={chartWidth - padding} y2={y} stroke="#1f2e4d" strokeDasharray="3 3" />
-                    <text x={padding - 8} y={y + 4} textAnchor="end" fill="#64748b" fontSize="10" fontFamily="monospace">
-                      {val}%
-                    </text>
-                  </g>
-                );
-              })}
-
-              {/* Sols Grid */}
-              {[0, 200, 400, 600, 800].map((s) => {
-                const x = padding + (s / maxSol) * (chartWidth - padding * 2);
-                return (
-                  <g key={s}>
-                    <line x1={x} y1={padding} x2={x} y2={chartHeight - padding} stroke="#1f2e4d" strokeDasharray="3 3" />
-                    <text x={x} y={chartHeight - padding + 16} textAnchor="middle" fill="#64748b" fontSize="10" fontFamily="monospace">
-                      Sol {s}
-                    </text>
-                  </g>
-                );
-              })}
-
-              {/* Sol 450 Target Marker Line */}
-              {(() => {
-                const x450 = padding + (450 / maxSol) * (chartWidth - padding * 2);
-                return (
-                  <g>
-                    <line x1={x450} y1={padding} x2={x450} y2={chartHeight - padding} stroke="#f97316" strokeWidth="2" strokeDasharray="4 4" />
-                    <text x={x450} y={padding - 6} textAnchor="middle" fill="#f97316" fontSize="10" fontWeight="bold" fontFamily="monospace">
-                      TARGET: SOL 450
-                    </text>
-                  </g>
-                );
-              })()}
-
-              {/* Critical Cutoff Horizontal Line */}
-              <line
-                x1={padding}
-                y1={thresholdY}
-                x2={chartWidth - padding}
-                y2={thresholdY}
-                stroke="#ef4444"
-                strokeWidth="1.5"
-                strokeDasharray="5 5"
-              />
-              <text x={chartWidth - padding} y={thresholdY - 6} textAnchor="end" fill="#ef4444" fontSize="10" fontFamily="monospace">
-                Cutoff ({thresholdPct}%)
-              </text>
-
-              {/* Retention Curve Path */}
-              <path d={pathD} fill="none" stroke="#06b6d4" strokeWidth="3" strokeLinecap="round" />
-
-              {/* Drop-Dead Point Marker */}
-              {prediction?.drop_dead_sol && prediction.drop_dead_sol <= maxSol && (
-                (() => {
-                  const coords = getCoordinates(prediction.drop_dead_sol, thresholdPct);
-                  return (
-                    <g>
-                      <circle cx={coords.x} cy={coords.y} r="6" fill="#ef4444" stroke="#ffffff" strokeWidth="2" />
-                      <text x={coords.x + 10} y={coords.y - 10} fill="#fca5a5" fontSize="11" fontWeight="bold" fontFamily="monospace">
-                        Drop-Dead: Sol {prediction.drop_dead_sol}
-                      </text>
-                    </g>
-                  );
-                })()
-              )}
-            </svg>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <Stat label="Half-life (t½)" value={prediction?.half_life_sols ?? '—'} unit="Sols" hint="50% nutrient loss point" />
+            <Stat label="Below cut-off at" value={prediction ? `Sol ${prediction.drop_dead_sol}` : '—'}
+              tone={survives ? 'text-nominal' : 'text-act'} hint={`Falls below ${thresholdPct}% retention`} />
+            <Stat label="Sol 450 status" value={prediction ? (survives ? 'Survives' : 'Expires early') : '—'}
+              tone={survives ? 'text-nominal' : 'text-act'} hint="Baseline mission gate" />
           </div>
-
-          {/* Metric Callouts */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 font-mono text-xs">
-            <div className="p-3.5 rounded-lg bg-mars-dark border border-mars-border">
-              <span className="text-slate-400 block text-[11px]">CALCULATED HALF-LIFE (t½)</span>
-              <span className="text-lg font-bold text-white mt-0.5 block">
-                {prediction?.half_life_sols} <span className="text-xs font-normal text-slate-400">Sols</span>
-              </span>
-              <span className="text-[10px] text-cyan-400">50% nutrient loss point</span>
-            </div>
-
-            <div className="p-3.5 rounded-lg bg-mars-dark border border-mars-border">
-              <span className="text-slate-400 block text-[11px]">DROP-DEAD SOL</span>
-              <span className={`text-lg font-bold mt-0.5 block ${
-                (prediction?.drop_dead_sol ?? 0) <= 450 ? 'text-red-400' : 'text-emerald-400'
-              }`}>
-                Sol {prediction?.drop_dead_sol}
-              </span>
-              <span className="text-[10px] text-slate-400">Falls below {thresholdPct}% threshold</span>
-            </div>
-
-            <div className="p-3.5 rounded-lg bg-mars-dark border border-mars-border">
-              <span className="text-slate-400 block text-[11px]">SOL-450 STATUS</span>
-              <span className={`text-lg font-bold mt-0.5 block ${
-                (prediction?.drop_dead_sol ?? 0) >= 450 ? 'text-emerald-400' : 'text-red-400'
-              }`}>
-                {(prediction?.drop_dead_sol ?? 0) >= 450 ? 'SURVIVES SOL-450' : 'EXPIRES EARLY'}
-              </span>
-              <span className="text-[10px] text-slate-400">Baseline mission gate</span>
-            </div>
-          </div>
-        </div>
+        </Card>
       </div>
     </div>
   );
