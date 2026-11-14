@@ -18,7 +18,8 @@ from app.ml.anomaly import (CrewAnalysis, analyze_crew, explain, STATUS_RANK, WA
                             ACT_SOLS_TO_RISK, VITD, VITALS_REFERENCE_LAG_SOLS)
 from app.ml.crew_data import CrewScenario, generate_crew
 from app.ml.literature_check import run_checks, summary
-from app.ml.params import parameter_provenance, parameter_table, load_params_file
+from app.core.constants import SOL_IN_EARTH_DAYS
+from app.ml.params import parameter_provenance, parameter_table, load_params_file, param_entry, sources
 from app.ml.physiology import BIOMARKERS, NUTRIENTS, VITALS, VITAMIN_D
 
 _CACHE_MAX = 16
@@ -51,6 +52,29 @@ SCENARIO_PRESETS: Dict[str, Dict[str, Any]] = {
     },
 }
 DEFAULT_PRESET = "mild_cooling_failure"
+
+# Mission destinations. A destination changes ONLY the mission length, i.e. the forecast horizon: how many Sols of
+# the same simulated crew are reported. Physics, parameters and detector thresholds are identical for all three.
+# Gravity and resupply are context labels only; the model simulates neither.
+DESTINATIONS: List[Dict[str, str]] = [
+    {"id": "earth_orbit", "label": "Earth orbit", "length_param": "mission.earth_orbit_days", "unit": "day",
+     "gravity": "Microgravity", "resupply": "Yes"},
+    {"id": "moon", "label": "Moon", "length_param": "mission.moon_days", "unit": "day",
+     "gravity": "1/6 g", "resupply": "Short trip"},
+    {"id": "mars", "label": "Mars", "length_param": "mission.mars_sols", "unit": "sol",
+     "gravity": "1/3 g", "resupply": "None"},
+]
+DEFAULT_DESTINATION = "mars"
+HORIZON_NUTRIENTS = ("vitamin_c", "thiamine_b1", VITD)
+
+
+def _day(sol: int) -> int:
+    """Mission day number for a model Sol (1 Sol = 1.02749 Earth days)."""
+    return int(round(sol * SOL_IN_EARTH_DAYS))
+
+
+def _when(sol: Optional[int]) -> Optional[Dict[str, int]]:
+    return None if sol is None else {"sol": int(sol), "day": _day(int(sol))}
 
 
 def _clean(x: Any, nd: int = 3) -> Any:
@@ -108,6 +132,86 @@ class CrewHealthService:
                  "parameters": cls._scenario_dict(cls.preset_scenario(n))}
                 for n, p in SCENARIO_PRESETS.items()
             ],
+            "default_destination": DEFAULT_DESTINATION,
+            "destinations": cls.destinations(),
+        }
+
+    @staticmethod
+    def destinations() -> List[Dict[str, Any]]:
+        """Destination cards: mission length (with source + status) and the matching horizon in model Sols."""
+        srcs = sources()
+        max_sols = CrewScenario().mission_sols
+        out = []
+        for d in DESTINATIONS:
+            e = param_entry(d["length_param"])
+            if d["unit"] == "sol":
+                horizon = int(e["value"])
+            else:
+                horizon = int(round(float(e["value"]) / SOL_IN_EARTH_DAYS))
+            horizon = max(1, min(horizon, max_sols))
+            out.append({
+                "id": d["id"], "label": d["label"], "unit": d["unit"],
+                "mission_length": e["value"], "mission_length_unit": e["unit"],
+                "horizon_sols": horizon, "horizon_days": _day(horizon),
+                "gravity": d["gravity"], "resupply": d["resupply"],
+                "status": e["status"], "source": e["source"],
+                "source_citation": srcs.get(e["source"], {}).get("citation"),
+                "where_in_source": e["where_in_source"], "note": e["note"],
+                "parameter": d["length_param"],
+            })
+        return out
+
+    @staticmethod
+    def _horizon(analysis: CrewAnalysis, sol: int, horizon_sols: int) -> Dict[str, Any]:
+        """Mission-level forecast summary for a horizon (mission length). Uses only alerts raised up to `sol`
+        (causal); a problem counts only if it is forecast to start within the mission."""
+        sc = analysis.data.scenario
+        last = horizon_sols - 1
+        raised = [a for a in analysis.alerts
+                  if a["sol"] <= sol and a.get("nutrient") and a.get("projected_risk_sol") is not None]
+        in_mission = [a for a in raised if a["projected_risk_sol"] <= last]
+        focus = min(in_mission, key=lambda a: (a["sol"], a["projected_risk_sol"]), default=None)
+
+        per_astronaut = []
+        for astronaut in sc.crew:
+            res = analysis.astronauts[astronaut]
+            vit = {}
+            for n in HORIZON_NUTRIENTS:
+                forecast = min((a["projected_risk_sol"] for a in in_mission
+                                if a["astronaut_id"] == astronaut and a["nutrient"] == n), default=None)
+                crossed = res.threshold_crossing_sol.get(n)
+                crossed = crossed if crossed is not None and crossed <= sol else None
+                low = forecast if forecast is not None else crossed
+                vit[n] = {"runs_low": _when(low),
+                          "basis": None if low is None else ("forecast" if forecast is not None else "simulated")}
+            per_astronaut.append({"astronaut_id": astronaut, "vitamins": vit})
+
+        any_low = any(v["runs_low"] for p in per_astronaut for v in p["vitamins"].values())
+        first = None
+        if focus is not None:
+            w, p = focus["sol"], focus["projected_risk_sol"]
+            first = {"astronaut_id": focus["astronaut_id"], "nutrient": focus["nutrient"],
+                     "warning": _when(w), "problem": _when(p),
+                     "lead_sols": int(p - w), "lead_days": _day(p) - _day(w),
+                     "recommendation": focus.get("recommendation")}
+        cooling = None
+        if sc.failure_enabled:
+            start, end = sc.cooling_failure_sol, min(sc.mission_sols, sc.cooling_failure_sol + sc.failure_duration_sols)
+            cooling = {"start": _when(start), "end": _when(min(end, horizon_sols)), "duration_sols": end - start,
+                       "duration_days": _day(end) - _day(start),
+                       "peak_temp_c": sc.failure_peak_temp_c, "in_mission": start <= last}
+        return {
+            "horizon_sols": horizon_sols,
+            "horizon_days": _day(horizon_sols),
+            "last": _when(last),
+            "assessed": _when(sol),
+            "sol_in_earth_days": SOL_IN_EARTH_DAYS,
+            "first_warning": first,
+            "vitamins_last_whole_mission": not any_low,
+            "cooling_failure": cooling,
+            "per_astronaut": per_astronaut,
+            "note": ("Mission length only changes how many Sols of the same simulation are reported; "
+                     "the model is unchanged. Resupply and gravity are not simulated."),
         }
 
     def get_analysis(self, scenario: CrewScenario) -> CrewAnalysis:
@@ -193,10 +297,17 @@ class CrewHealthService:
                                   "end_sol": min(sc.mission_sols, sc.cooling_failure_sol + sc.greenhouse_outage_sols)},
         }
 
-    def _clamp_sol(self, sc: CrewScenario, sol: Optional[int]) -> int:
+    @staticmethod
+    def _horizon_sols(sc: CrewScenario, horizon_sols: Optional[int]) -> int:
+        if horizon_sols is None:
+            return sc.mission_sols
+        return int(min(max(horizon_sols, 1), sc.mission_sols))
+
+    def _clamp_sol(self, sc: CrewScenario, sol: Optional[int], horizon_sols: Optional[int] = None) -> int:
+        last = self._horizon_sols(sc, horizon_sols) - 1
         if sol is None:
-            return sc.mission_sols - 1
-        return int(min(max(sol, 0), sc.mission_sols - 1))
+            return last
+        return int(min(max(sol, 0), last))
 
     def _base(self, analysis: CrewAnalysis) -> Dict[str, Any]:
         sc = analysis.data.scenario
@@ -210,10 +321,14 @@ class CrewHealthService:
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
-    def crew_snapshot(self, scenario: CrewScenario, sol: Optional[int] = None) -> Dict[str, Any]:
+    def crew_snapshot(self, scenario: CrewScenario, sol: Optional[int] = None,
+                      horizon_sols: Optional[int] = None) -> Dict[str, Any]:
+        """Snapshot at `sol`. `horizon_sols` (mission length, default: full simulated mission) caps `sol`, sets its
+        default to the last mission Sol and adds the `horizon` forecast summary; the model is unchanged."""
         analysis = self.get_analysis(scenario)
         sc = analysis.data.scenario
-        sol = self._clamp_sol(sc, sol)
+        horizon = self._horizon_sols(sc, horizon_sols)
+        sol = self._clamp_sol(sc, sol, horizon)
         crew: List[Dict[str, Any]] = []
         for astronaut in sc.crew:
             res = analysis.astronauts[astronaut]
@@ -273,6 +388,7 @@ class CrewHealthService:
             "vitamin_d_meta": self._vitamin_d_meta(),
             "crew": crew,
             "active_alerts": [a for a in analysis.alerts if a["sol"] <= sol],
+            "horizon": self._horizon(analysis, sol, horizon),
         }
 
     def astronaut_timeline(self, scenario: CrewScenario, astronaut_id: str) -> Dict[str, Any]:
@@ -323,10 +439,12 @@ class CrewHealthService:
             "literature_check": {"summary": summary(checks), "checks": checks},
         }
 
-    def alerts(self, scenario: CrewScenario, sol: Optional[int] = None) -> Dict[str, Any]:
+    def alerts(self, scenario: CrewScenario, sol: Optional[int] = None,
+               horizon_sols: Optional[int] = None) -> Dict[str, Any]:
         analysis = self.get_analysis(scenario)
         sc = analysis.data.scenario
-        sol = self._clamp_sol(sc, sol)
+        horizon = self._horizon_sols(sc, horizon_sols)
+        sol = self._clamp_sol(sc, sol, horizon)
         alerts = [a for a in analysis.alerts if a["sol"] <= sol]
         return {
             **self._base(analysis),
@@ -334,4 +452,5 @@ class CrewHealthService:
             "count": len(alerts),
             "status_rules": self._rules(),
             "alerts": alerts,
+            "horizon": self._horizon(analysis, sol, horizon),
         }

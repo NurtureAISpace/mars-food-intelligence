@@ -265,3 +265,68 @@ def test_snapshot_assessment_is_causal(default_analysis):
     assert e["status"] == "ACT"
     assert e["projected_risk_sol"] > act_sol
     assert explain(res, default_analysis.data, 5) is None  # still calibrating
+
+
+# ---------------------------------------------------------------------------
+# Destinations / forecast horizon (mission length only; the model is unchanged)
+# ---------------------------------------------------------------------------
+def test_destinations_listed_with_source_and_status():
+    body = client.get("/api/v1/health/scenarios").json()
+    dests = {d["id"]: d for d in body["destinations"]}
+    assert set(dests) == {"earth_orbit", "moon", "mars"}
+    assert body["default_destination"] == "mars"
+    # Mars = the full simulated mission (default horizon, unchanged behaviour)
+    assert dests["mars"]["horizon_sols"] == CrewScenario().mission_sols
+    for d in dests.values():
+        assert d["status"] in ("literature", "derived", "assumed")
+        assert 1 <= d["horizon_sols"] <= CrewScenario().mission_sols
+        if d["status"] == "assumed":
+            assert d["source"] == "MODEL_ASSUMPTION"
+    assert dests["earth_orbit"]["horizon_sols"] < dests["mars"]["horizon_sols"]
+    assert dests["moon"]["horizon_sols"] < dests["earth_orbit"]["horizon_sols"]
+
+
+def test_horizon_default_is_unchanged_behaviour():
+    base = client.get("/api/v1/health/crew", params={"scenario": "severe_cooling_failure"}).json()
+    full = client.get("/api/v1/health/crew", params={"scenario": "severe_cooling_failure",
+                                                     "horizon_sols": CrewScenario().mission_sols}).json()
+    assert base["sol"] == full["sol"] == CrewScenario().mission_sols - 1
+    assert base["crew"] == full["crew"] and base["horizon"] == full["horizon"]
+    a = client.get("/api/v1/health/alerts", params={"scenario": "severe_cooling_failure"}).json()
+    assert a["sol"] == CrewScenario().mission_sols - 1
+
+
+def test_horizon_caps_sol_and_does_not_change_model():
+    short = client.get("/api/v1/health/crew", params={"scenario": "severe_cooling_failure", "horizon_sols": 190}).json()
+    assert short["sol"] == 189 and short["horizon"]["last"]["sol"] == 189
+    # same Sol without a horizon -> identical crew values (only the reporting window changes)
+    same = client.get("/api/v1/health/crew", params={"scenario": "severe_cooling_failure", "sol": 189}).json()
+    assert short["crew"] == same["crew"]
+    capped = client.get("/api/v1/health/crew", params={"scenario": "nominal", "horizon_sols": 29, "sol": 300}).json()
+    assert capped["sol"] == 28
+    alerts = client.get("/api/v1/health/alerts", params={"scenario": "severe_cooling_failure", "horizon_sols": 190}).json()
+    assert all(x["sol"] <= 189 for x in alerts["alerts"])
+    assert client.get("/api/v1/health/crew", params={"horizon_sols": 0}).status_code == 422
+    assert client.get("/api/v1/health/crew",
+                      params={"horizon_sols": CrewScenario().mission_sols + 1}).status_code == 422
+
+
+def test_horizon_summary_warning_and_whole_mission():
+    mars = client.get("/api/v1/health/crew", params={"scenario": "severe_cooling_failure"}).json()["horizon"]
+    fw = mars["first_warning"]
+    assert fw is not None and not mars["vitamins_last_whole_mission"]
+    assert fw["problem"]["sol"] > fw["warning"]["sol"]
+    assert fw["lead_sols"] == fw["problem"]["sol"] - fw["warning"]["sol"]
+    assert fw["problem"]["sol"] <= mars["last"]["sol"]
+    # causal: the warning was raised by the assessed Sol
+    assert fw["warning"]["sol"] <= mars["assessed"]["sol"]
+    # per-astronaut vitamin rows cover C, B1 and D
+    for p in mars["per_astronaut"]:
+        assert set(p["vitamins"]) == {"vitamin_c", "thiamine_b1", "vitamin_d"}
+    # a short mission ends before any forecast problem
+    moon = client.get("/api/v1/health/crew", params={"scenario": "severe_cooling_failure", "horizon_sols": 29}).json()
+    assert moon["horizon"]["first_warning"] is None
+    assert moon["horizon"]["vitamins_last_whole_mission"] is True
+    assert moon["horizon"]["cooling_failure"]["in_mission"] is False
+    # day numbers use 1 Sol = 1.02749 days
+    assert mars["horizon_days"] == round(mars["horizon_sols"] * 1.02749125)

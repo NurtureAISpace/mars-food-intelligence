@@ -406,6 +406,30 @@
       "where_in_source": null,
       "status": "assumed",
       "note": "Scenario design: switch to survival rations, stress-related appetite drop, greenhouse loss after the cooling/power event."
+    },
+    {
+      "name": "mission.earth_orbit_days",
+      "value": 195.0, "unit": "days",
+      "source": "SMITH_2005",
+      "where_in_source": "Abstract: '11 astronauts before and after long-duration (128-195 d) space flight'.",
+      "status": "literature",
+      "note": "Destination 'Earth orbit': upper end of the ISS long-duration stays in this cohort. Used only as the forecast horizon (how many Sols of the same simulation are reported); the model itself is unchanged. Converted to Sols with 1 Sol = 1.02749 days."
+    },
+    {
+      "name": "mission.moon_days",
+      "value": 30.0, "unit": "days",
+      "source": "MODEL_ASSUMPTION",
+      "where_in_source": null,
+      "status": "assumed",
+      "note": "Destination 'Moon': no source in this repository for a crewed lunar mission length; ~30 days is an assumed order of magnitude. Used only as the forecast horizon; the model itself is unchanged."
+    },
+    {
+      "name": "mission.mars_sols",
+      "value": 450, "unit": "Sols",
+      "source": "MODEL_ASSUMPTION",
+      "where_in_source": null,
+      "status": "assumed",
+      "note": "Destination 'Mars': the simulated mission length (CrewScenario.mission_sols = 450 Sols = 462 days). Scenario design, no source. It is the default forecast horizon."
     }
   ]
 }

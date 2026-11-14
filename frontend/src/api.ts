@@ -134,6 +134,15 @@ export async function fetchCrewPreset(scenarioId: string): Promise<CrewHealthSna
   return res.json();
 }
 
+/** Crew snapshot at the last Sol of a mission length (`horizon_sols`, from a destination) for a demo preset.
+ *  The response's `horizon` block holds every Sol/day number the Food & Vitamins screen shows. */
+export async function fetchCrewPresetHorizon(scenarioId: string, horizonSols: number): Promise<CrewHealthSnapshot> {
+  const q = new URLSearchParams({ scenario: scenarioId, horizon_sols: String(horizonSols) }).toString();
+  const res = await fetch(`${API_BASE}/health/crew?${q}`);
+  if (!res.ok) throw new Error(`Crew health fetch failed: ${res.statusText}`);
+  return res.json();
+}
+
 /** All early-warning alerts up to `sol` for a demo preset. */
 export async function fetchAlertsPreset(scenarioId: string, sol: number): Promise<CrewAlertsResponse> {
   const res = await fetch(`${API_BASE}/health/alerts?sol=${sol}&scenario=${encodeURIComponent(scenarioId)}`);

@@ -29,7 +29,9 @@ export function App() {
         {/* The 3 screens in navigation */}
         {activeTab === 'crewhealth' && <CrewHealthView crew={crew} onNavigate={setActiveTab} />}
         {activeTab === 'realdata' && <RealDataView onBack={goHome} />}
-        {activeTab === 'prediction' && <PredictionView onBack={goHome} />}
+        {activeTab === 'prediction' && (
+          <PredictionView onBack={goHome} onNavigate={(tab) => { setActiveTab(tab); window.scrollTo({ top: 0 }); }} />
+        )}
 
         {/* Hidden "More" screens: code and routes kept, not linked from the navigation. */}
         {activeTab === 'dashboard' && (

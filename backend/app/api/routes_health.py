@@ -14,6 +14,10 @@ _MAX_SOL = CrewScenario().mission_sols - 1
 
 
 _SCENARIO_Q = Query(None, description="Demo preset id from GET /health/scenarios; overrides the failure_* params")
+_HORIZON_Q = Query(None, ge=1, le=_MAX_SOL + 1,
+                   description=("Forecast horizon = mission length in Sols (see `destinations` in GET /health/scenarios). "
+                                "Default: the full simulated mission (unchanged behaviour). Only limits what is "
+                                "reported; the model is unchanged."))
 
 
 def _scenario(failure_enabled: bool, cooling_failure_sol: int, failure_duration_sols: int,
@@ -45,10 +49,11 @@ def get_crew_health(
     failure_duration_sols: int = Query(45, ge=1, le=300),
     failure_peak_temp_c: float = Query(29.5, ge=-20.0, le=60.0),
     scenario: Optional[str] = _SCENARIO_Q,
+    horizon_sols: Optional[int] = _HORIZON_Q,
 ):
     """Crew status snapshot at a Sol: NOMINAL / WATCH / ACT per astronaut with explainable assessment."""
     sc = _scenario(failure_enabled, cooling_failure_sol, failure_duration_sols, failure_peak_temp_c, scenario)
-    return service.crew_snapshot(sc, sol)
+    return service.crew_snapshot(sc, sol, horizon_sols)
 
 
 @router.get("/astronaut/{astronaut_id}/timeline")
@@ -82,10 +87,11 @@ def get_crew_alerts(
     failure_duration_sols: int = Query(45, ge=1, le=300),
     failure_peak_temp_c: float = Query(29.5, ge=-20.0, le=60.0),
     scenario: Optional[str] = _SCENARIO_Q,
+    horizon_sols: Optional[int] = _HORIZON_Q,
 ):
     """Explainable early-warning alerts (first WATCH / first ACT per astronaut)."""
     sc = _scenario(failure_enabled, cooling_failure_sol, failure_duration_sols, failure_peak_temp_c, scenario)
-    return service.alerts(sc, sol)
+    return service.alerts(sc, sol, horizon_sols)
 
 
 # ---------------------------------------------------------------------------

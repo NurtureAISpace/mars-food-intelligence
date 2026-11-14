@@ -226,6 +226,9 @@ export interface CrewMemberStatus {
   worst_nutrient: NutrientKey | null;
   sols_to_risk: number | null;
   top_driver: VitalKey | null;
+  /** What drives the status: a nutrient forecast or a vital-sign change. */
+  driver_kind?: 'nutrient_forecast' | 'vital_zscore' | string;
+  driver_signal?: string;
   driver_z: number | null;
   anomaly_score: number | null;
   iso_outlier: boolean;
@@ -295,7 +298,9 @@ export interface CrewHorizon {
     recommendation: CrewAlert['recommendation'];
   } | null;
   vitamins_last_whole_mission: boolean;
-  cooling_failure: { start: SolDay; end: SolDay; duration_sols: number; peak_temp_c: number; in_mission: boolean } | null;
+  cooling_failure: {
+    start: SolDay; end: SolDay; duration_sols: number; duration_days: number; peak_temp_c: number; in_mission: boolean;
+  } | null;
   per_astronaut: Array<{
     astronaut_id: string;
     vitamins: Record<string, { runs_low: SolDay | null; basis: 'forecast' | 'simulated' | null }>;
