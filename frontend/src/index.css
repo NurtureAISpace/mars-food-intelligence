@@ -192,7 +192,7 @@
 }
 .planet-mars {
   background:
-    radial-gradient(circle at 62% 58%, rgba(90,22,4,0.55) 0 9%, transparent 10%),
+    radial-gradient(circle at 62% 58%, rgba(90,22,4,0.32) 0 7%, transparent 12%),
     radial-gradient(ellipse 26% 9% at 40% 46%, rgba(120,35,8,0.55), transparent 70%),
     radial-gradient(ellipse 30% 7% at 55% 72%, rgba(110,30,6,0.45), transparent 70%),
     radial-gradient(circle at 28% 34%, rgba(255,214,184,0.9) 0 1%, transparent 22%),

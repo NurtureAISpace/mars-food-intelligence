@@ -89,7 +89,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, crewSta
     }`;
 
   return (
-    <header ref={mobileRef} className="sticky top-0 z-50 bg-gradient-to-b from-ink via-ink/85 to-transparent px-4 pb-4 pt-3 sm:px-6 lg:px-8">
+    <header ref={mobileRef} className="sticky top-0 z-50 bg-gradient-to-b from-ink from-55% via-ink/80 to-transparent px-4 pb-5 pt-3 sm:px-6 lg:px-8">
       <div className="mx-auto flex h-12 max-w-[1440px] items-center justify-between gap-4">
         <Wordmark onClick={() => go('crewhealth')} />
 
