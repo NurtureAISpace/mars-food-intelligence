@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
-// Design tokens — "space editorial" theme. Keep in sync with :root vars in src/index.css
-// and with src/ui/tokens.ts (hex values used inside SVG charts).
+// Design tokens — "glass over space photo" theme. Keep in sync with :root vars in src/index.css
+// and with src/ui/tokens.ts (hex values used in inline styles / SVG on the hidden "More" screens).
 export default {
   content: [
     "./index.html",
@@ -9,41 +9,32 @@ export default {
   theme: {
     extend: {
       colors: {
-        ink: '#06070A',           // page canvas
-        fg: '#F5F5F4',            // primary text
-        soft: '#D4D4D8',          // strong secondary text (long prose on cards)
-        muted: '#A1A1AA',         // secondary text / labels (≥ 7:1 on ink)
-        line: 'rgba(255,255,255,0.08)',        // hairline dividers
-        'line-strong': 'rgba(255,255,255,0.14)',
-        accent: { DEFAULT: '#FF6B2C', hover: '#FF8552', ink: '#1A0A02' }, // Mars orange (single accent)
-        nominal: '#4ADE80',
-        watch: '#FBBF24',
-        act: '#F43F5E',
-        real: '#34D399',          // real-data badge (emerald)
-        series: { 1: '#199EB8', 2: '#9A7AEA' }, // chart series (validated pair, dark surface)
+        ink: '#020617',           // page canvas (behind the photo)
+        fg: '#F8FAFC',            // primary text
+        soft: '#E2E8F0',          // strong secondary text
+        muted: '#CBD5E1',         // secondary text (slate-300; AA on the glass panel)
+        line: 'rgba(148,163,184,0.18)',
+        'line-strong': 'rgba(148,163,184,0.3)',
+        accent: { DEFAULT: '#6366F1', hover: '#818CF8', ink: '#1E1B4B' }, // indigo (single accent)
+        nominal: '#4ADE80',       // "All good"
+        watch: '#FBBF24',         // "Take care"
+        act: '#F43F5E',           // "Call doctor"
+        real: '#34D399',          // real-data tag (emerald)
+        series: { 1: '#3B82F6', 2: '#A78BFA' },
       },
       fontFamily: {
-        display: ['"Space Grotesk"', '"Segoe UI"', 'system-ui', 'sans-serif'],
+        display: ['Inter', '"Segoe UI"', 'system-ui', 'sans-serif'],
         sans: ['Inter', '"Segoe UI"', 'system-ui', '-apple-system', 'Roboto', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'ui-monospace', '"Cascadia Mono"', 'Consolas', 'monospace'],
       },
-      letterSpacing: {
-        display: '-0.03em',
-        label: '0.2em',
-      },
       fontSize: {
-        label: ['11px', { lineHeight: '16px', letterSpacing: '0.2em' }],
+        label: ['13px', { lineHeight: '18px', letterSpacing: '0.08em' }],
       },
       keyframes: {
-        'fade-up': { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'none' } },
-        'act-glow': {
-          '0%,100%': { boxShadow: '0 0 0 0 rgba(244,63,94,0.0), 0 0 12px 0 rgba(244,63,94,0.25)' },
-          '50%': { boxShadow: '0 0 0 3px rgba(244,63,94,0.15), 0 0 22px 2px rgba(244,63,94,0.45)' },
-        },
+        'fade-up': { '0%': { opacity: '0', transform: 'translateY(8px)' }, '100%': { opacity: '1', transform: 'none' } },
       },
       animation: {
-        'fade-up': 'fade-up 360ms cubic-bezier(.2,.7,.2,1) both',
-        'act-glow': 'act-glow 2.4s ease-in-out infinite',
+        'fade-up': 'fade-up 320ms cubic-bezier(.2,.7,.2,1) both',
       },
     },
   },

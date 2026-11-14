@@ -3,18 +3,18 @@
 import type { CrewStatus } from '../types';
 
 export const C = {
-  ink: '#06070A',
-  fg: '#F5F5F4',
-  soft: '#D4D4D8',
-  muted: '#A1A1AA',
-  accent: '#FF6B2C',
+  ink: '#020617',
+  fg: '#F8FAFC',
+  soft: '#E2E8F0',
+  muted: '#CBD5E1',
+  accent: '#6366F1',
   nominal: '#4ADE80',
   watch: '#FBBF24',
   act: '#F43F5E',
   real: '#34D399',
-  series1: '#199EB8',
-  series2: '#9A7AEA',
-  forecast: '#E4E4E7',
+  series1: '#3B82F6',
+  series2: '#A78BFA',
+  forecast: '#E2E8F0',
   grid: 'rgba(255,255,255,0.07)',
   axis: 'rgba(255,255,255,0.18)',
   band: '#4ADE80',
@@ -40,3 +40,14 @@ export const STATUS_TONE: Record<CrewStatus, StatusTone> = {
 
 /** Severity order used to pick the worst status. */
 export const STATUS_RANK: Record<CrewStatus, number> = { CALIBRATING: 0, NOMINAL: 1, WATCH: 2, ACT: 3 };
+
+/**
+ * Plain-English status words shown in the UI. Backend values (NOMINAL / WATCH / ACT) stay unchanged;
+ * only what people read changes. Always shown as colour + word + icon.
+ */
+export const STATUS_WORD: Record<CrewStatus, string> = {
+  CALIBRATING: 'Learning',
+  NOMINAL: 'All good',
+  WATCH: 'Take care',
+  ACT: 'Call doctor',
+};

@@ -1,13 +1,7 @@
 /* ------------------------------------------------------------------------
    Fonts — self-hosted (public/fonts), offline-safe. See public/fonts/README.md
+   Inter is the only UI font; JetBrains Mono stays for code-like labels on the hidden "More" screens.
    ------------------------------------------------------------------------ */
-@font-face {
-  font-family: 'Space Grotesk';
-  src: url('/fonts/space-grotesk-latin-var.woff2') format('woff2');
-  font-weight: 300 700;
-  font-style: normal;
-  font-display: swap;
-}
 @font-face {
   font-family: 'Inter';
   src: url('/fonts/inter-latin-var.woff2') format('woff2');
@@ -28,200 +22,135 @@
 @tailwind utilities;
 
 /* ------------------------------------------------------------------------
-   Tokens (mirrors tailwind.config.js)
+   Tokens (mirrors tailwind.config.js and src/ui/tokens.ts)
    ------------------------------------------------------------------------ */
 :root {
-  --ink: #06070A;
-  --fg: #F5F5F4;
-  --muted: #A1A1AA;
-  --line: rgba(255, 255, 255, 0.08);
-  --accent: #FF6B2C;
+  --ink: #020617;
+  --fg: #F8FAFC;
+  --muted: #CBD5E1;
+  --accent: #6366F1;
+  --accent-strong: #4F46E5;
   --nominal: #4ADE80;
   --watch: #FBBF24;
   --act: #F43F5E;
+  --panel: rgba(10, 14, 28, 0.55);
+  --panel-border: rgba(148, 163, 184, 0.18);
+  --section: rgba(15, 23, 42, 0.45);
+  --section-border: rgba(96, 165, 250, 0.25);
   color-scheme: dark;
 }
 
 @layer base {
-  html { background: var(--ink); }
+  html { background: #000; }
   body {
-    @apply bg-ink text-fg font-sans antialiased;
-    font-feature-settings: 'cv11', 'ss01';
+    @apply text-fg font-sans antialiased;
+    font-size: 16px;
     min-height: 100vh;
+    /* Fallback when the photo is missing: dark radial gradient. */
+    background: radial-gradient(ellipse at 50% 30%, #0b1020 0%, #000 75%) fixed;
   }
 
-  /* Starfield: three layers of tiny dots, tiled at co-prime sizes so no grid shows. */
+  /* Full-screen space photo (public/bg/space.jpg) + dark overlay for readable text.
+     A fixed pseudo-element instead of background-attachment: fixed (which breaks on iOS). */
   body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: -2;
-    pointer-events: none;
-    background-image:
-      radial-gradient(1px 1px at 23px 41px, rgba(255,255,255,0.55) 50%, transparent 51%),
-      radial-gradient(1px 1px at 143px 97px, rgba(255,255,255,0.35) 50%, transparent 51%),
-      radial-gradient(1.5px 1.5px at 67px 173px, rgba(255,255,255,0.6) 50%, transparent 51%),
-      radial-gradient(1px 1px at 191px 19px, rgba(255,255,255,0.3) 50%, transparent 51%),
-      radial-gradient(1px 1px at 311px 263px, rgba(255,255,255,0.4) 50%, transparent 51%),
-      radial-gradient(1.5px 1.5px at 409px 131px, rgba(255,220,200,0.5) 50%, transparent 51%),
-      radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255,107,44,0.07), transparent 70%);
-    background-size: 229px 211px, 331px 293px, 467px 401px, 229px 211px, 523px 467px, 613px 557px, 100% 100%;
-    background-repeat: repeat, repeat, repeat, repeat, repeat, repeat, no-repeat;
-  }
-  /* Very light film noise (inline SVG turbulence, no external file). */
-  body::after {
     content: '';
     position: fixed;
     inset: 0;
     z-index: -1;
     pointer-events: none;
-    opacity: 0.035;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background:
+      linear-gradient(rgba(2, 6, 23, 0.55), rgba(2, 6, 23, 0.55)),
+      url('/bg/space.jpg') center / cover no-repeat;
   }
 
   ::selection { background: var(--accent); color: #fff; }
+  :focus-visible { outline: 3px solid #A5B4FC; outline-offset: 2px; }
 
-  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-  /* Native form controls on dark */
   select, input, textarea { color-scheme: dark; }
-  select option, select optgroup { background: #111216; color: var(--fg); }
+  select option, select optgroup { background: #0F172A; color: var(--fg); }
 
   ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-track { background: var(--ink); }
-  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 4px; }
+  ::-webkit-scrollbar-track { background: #020617; }
+  ::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.25); border-radius: 4px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 }
 
 @layer components {
-  /* Frosted glass card */
-  .card {
-    @apply relative rounded-2xl border border-white/10 backdrop-blur-md;
-    background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.03));
-    box-shadow: inset 0 1px 0 0 rgba(255,255,255,0.07), 0 20px 40px -24px rgba(0,0,0,0.8);
-  }
-  .card-hover {
-    @apply transition duration-200 ease-out;
-  }
-  .card-hover:hover {
-    @apply -translate-y-0.5 border-white/20;
-  }
-  /* Inset well inside a card (inputs, chart plates, stat boxes) */
-  .well {
-    @apply rounded-xl border border-line bg-black/30;
+  /* ONE large glass panel per screen */
+  .glass-panel {
+    @apply mx-auto w-full max-w-6xl rounded-3xl border backdrop-blur-md p-6 sm:p-8 lg:p-10;
+    background: var(--panel);
+    border-color: var(--panel-border);
+    box-shadow: 0 30px 80px -40px rgba(0, 0, 0, 0.9);
   }
 
-  /* 11px uppercase letter-spaced label, e.g. "01 — CREW HEALTH" */
-  .eyebrow {
-    @apply font-mono text-label uppercase text-muted;
+  /* Section card inside the panel */
+  .section-card {
+    @apply rounded-2xl border p-5 sm:p-6;
+    background: var(--section);
+    border-color: var(--section-border);
   }
 
-  .display {
-    @apply font-display font-bold tracking-display;
+  /* 40px rounded icon tile in section headers */
+  .icon-tile {
+    @apply grid h-10 w-10 shrink-0 place-items-center rounded-xl text-indigo-300;
+    background: rgba(99, 102, 241, 0.18);
   }
 
-  /* Form fields */
-  .field {
-    @apply w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-sm text-fg placeholder:text-muted/70
-           focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/40;
+  /* Selectable card: slate border; selected = indigo border + glow (+ check badge in markup) */
+  .select-card {
+    @apply relative rounded-2xl border border-slate-700 p-5 text-left transition sm:p-6;
+    background: var(--section);
+  }
+  .select-card:hover { @apply border-slate-500; }
+  .select-card[aria-pressed='true'] {
+    border-color: #6366F1;
+    box-shadow: 0 0 24px rgba(99, 102, 241, 0.35);
   }
 
-  /* Buttons */
+  /* Buttons: min 52px tall, large text */
   .btn {
-    @apply inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition
+    @apply inline-flex min-h-[52px] items-center justify-center gap-2 rounded-xl px-8 text-lg font-semibold transition
            disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-primary {
-    @apply btn bg-accent text-white hover:bg-accent-hover shadow-[0_0_24px_-6px_rgba(255,107,44,0.6)];
+    @apply btn text-white;
+    background: #4F46E5;
+    box-shadow: 0 0 28px -6px rgba(99, 102, 241, 0.7);
   }
-  .btn-ghost {
-    @apply btn border border-white/15 bg-white/[0.03] text-fg hover:border-white/30 hover:bg-white/[0.06];
+  .btn-primary:hover { background: #4338CA; }
+  .btn-secondary {
+    @apply btn border border-slate-400/50 bg-transparent text-white hover:border-slate-200 hover:bg-white/5;
+  }
+  /* Legacy names used by the hidden "More" screens */
+  .btn-ghost { @apply btn-secondary; }
+
+  /* Small fact chip: tinted background + coloured text */
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-medium leading-snug;
   }
 
-  /* Segmented control */
-  .seg {
-    @apply inline-flex rounded-full border border-white/10 bg-black/30 p-1;
+  /* ---- Legacy classes still used by the hidden "More" screens (re-themed, not deleted) ---- */
+  .card {
+    @apply relative rounded-2xl border backdrop-blur-md;
+    background: var(--section);
+    border-color: var(--section-border);
   }
-  .seg-item {
-    @apply rounded-full px-3.5 py-1.5 text-xs font-medium text-muted transition hover:text-fg;
+  .card-hover { @apply transition duration-200 ease-out; }
+  .card-hover:hover { @apply -translate-y-0.5; }
+  .well { @apply rounded-xl border border-white/10 bg-black/30; }
+  .eyebrow { @apply text-sm font-medium uppercase tracking-wider text-muted; }
+  .display { @apply font-display font-semibold; }
+  .field {
+    @apply w-full rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-base text-fg placeholder:text-muted/70
+           focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/40;
   }
-  .seg-item[aria-pressed='true'] {
-    @apply bg-accent text-white;
-  }
-
-  /* Range slider (accent thumb, hairline track) */
-  .range {
-    @apply w-full cursor-pointer appearance-none bg-transparent;
-  }
-  .range::-webkit-slider-runnable-track { height: 2px; background: rgba(255,255,255,0.18); border-radius: 2px; }
-  .range::-moz-range-track { height: 2px; background: rgba(255,255,255,0.18); border-radius: 2px; }
-  .range::-webkit-slider-thumb {
-    -webkit-appearance: none; appearance: none; width: 16px; height: 16px; margin-top: -7px; border-radius: 9999px;
-    background: var(--accent); border: 2px solid #fff; box-shadow: 0 0 0 4px rgba(255,107,44,0.25);
-  }
-  .range::-moz-range-thumb {
-    width: 14px; height: 14px; border-radius: 9999px; background: var(--accent); border: 2px solid #fff;
-    box-shadow: 0 0 0 4px rgba(255,107,44,0.25);
-  }
-
-  /* ACT state: soft pulsing glow */
-  .glow-act { @apply animate-act-glow; }
-
-  /* Entrance motion */
+  .seg { @apply inline-flex rounded-xl border border-white/10 bg-black/30 p-1; }
+  .seg-item { @apply rounded-lg px-3.5 py-1.5 text-sm font-medium text-muted transition hover:text-fg; }
+  .seg-item[aria-pressed='true'] { @apply bg-accent text-white; }
+  .range { @apply w-full cursor-pointer accent-indigo-500; }
+  .glow-act { box-shadow: 0 0 18px rgba(244, 63, 94, 0.35); }
   .reveal { @apply animate-fade-up; }
-}
-
-/* ------------------------------------------------------------------------
-   CSS planets (no images). Size via width/height on the element.
-   ------------------------------------------------------------------------ */
-.planet {
-  position: relative;
-  border-radius: 9999px;
-  isolation: isolate;
-}
-.planet::after { /* terminator shadow */
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: radial-gradient(circle at 30% 28%, transparent 38%, rgba(0,0,0,0.55) 68%, rgba(0,0,0,0.92) 100%);
-}
-.planet-mars {
-  background:
-    radial-gradient(circle at 62% 58%, rgba(90,22,4,0.32) 0 7%, transparent 12%),
-    radial-gradient(ellipse 26% 9% at 40% 46%, rgba(120,35,8,0.55), transparent 70%),
-    radial-gradient(ellipse 30% 7% at 55% 72%, rgba(110,30,6,0.45), transparent 70%),
-    radial-gradient(circle at 28% 34%, rgba(255,214,184,0.9) 0 1%, transparent 22%),
-    radial-gradient(circle at 34% 30%, #FF9A62 0%, #FF6B2C 30%, #B83E10 58%, #4A1404 82%, #1A0702 100%);
-  box-shadow: 0 0 60px 6px rgba(255,107,44,0.28), 0 0 140px 30px rgba(255,107,44,0.12),
-              inset -14px -10px 30px rgba(0,0,0,0.6);
-}
-.planet-earth {
-  background:
-    radial-gradient(ellipse 22% 14% at 40% 40%, rgba(70,150,110,0.55), transparent 70%),
-    radial-gradient(ellipse 16% 22% at 62% 62%, rgba(80,160,120,0.45), transparent 70%),
-    radial-gradient(ellipse 40% 6% at 50% 26%, rgba(255,255,255,0.35), transparent 70%),
-    radial-gradient(ellipse 34% 5% at 46% 78%, rgba(255,255,255,0.25), transparent 70%),
-    radial-gradient(circle at 34% 30%, #B9E3FF 0%, #4C9BEA 28%, #1D5BB8 55%, #0A2459 80%, #03091C 100%);
-  box-shadow: 0 0 60px 6px rgba(76,155,234,0.3), 0 0 140px 30px rgba(76,155,234,0.12),
-              inset -14px -10px 30px rgba(0,0,0,0.6);
-}
-.orbit {
-  position: absolute;
-  border: 1px solid rgba(255,255,255,0.14);
-  border-radius: 9999px;
-  pointer-events: none;
-}
-.orbit-moon {
-  position: absolute;
-  width: 7px; height: 7px;
-  border-radius: 9999px;
-  background: #F5F5F4;
-  box-shadow: 0 0 10px 2px rgba(255,255,255,0.5);
-}
-@media (prefers-reduced-motion: no-preference) {
-  .orbit-spin { animation: orbit-spin 60s linear infinite; }
-  @keyframes orbit-spin { to { transform: rotate(360deg); } }
 }
 
 /* Respect reduced motion everywhere */
