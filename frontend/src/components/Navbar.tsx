@@ -16,12 +16,12 @@ export const PRIMARY_TABS: Tab[] = [
   { id: 'prediction', label: 'Food & Vitamins' },
 ];
 
-// Logo only (no wordmark). 52px tall, 44px under 768px; it may overhang the 4rem bar without changing its height.
+// Official horizontal logo (from main). 40px tall, 34px under 768px. Click → Crew.
 const Logo: React.FC<{ onClick: () => void }> = ({ onClick }) => (
-  <button onClick={onClick} aria-label="NurtureAI Space — home"
-    className="flex shrink-0 items-center rounded-full transition-transform duration-200 hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400">
-    <img src={`${import.meta.env.BASE_URL}logo/logo.png`} alt="NurtureAI Space logo"
-      className="h-11 w-11 rounded-full object-cover drop-shadow-[0_0_12px_rgba(99,102,241,0.45)] md:h-[52px] md:w-[52px]" />
+  <button onClick={onClick} aria-label="NurtureAI Space — go to Crew"
+    className="flex shrink-0 items-center rounded-lg transition-transform duration-200 hover:scale-[1.03] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400">
+    <img src={`${import.meta.env.BASE_URL}logo-horizontal.svg`} alt="NurtureAI Space"
+      className="h-[34px] w-auto md:h-10" />
   </button>
 );
 

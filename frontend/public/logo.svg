@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Space Radial -->
+    <radialGradient id="spaceBg" cx="50%" cy="50%" r="65%">
+      <stop offset="0%" stop-color="#0c172e" />
+      <stop offset="55%" stop-color="#060b17" />
+      <stop offset="100%" stop-color="#020408" />
+    </radialGradient>
+
+    <!-- Mars Gradient -->
+    <linearGradient id="marsGrad" x1="15%" y1="10%" x2="85%" y2="90%">
+      <stop offset="0%" stop-color="#ff7a18" />
+      <stop offset="35%" stop-color="#ea580c" />
+      <stop offset="70%" stop-color="#c2410c" />
+      <stop offset="100%" stop-color="#7c1a1a" />
+    </linearGradient>
+
+    <!-- Bio-Nutrition Sprout Gradient -->
+    <linearGradient id="leafGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#059669" />
+      <stop offset="50%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#34d399" />
+    </linearGradient>
+
+    <linearGradient id="leafGradRight" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#047857" />
+      <stop offset="55%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#6ee7b7" />
+    </linearGradient>
+
+    <!-- Health Pulse / Orbital Cyan Gradient -->
+    <linearGradient id="orbitGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="45%" stop-color="#06b6d4" />
+      <stop offset="85%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#f97316" />
+    </linearGradient>
+
+    <!-- Glow Filters -->
+    <filter id="neonGlowCyan" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+
+    <filter id="neonGlowEmerald" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+
+    <filter id="badgeShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.65" />
+    </filter>
+  </defs>
+
+  <!-- Squircle Mission Badge Container -->
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#spaceBg)" stroke="rgba(255,255,255,0.12)" stroke-width="3" filter="url(#badgeShadow)" />
+  <!-- Inner Neon Ring Accent -->
+  <rect x="22" y="22" width="468" height="468" rx="106" fill="none" stroke="rgba(56,189,248,0.2)" stroke-width="1.5" />
+
+  <!-- Background Hexagonal Life-Support Coordinates -->
+  <g stroke="#1e293b" stroke-width="1.2" opacity="0.45" fill="none">
+    <polygon points="256,60 306,89 306,147 256,176 206,147 206,89" />
+    <polygon points="356,118 406,147 406,205 356,234 306,205 306,147" />
+    <polygon points="156,118 206,147 206,205 156,234 106,205 106,147" />
+  </g>
+
+  <!-- Distant Stars -->
+  <g fill="#ffffff">
+    <circle cx="95" cy="110" r="1.8" opacity="0.8" />
+    <circle cx="410" cy="125" r="2.2" opacity="0.9" />
+    <circle cx="420" cy="380" r="1.5" opacity="0.6" />
+    <circle cx="105" cy="390" r="1.6" opacity="0.7" />
+    <circle cx="256" cy="450" r="1.4" opacity="0.5" />
+  </g>
+
+  <!-- Mars Sphere (Warm Orange-Red Planetary Body) -->
+  <g id="marsPlanet">
+    <!-- Outer Atmospheric Haze -->
+    <circle cx="256" cy="256" r="142" fill="none" stroke="#ff7a18" stroke-width="2" opacity="0.25" />
+    <!-- Planet Base -->
+    <circle cx="256" cy="256" r="132" fill="url(#marsGrad)" />
+
+    <!-- Craters & Maria Topography -->
+    <path d="M 180 210 Q 220 230 240 205 Q 260 180 200 170 Z" fill="#991b1b" opacity="0.45" />
+    <path d="M 270 290 Q 320 310 340 280 Q 360 250 310 240 Z" fill="#7f1d1d" opacity="0.5" />
+    <circle cx="310" cy="200" r="18" fill="#7f1d1d" opacity="0.4" />
+    <circle cx="314" cy="198" r="10" fill="#450a0a" opacity="0.4" />
+
+    <!-- Day/Night Crescent Terminator -->
+    <path d="M 256 124 A 132 132 0 0 1 256 388 A 132 132 0 0 0 256 124" fill="#030712" opacity="0.58" />
+  </g>
+
+  <!-- Continuous Health ECG & AI Orbit Ring -->
+  <g id="healthOrbit" filter="url(#neonGlowCyan)">
+    <!-- Elliptical Orbit Track -->
+    <path d="M 72 280 C 72 170 170 90 310 90 C 430 90 450 190 420 290 C 390 390 280 430 170 420 C 110 410 72 360 72 280 Z" 
+          fill="none" stroke="url(#orbitGrad)" stroke-width="4.5" opacity="0.7" stroke-dasharray="8 6" />
+
+    <!-- Dynamic ECG Pulse Wave Crest (Telemetry Signal) -->
+    <path d="M 85 295 L 145 295 L 160 270 L 175 330 L 195 240 L 210 310 L 225 295 L 265 295" 
+          fill="none" stroke="#38bdf8" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round" />
+    <!-- Telemetry Pulse Node -->
+    <circle cx="195" cy="240" r="5.5" fill="#38bdf8" />
+    <circle cx="195" cy="240" r="2.5" fill="#ffffff" />
+  </g>
+
+  <!-- Central Bio-Regenerative Life Sprout (Nutrition & Life Support) -->
+  <g id="bioSprout" transform="translate(256, 252)">
+    <!-- Glow Aura -->
+    <ellipse cx="0" cy="-10" rx="55" ry="75" fill="#10b981" opacity="0.18" filter="url(#neonGlowEmerald)" />
+
+    <!-- Left Sprout Leaf (Curved upward) -->
+    <path d="M 0 55 C -45 15 -58 -35 0 -68 C -14 -15 -8 24 0 55 Z" 
+          fill="url(#leafGrad)" filter="url(#neonGlowEmerald)" />
+
+    <!-- Right Sprout Leaf -->
+    <path d="M 0 55 C 48 24 55 -20 18 -55 C 14 -12 6 22 0 55 Z" 
+          fill="url(#leafGradRight)" opacity="0.95" />
+
+    <!-- Central Nutrient Stem / Vascular Line -->
+    <path d="M 0 55 Q -4 8 0 -68" 
+          fill="none" stroke="#d1fae5" stroke-width="3" stroke-linecap="round" />
+
+    <!-- Photon Energy / Synthesis Beacon Core -->
+    <circle cx="0" cy="-74" r="6.5" fill="#38bdf8" filter="url(#neonGlowCyan)" />
+    <circle cx="0" cy="-74" r="3" fill="#ffffff" />
+
+    <!-- Microgreen Nutrient Dots -->
+    <circle cx="-28" cy="-22" r="3.2" fill="#34d399" />
+    <circle cx="32" cy="-8" r="3.2" fill="#34d399" />
+  </g>
+
+  <!-- Orbital Satellite / Station Telemetry Bead -->
+  <g transform="translate(426, 235)">
+    <circle cx="0" cy="0" r="7" fill="#38bdf8" filter="url(#neonGlowCyan)" />
+    <circle cx="0" cy="0" r="3.5" fill="#ffffff" />
+    <line x1="-12" y1="0" x2="-7" y2="0" stroke="#38bdf8" stroke-width="2" />
+    <line x1="7" y1="0" x2="12" y2="0" stroke="#38bdf8" stroke-width="2" />
+  </g>
+</svg>
