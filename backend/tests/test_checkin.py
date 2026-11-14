@@ -304,3 +304,36 @@ def test_store_upsert_dedupes_client_id(tmp_path):
     again, dup = store.upsert({**GREEN, "sol": 2, "client_id": CID})
     assert dup is True and again["sol"] == 1
     assert [e["sol"] for e in store.for_astronaut("TEST-01")] == [1]
+
+
+# --- pseudonym: anonymized code made on the Astronaut App (the name never leaves the device) ----
+PSEUDO = "CREW-3FA2C1"
+
+
+def test_api_pseudonym_accepted_and_returned(api_svc):
+    """Seat ids of the Inspiration4 subjects (C001-C004) are valid crew ids; the code is stored and listed."""
+    r = client.post("/api/v1/health/checkin",
+                    json={**GREEN, "astronaut_id": "C001", "sol": 7, "client_id": CID, "pseudonym": PSEUDO})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["pseudonym"] == PSEUDO and d["record"]["pseudonym"] == PSEUDO
+    h = client.get("/api/v1/health/checkins", params={"astronaut_id": "C001"}).json()
+    assert h["pseudonym"] == PSEUDO and h["checkins"][0]["pseudonym"] == PSEUDO
+    # a retry of the same client_id returns the stored code too
+    assert client.post("/api/v1/health/checkin", json={**GREEN, "astronaut_id": "C001", "sol": 7,
+                                                      "client_id": CID, "pseudonym": PSEUDO}).json()["pseudonym"] == PSEUDO
+
+
+@pytest.mark.parametrize("bad", ["Ada Lovelace", "crew-3fa2c1", "CREW-3FA2C", "CREW-3FA2C1X", "CREW-GGGGGG",
+                                 "3FA2C1", ""])
+def test_api_invalid_pseudonym_rejected(api_svc, bad):
+    r = client.post("/api/v1/health/checkin", json={**GREEN, "astronaut_id": "C002", "pseudonym": bad})
+    assert r.status_code == 422
+    assert client.get("/api/v1/health/checkins", params={"astronaut_id": "C002"}).json()["count"] == 0
+
+
+def test_api_old_payload_without_pseudonym_still_works(api_svc):
+    r = client.post("/api/v1/health/checkin", json={**GREEN, "sol": 8})
+    assert r.status_code == 200 and r.json()["pseudonym"] is None
+    h = client.get("/api/v1/health/checkins", params={"astronaut_id": "TEST-01"}).json()
+    assert h["pseudonym"] is None and "pseudonym" not in h["checkins"][0]

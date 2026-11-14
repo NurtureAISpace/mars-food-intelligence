@@ -12,6 +12,9 @@ Overall status:  any red -> ACT (contact flight surgeon); any amber or baseline 
 Check-ins are kept in memory and persisted to a JSON file (backend/data/runtime/, gitignored).
 Optional client_id (idempotency key, e.g. a UUID from the offline Astronaut App): resubmitting the same client_id
 returns the stored record instead of inserting again. Optional measured_at keeps the real time of offline entries.
+Optional pseudonym ("CREW-" + 6 hex): an anonymized code the Astronaut App derives ON THE DEVICE from the
+astronaut's name (SHA-256 with an app salt). The name itself never reaches the backend; only the code is stored
+and returned so the dashboard can show it.
 Decision-support prototype, not a medical device.
 """
 
@@ -47,6 +50,7 @@ INPUT_LIMITS: Dict[str, Tuple[float, float]] = {
 }
 MEASUREMENT_FIELDS = list(INPUT_LIMITS)
 CLIENT_ID_PATTERN = r"^[A-Za-z0-9][A-Za-z0-9_-]{7,63}$"     # UUIDs and similar opaque client keys
+PSEUDONYM_PATTERN = r"^CREW-[0-9A-F]{6}$"                    # anonymized code made on the device, never a name
 # Synthetic crew vitals usable as personal history (app.ml.crew_data column -> check-in field)
 SYNTHETIC_HISTORY_COLUMNS = {"heart_rate_bpm": "hr_rest", "sleep_hours": "sleep_h"}
 
@@ -71,6 +75,9 @@ class CheckinIn(BaseModel):
                                      examples=["3f2b8c1e-6a4d-4e2f-9b1a-0c7d5e8f9a10"])
     measured_at: Optional[datetime] = Field(None, description="When the values were measured (ISO 8601). "
                                                                "Naive timestamps are treated as UTC.")
+    pseudonym: Optional[str] = Field(None, pattern=PSEUDONYM_PATTERN, examples=["CREW-3FA2C1"],
+                                     description="Anonymized crew code made on the astronaut's device. "
+                                                 "The name stays on the device and is never sent.")
 
     @model_validator(mode="after")
     def _diastolic_below_systolic(self) -> "CheckinIn":
@@ -79,10 +86,13 @@ class CheckinIn(BaseModel):
         return self
 
     def to_entry(self) -> Dict[str, Any]:
-        """JSON-ready stored fields; client_id / measured_at only when given (old payloads keep the old shape)."""
-        d = self.model_dump(exclude={"client_id", "measured_at"})
+        """JSON-ready stored fields; client_id / measured_at / pseudonym only when given (old payloads keep the
+        old shape)."""
+        d = self.model_dump(exclude={"client_id", "measured_at", "pseudonym"})
         if self.client_id is not None:
             d["client_id"] = self.client_id
+        if self.pseudonym is not None:
+            d["pseudonym"] = self.pseudonym
         if self.measured_at is not None:
             m = self.measured_at if self.measured_at.tzinfo else self.measured_at.replace(tzinfo=timezone.utc)
             d["measured_at"] = m.astimezone(timezone.utc).isoformat(timespec="seconds")
@@ -429,6 +439,7 @@ class CheckinService:
             "recorded_at": entry["recorded_at"],
             "client_id": entry.get("client_id"),
             "measured_at": entry.get("measured_at"),
+            "pseudonym": entry.get("pseudonym"),
             "duplicate": duplicate,
             "record": entry,
             "notes": payload.notes,
@@ -447,6 +458,8 @@ class CheckinService:
         return {
             "disclaimer": load_ranges()["meta"]["disclaimer"],
             "astronaut_id": astronaut_id,
+            # anonymized code from the most recent check-in that carried one (None for old payloads)
+            "pseudonym": next((e["pseudonym"] for e in reversed(entries) if e.get("pseudonym")), None),
             "count": len(entries),
             "streak": streak([e["sol"] for e in entries]),
             "checkins": entries,
