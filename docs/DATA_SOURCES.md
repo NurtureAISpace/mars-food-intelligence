@@ -27,7 +27,8 @@ downloaded on 2026-11-14. Their sizes match the OSDR file-listing API.
 - Timepoints: L-92, L-44 and L-3 (days before launch); R+1, R+45, R+82 and R+194 (days after return).
 - File listing API: https://osdr.nasa.gov/osdr/data/osd/files/569 and https://osdr.nasa.gov/osdr/data/osd/files/575
 - Where it is used: `backend/scripts/i4_baseline_demo.py` computes personal-baseline z-scores (pre-flight baseline,
-  post-flight deviation) for each astronaut. **It is not yet wired into the web app or the API.**
+  post-flight deviation) for each astronaut. The same data is served by the API at `GET /api/v1/real-data/i4` and shown
+  on the **Real NASA Data** screen.
 - If you use these data, please cite OSD-569 and OSD-575 and the Inspiration4 / SOMA publications.
 
 ---
@@ -150,7 +151,7 @@ published value.**
 | Element | Where | Why it exists | How it is labeled |
 |---|---|---|---|
 | Synthetic crew (4 astronauts, seed 42): appetite, turnover variation, vitals, vitals↔deficit mapping, noise | `backend/app/ml/crew_data.py`, `assumed` entries in `literature_params.json` | No individual astronaut time series is public at this resolution; needed to demonstrate personal baselines and alerts | `data_provenance` on every `/health/*` response; "Synthetic data" badge in the Crew Health tab |
-| Cooling-failure scenario (Sol 150, 45 Sols, 29.5 °C), 120-Sol greenhouse outage, 70% rations, 15% appetite drop | `literature_params.json` (`scenario.post_event_response`), `CrewScenario` | Stress test for the early-warning chain | `assumed` status; scenario controls in the UI |
+| Cooling-failure scenarios: mild preset (Sol 150, 45 Sols, 29.5 °C) and severe preset used by the Food & Vitamins "Storage failure" card (Sol 150, 60 Sols, 30.0 °C), 120-Sol greenhouse outage, 70% rations, 15% appetite drop | `literature_params.json` (`scenario.post_event_response`), `CrewScenario` | Stress test for the early-warning chain | `assumed` status; scenario controls in the UI |
 | Food catalog: nutrients per serving, packaging, shelf lives, sensory scores, per-item Arrhenius A and Ea | `backend/app/data/space_food_catalog.json` | Gives the optimizer, prediction tab and menus something to compute with | `dataset_meta.data_provenance = "synthetic"`; `/datalab/catalog` and `/datalab/audit` carry it; Data Lab header text |
 | Greenhouse crop parameters (yields, energy, water recirculation, nutrients) | `backend/app/data/crop_models.json` | Dashboard harvest and power figures | `dataset_meta.data_provenance = "synthetic"`; `/dashboard/crop-status` |
 | Dashboard figures (food mass, burn rate, security index, power, advisories) | `backend/app/api/routes_dashboard.py` | Mission overview | `data_provenance` on `/dashboard/telemetry`; "SYNTHETIC SCENARIO" badge |
@@ -168,6 +169,17 @@ published value.**
 - **"Ganja/ADAU" crop cultivars** GC-26, GHM-01, GA-04 and GP-FERM, with their "Ganja" varieties and strains,
   perchlorate-remediation and salinity values. Nothing linked them to ADAU or to any study.
 - **"NASA-STD-3001 compliant/verified" badges and status fields.** No check against NASA-STD-3001 is performed anywhere.
+
+### Destinations (Food & Vitamins screen)
+
+A destination only sets the mission length (forecast horizon); the model is the same for all three. Served by
+`GET /api/v1/health/scenarios` (`destinations`).
+
+| Destination | Mission length | Status | Source |
+|---|---|---|---|
+| Earth orbit | 195 days (190 Sols) | literature | Smith SM et al. (2005), J Nutr 135(3):437-443: long-duration ISS stays |
+| Moon | ~30 days (29 Sols) | assumed | Modelling assumption of this project (no source) |
+| Mars | 450 Sols | assumed | Modelling assumption of this project (no source) |
 
 ---
 

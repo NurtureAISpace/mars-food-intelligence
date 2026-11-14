@@ -52,9 +52,16 @@ NurtureAISpace follows food degradation all the way to the astronaut.
   crossed.
 - Every nutrient alert ends with a corrective action: which available food (or supplement) to add, and how much per Sol.
 
-What the default scenario shows (cooling failure at Sol 150):
+What the default scenario shows (mild preset: cooling failure at Sol 150, 45 Sols at 29.5 °C):
 - ACT alerts for thiamine B1 at Sols 212 and 244, with a food recommendation.
 - An ACT alert for vitamin D 45 Sols before that astronaut's level actually crosses the risk threshold.
+
+What the Food & Vitamins screen shows for Mars (450 Sols). Its "Storage failure" card is the **severe preset**
+(`severe_cooling_failure`: Sol 150, 60 Sols at 30.0 °C, greenhouse offline 120 Sols):
+- **Storage failure:** PLT-02 vitamin B1 warning at Sol 207, problem would start at Sol 250, i.e. **43 Sols early**.
+  MS-03 vitamin B1 runs low around Sol 242.
+- **Normal mission:** MS-04 vitamin D warning at Sol 273, problem would start at Sol 392 (in-flight vitamin D decline,
+  not food storage).
 
 **Crew physiology data is synthetic.** Every model parameter is listed with its source, page and status in
 `backend/app/data/literature_params.json`.

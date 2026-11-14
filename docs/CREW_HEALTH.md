@@ -21,7 +21,11 @@ tap back up.
 
 **What is a Sol?** A Mars day, about 24 h 40 min (1.027 Earth days). The mission lasts 450 Sols.
 
-**The default story (Sols 0 → 449):**
+**Two failure presets.** The story below is the **mild preset** (`mild_cooling_failure`, the API default). The
+Food & Vitamins screen's "Storage failure" card uses the **severe preset** (`severe_cooling_failure`: Sol 150, 60 Sols
+at 30.0 °C, greenhouse offline 120 Sols); its numbers are in "Severe preset (Food & Vitamins screen)" below.
+
+**The default story (Sols 0 → 449, mild preset):**
 - **Sols 0–20:** we learn what "normal" looks like for *each* astronaut (their personal baseline). Up to Sol 27 the
   status shows **CALIBRATING**.
 - **Sol 150:** the food storage cooling fails for 45 Sols (storage rises to 29.5 °C, so vitamins in packaged food break
@@ -165,7 +169,7 @@ window** over vitals + vitamin intake. Its score is reported as supporting evide
   if the greenhouse is online, otherwise the best packaged item at its current Arrhenius retention. Suggestions above
   3 servings/Sol are flagged as not feasible.
 
-## Default scenario (seed 42, cooling failure at Sol 150 for 45 Sols at 29.5 °C)
+## Default scenario: mild preset (seed 42, cooling failure at Sol 150 for 45 Sols at 29.5 °C)
 
 Recomputed on 2026-11-14 with the current `literature_params.json` (vitamin C risk threshold 300 mg).
 
@@ -183,6 +187,20 @@ Recomputed on 2026-11-14 with the current `literature_params.json` (vitamin C ri
   `failure_enabled=false`, because it comes from the in-flight vitamin D decline, not from the cooling failure.
 - With `failure_enabled=false`, no vitamin C or thiamine WATCH/ACT is raised; vitamin D WATCH alerts appear late in the
   mission (CDR-01 416, MS-03 429, MS-04 273 with ACT at 348).
+
+## Severe preset (Food & Vitamins screen)
+
+`severe_cooling_failure`: seed 42, cooling failure at Sol 150 for 60 Sols at 30.0 °C, greenhouse offline 120 Sols.
+This is the "Storage failure" card on the Food & Vitamins screen. Numbers from
+`GET /api/v1/health/crew?scenario=<id>&horizon_sols=450` (the `horizon` block), recomputed on 2026-11-15.
+
+| Mars, 450 Sols | First warning | Problem would start | Warning lead | Other vitamins running low |
+|---|---|---|---|---|
+| Storage failure (severe) | PLT-02 vitamin B1, Sol 207 | Sol 250 | **43 Sols** | MS-03 vitamin B1 ~Sol 242; MS-04 vitamin D ~Sol 392 |
+| Normal mission (`nominal`) | MS-04 vitamin D, Sol 273 | Sol 392 | 119 Sols | none |
+
+- Earth orbit (195 days): the failure starts on Day 154, inside the mission, but no vitamin runs low before the end.
+- Moon (~30 days): the failure would start on Day 154, after the mission ends, so it has no effect. The screen says so.
 
 ## Assumptions
 
