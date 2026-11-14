@@ -130,3 +130,19 @@ def test_life_support_api_endpoints():
     sim_data = res_sim.json()
     assert len(sim_data["timeline"]) > 10
     assert "final_metrics" in sim_data
+
+
+def test_sabatier_water_is_stoichiometrically_limited():
+    """Sabatier water = min(CO2 x 36/44, H2 x 36/8) from CO2 + 4H2 -> CH4 + 2H2O."""
+    from app.services.life_support_service import SABATIER_WATER_PER_KG_H2, _greenhouse_daily_exchange
+
+    assert SABATIER_WATER_PER_KG_H2 == pytest.approx(36.0 / 8.0)
+    snap = LifeSupportService().get_snapshot_telemetry(sol=450, crew_size=4)
+    demands = ECLSSLifeSupportEngine.calculate_metabolic_demands(4)
+    o2_from_ogs = max(0.0, demands["o2_demand_kg_sol"] - _greenhouse_daily_exchange()["o2_kg"])
+    h2_kg = o2_from_ogs * ECLSSLifeSupportEngine.H2_YIELD_PER_KG_O2
+    expected = min(demands["co2_output_kg_sol"] * ECLSSLifeSupportEngine.SABATIER_WATER_RECOVERY_RATIO,
+                   h2_kg * 4.5)
+    assert snap["daily_rates"]["sabatier_water_recovered_l"] == pytest.approx(expected, abs=0.01)
+    # Water formed can never exceed what the available hydrogen allows
+    assert snap["daily_rates"]["sabatier_water_recovered_l"] <= h2_kg * 4.5 + 0.01
