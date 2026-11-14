@@ -109,6 +109,9 @@ Full list with citations, DOIs/URLs and page numbers: **[docs/DATA_SOURCES.md](d
   - Smith & Zwart (NTRS 20060049121);
   - Smith et al. 2009 (*Am J Clin Nutr*);
   - NASA BVAD REV1 (NTRS 20180001338).
+- **NASA research behind the app (references, not datasets):** Cooper 2017, Smith 2020, Hardy & Theriot 2025, the NASA
+  Integrated Medical Model and Iyer 2024, shown on the NASA Evidence screen; see
+  [Supporting references](docs/DATA_SOURCES.md#supporting-references-not-datasets).
 - **Synthetic scenario elements:** the crew, the food catalog values, crop parameters, the dashboard/simulator
   constants, most nutrient targets, and most life-support values. They are labeled `synthetic` in the data files, in the
   API `data_provenance` fields, and in the UI.

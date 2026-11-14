@@ -31,7 +31,7 @@ function latestOf(entries: CheckinHistoryEntry[]): CheckinHistoryEntry | null {
   }, null);
 }
 
-/** Latest Astronaut App check-in per seat, plus crew-level numbers for the stat tiles and the navbar pill. */
+/** Latest Astronaut App check-in per seat, plus crew-level numbers for the stat tiles. */
 export function useCrewCheckins() {
   const [seats, setSeats] = useState<SeatState[] | null>(null);
   const [guests, setGuests] = useState<SeatState[]>([]);

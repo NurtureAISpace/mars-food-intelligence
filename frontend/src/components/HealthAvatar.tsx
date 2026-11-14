@@ -60,12 +60,12 @@ export const HealthAvatar: React.FC<{ person: SeatState | null }> = ({ person })
   return (
     <div className="section-card !p-6 flex flex-col gap-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <span className="text-[16px] font-medium uppercase tracking-wider text-slate-300">Body view · {who}</span>
-        {person?.pseudonym && <span className="font-mono text-[16px] text-slate-300">{person.pseudonym}</span>}
+        <span className="text-[0.8889rem] font-medium uppercase tracking-wider text-slate-300">Body view · {who}</span>
+        {person?.pseudonym && <span className="font-mono text-[0.8889rem] text-slate-300">{person.pseudonym}</span>}
       </div>
-      <p className="text-[16px] text-slate-300">Tap a body area to see readings.</p>
+      <p className="text-[0.8889rem] text-slate-300">Tap a body area to see readings.</p>
       <div className="flex items-start gap-4">
-        <svg viewBox="0 0 250 340" className="w-[170px] shrink-0" role="group" aria-label={`Body figure for ${who}`}>
+        <svg viewBox="0 0 250 340" className="w-[9.4444rem] shrink-0" role="group" aria-label={`Body figure for ${who}`}>
           <Silhouette />
           {ZONES.map((z) => {
             const c = zoneColor(e, z.keys);
@@ -88,7 +88,7 @@ export const HealthAvatar: React.FC<{ person: SeatState | null }> = ({ person })
           })}
         </svg>
         <div className="min-w-0 flex-1 rounded-2xl border border-white/10 bg-white/5 p-4" aria-live="polite">
-          <div className={`flex items-center gap-2 text-[20px] font-semibold ${TONE[zoneColor(e, active.keys)]}`}>
+          <div className={`flex items-center gap-2 text-[1.1111rem] font-semibold ${TONE[zoneColor(e, active.keys)]}`}>
             <active.icon className="h-5 w-5" aria-hidden /> {active.label}
           </div>
           {e ? (
@@ -98,10 +98,10 @@ export const HealthAvatar: React.FC<{ person: SeatState | null }> = ({ person })
                   {readings.map((r) => <KVRow key={r.key} label={r.label} value={r.value} dot={(r.color ?? 'none') as Dot} />)}
                 </KVList>
               </div>
-              <p className="mt-3 text-[16px] leading-relaxed text-white">{zoneSentence(e, active.keys)}</p>
+              <p className="mt-3 text-[0.8889rem] leading-relaxed text-white">{zoneSentence(e, active.keys)}</p>
             </>
           ) : (
-            <p className="mt-3 text-[16px] text-slate-300">No check-in yet for this person.</p>
+            <p className="mt-3 text-[0.8889rem] text-slate-300">No check-in yet for this person.</p>
           )}
         </div>
       </div>

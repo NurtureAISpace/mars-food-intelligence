@@ -32,18 +32,18 @@ export const JoinCrewModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
         <button ref={closeRef} onClick={onClose} aria-label="Close" className="absolute right-4 top-4 rounded-xl p-2 text-slate-300 hover:bg-white/10">
           <X className="h-6 w-6" aria-hidden />
         </button>
-        <h2 id="join-title" className="flex items-center justify-center gap-3 text-[32px] font-semibold text-white">
+        <h2 id="join-title" className="flex items-center justify-center gap-3 text-[1.7778rem] font-semibold text-white">
           <Smartphone className="h-8 w-8" aria-hidden /> Join the crew
         </h2>
-        <p className="mx-auto mt-3 max-w-lg text-[20px] leading-relaxed text-slate-200">
+        <p className="mx-auto mt-3 max-w-lg text-[1.1111rem] leading-relaxed text-slate-200">
           Scan, enter your name, check in. Your name stays on your phone — we only see a code.
         </p>
-        <div className="mx-auto mt-6 w-full max-w-[400px] rounded-2xl bg-white p-4">
+        <div className="mx-auto mt-6 w-full max-w-[22.2222rem] rounded-2xl bg-white p-4">
           {svg ? <div className="[&>svg]:h-auto [&>svg]:w-full" role="img" aria-label={`QR code for ${url}`} dangerouslySetInnerHTML={{ __html: svg }} />
             : <div className="grid aspect-square place-items-center text-slate-500">QR code…</div>}
         </div>
-        <p className="mt-5 break-all font-mono text-[24px] font-semibold text-white">{url}</p>
-        <p className="mt-2 text-[16px] text-slate-400">Same Wi-Fi as this laptop. Pick “Guest” in the app.</p>
+        <p className="mt-5 break-all font-mono text-[1.3333rem] font-semibold text-white">{url}</p>
+        <p className="mt-2 text-[0.8889rem] text-slate-400">Same Wi-Fi as this laptop. Pick “Guest” in the app.</p>
       </div>
     </div>,
     document.body,

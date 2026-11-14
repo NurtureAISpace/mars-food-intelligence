@@ -29,7 +29,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, missio
 
   if (loading && !telemetry) {
     return (
-      <div className="flex items-center justify-center min-h-[500px]">
+      <div className="flex items-center justify-center min-h-[27.7778rem]">
         <div className="text-center font-mono text-muted">
           <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
           Acquiring Sol-450 Habitat Telemetry Stream...
@@ -112,7 +112,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, missio
             onChange={(e) => setMissionSol(Number(e.target.value))}
             className="w-full accent-accent cursor-pointer"
           />
-          <div className="flex justify-between text-[11px] font-mono text-muted mt-1">
+          <div className="flex justify-between text-[0.6111rem] font-mono text-muted mt-1">
             <span>Sol 0 (Mars Landing)</span>
             <span>Sol 250 (Mid-Mission)</span>
             <span className="text-accent font-bold">Sol 450 (Target Milestone)</span>
@@ -145,7 +145,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, missio
               style={{ width: `${telemetry?.food_security_index_pct ?? 0}%` }}
             ></div>
           </div>
-          <p className="text-[11px] font-mono text-muted mt-2">
+          <p className="text-[0.6111rem] font-mono text-muted mt-2">
             Composite: Calories + Thiamine + Vit-C + Sensory
           </p>
         </div>
@@ -163,10 +163,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, missio
               <Clock className="w-5 h-5" />
             </div>
           </div>
-          <p className="text-[11px] font-mono text-muted mt-3">
+          <p className="text-[0.6111rem] font-mono text-muted mt-3">
             Inventory Mass: <strong className="text-fg">{telemetry?.remaining_food_mass_kg} kg</strong>
           </p>
-          <p className="text-[11px] font-mono text-nominal mt-0.5">
+          <p className="text-[0.6111rem] font-mono text-nominal mt-0.5">
             Burn Rate: {(crewSize * 1.5).toFixed(1)} kg / Sol
           </p>
         </div>
@@ -184,10 +184,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, missio
               <Leaf className="w-5 h-5" />
             </div>
           </div>
-          <p className="text-[11px] font-mono text-muted mt-3">
+          <p className="text-[0.6111rem] font-mono text-muted mt-3">
             Active Chambers: <strong className="text-fg">{telemetry?.total_active_crops} BLSS Modules</strong>
           </p>
-          <p className="text-[11px] font-mono text-muted mt-0.5">
+          <p className="text-[0.6111rem] font-mono text-muted mt-0.5">
             Microgreens, Spirulina, Dwarf Potato, Tomato
           </p>
         </div>
@@ -205,10 +205,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, missio
               <Zap className="w-5 h-5" />
             </div>
           </div>
-          <p className="text-[11px] font-mono text-muted mt-3">
+          <p className="text-[0.6111rem] font-mono text-muted mt-3">
             Nominal Cold Storage: <strong className="text-fg">4.0°C Active Peltier</strong>
           </p>
-          <p className="text-[11px] font-mono text-fg mt-0.5">
+          <p className="text-[0.6111rem] font-mono text-fg mt-0.5">
             Greenhouse Lighting: ~2.16 kW
           </p>
         </div>
@@ -245,7 +245,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, missio
                 )}
                 <div className="text-xs font-mono">
                   <p className="font-semibold text-fg">{alert.message}</p>
-                  <p className="text-muted text-[11px] mt-0.5">
+                  <p className="text-muted text-[0.6111rem] mt-0.5">
                     {alert.level === 'WARNING'
                       ? 'Recommendation: Reallocate power to storage chiller or increase Spirulina diet ration.'
                       : 'Photobioreactor and aeroponic transpiration loops operate within nominal parameters.'}

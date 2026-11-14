@@ -104,7 +104,7 @@ export const SimulatorView: React.FC = () => {
               onChange={(e) => setDuration(Number(e.target.value))}
               className="w-full accent-accent cursor-pointer"
             />
-            <div className="flex justify-between text-[10px] font-mono text-muted mt-1">
+            <div className="flex justify-between text-[0.5556rem] font-mono text-muted mt-1">
               <span>Sol 300</span>
               <span className="text-accent font-bold">Sol 450 (Target)</span>
               <span>Sol 600</span>
@@ -353,7 +353,7 @@ export const SimulatorView: React.FC = () => {
                   <span className={adv.includes('CRITICAL') || adv.includes('WARNING') ? 'text-watch font-bold' : 'text-soft'}>
                     {adv}
                   </span>
-                  <span className="text-[10px] text-muted uppercase">LOG ENTRY</span>
+                  <span className="text-[0.5556rem] text-muted uppercase">LOG ENTRY</span>
                 </div>
               ))}
             </div>

@@ -125,7 +125,7 @@ export const LifeSupportView: React.FC = () => {
                 telemetry?.overall_eclss_status === 'WARNING' ? 'bg-watch' : 'bg-nominal'
               }`} />
               <div>
-                <span className="text-[11px] font-mono text-muted uppercase tracking-wider block">ECLSS System State</span>
+                <span className="text-[0.6111rem] font-mono text-muted uppercase tracking-wider block">ECLSS System State</span>
                 <span className="text-sm font-bold font-mono text-fg">
                   {telemetry?.overall_eclss_status || 'INITIALIZING'}
                 </span>
@@ -135,7 +135,7 @@ export const LifeSupportView: React.FC = () => {
             <div className="px-4 py-3 rounded-xl bg-white/[0.06] border border-white/10 flex items-center space-x-3">
               <Droplets className="w-5 h-5 text-fg" />
               <div>
-                <span className="text-[11px] font-mono text-muted uppercase tracking-wider block">Water Loop Closure</span>
+                <span className="text-[0.6111rem] font-mono text-muted uppercase tracking-wider block">Water Loop Closure</span>
                 <span className="text-sm font-bold font-mono text-fg">
                   {telemetry?.reserves.water_loop_closure_pct ?? 96.8}%
                 </span>
@@ -197,7 +197,7 @@ export const LifeSupportView: React.FC = () => {
               <span className="text-xs font-mono font-semibold">Global Dust Storm</span>
               <AlertTriangle className={`w-4 h-4 ${dustStormActive ? 'text-watch' : 'text-muted'}`} />
             </div>
-            <span className="text-[11px] text-muted mt-1 font-mono">
+            <span className="text-[0.6111rem] text-muted mt-1 font-mono">
               {dustStormActive ? 'Solar -72% (Aux Batt On)' : 'Clear Martian Sky'}
             </span>
           </button>
@@ -215,7 +215,7 @@ export const LifeSupportView: React.FC = () => {
               <span className="text-xs font-mono font-semibold">Cabin O2 Micro-Leak</span>
               <Wind className={`w-4 h-4 ${o2LeakActive ? 'text-act' : 'text-muted'}`} />
             </div>
-            <span className="text-[11px] text-muted mt-1 font-mono">
+            <span className="text-[0.6111rem] text-muted mt-1 font-mono">
               {o2LeakActive ? 'Depressurization Active' : 'Hull Integrity 100%'}
             </span>
           </button>
@@ -233,7 +233,7 @@ export const LifeSupportView: React.FC = () => {
               <span className="text-xs font-mono font-semibold">Sabatier + WRS Loop</span>
               <Droplets className={`w-4 h-4 ${closedLoopEnabled ? 'text-fg' : 'text-muted'}`} />
             </div>
-            <span className="text-[11px] text-muted mt-1 font-mono">
+            <span className="text-[0.6111rem] text-muted mt-1 font-mono">
               {closedLoopEnabled ? 'Closed Loop Active (assumed recovery)' : 'Open Loop (Resupply Dependent)'}
             </span>
           </button>
@@ -255,12 +255,12 @@ export const LifeSupportView: React.FC = () => {
               </span>
               <span className="text-xs font-mono text-muted">kPa Total</span>
             </div>
-            <div className="flex justify-between text-[11px] font-mono text-muted pt-1 border-t border-white/10">
+            <div className="flex justify-between text-[0.6111rem] font-mono text-muted pt-1 border-t border-white/10">
               <span>pO2: <strong className="text-nominal">{telemetry?.atmosphere.partial_pressure_o2_kpa ?? 21.3} kPa</strong></span>
               <span>pCO2: <strong className="text-watch">{telemetry?.atmosphere.partial_pressure_co2_kpa ?? 0.38} kPa</strong></span>
             </div>
           </div>
-          <div className="text-[11px] font-mono text-nominal flex items-center space-x-1.5">
+          <div className="text-[0.6111rem] font-mono text-nominal flex items-center space-x-1.5">
             <CheckCircle2 className="w-3.5 h-3.5" />
             <span>Normobaric (101.3 kPa)</span>
           </div>
@@ -279,12 +279,12 @@ export const LifeSupportView: React.FC = () => {
               </span>
               <span className="text-xs font-mono text-muted">kg O2 Reserve</span>
             </div>
-            <div className="flex justify-between text-[11px] font-mono text-muted pt-1 border-t border-white/10">
+            <div className="flex justify-between text-[0.6111rem] font-mono text-muted pt-1 border-t border-white/10">
               <span>Crew Demand: <strong className="text-accent">{telemetry?.daily_rates.crew_o2_consumption_kg ?? 3.36} kg/d</strong></span>
               <span>Crop O2: <strong className="text-nominal">{telemetry?.daily_rates.plant_o2_generation_kg ?? 1.85} kg/d</strong></span>
             </div>
           </div>
-          <div className="text-[11px] font-mono text-muted">
+          <div className="text-[0.6111rem] font-mono text-muted">
             OGS Electrolysis: <strong className="text-fg">{telemetry?.daily_rates.ogs_electrolysis_o2_kg ?? 1.51} kg/d</strong>
           </div>
         </div>
@@ -302,12 +302,12 @@ export const LifeSupportView: React.FC = () => {
               </span>
               <span className="text-xs font-mono text-muted">Liters Potable</span>
             </div>
-            <div className="flex justify-between text-[11px] font-mono text-muted pt-1 border-t border-white/10">
+            <div className="flex justify-between text-[0.6111rem] font-mono text-muted pt-1 border-t border-white/10">
               <span>Sabatier Regen: <strong className="text-fg">+{telemetry?.daily_rates.sabatier_water_recovered_l ?? 3.27} L/d</strong></span>
               <span>Transpiration: <strong className="text-nominal">+{telemetry?.daily_rates.water_transpired_crops_l ?? 4.1} L/d</strong></span>
             </div>
           </div>
-          <div className="text-[11px] font-mono text-fg">
+          <div className="text-[0.6111rem] font-mono text-fg">
             Net Sol Drift: <strong>{telemetry?.daily_rates.net_water_daily_delta_l ?? -0.8} L/d</strong>
           </div>
         </div>
@@ -325,12 +325,12 @@ export const LifeSupportView: React.FC = () => {
               </span>
               <span className="text-xs font-mono text-muted">Battery SOC</span>
             </div>
-            <div className="flex justify-between text-[11px] font-mono text-muted pt-1 border-t border-white/10">
+            <div className="flex justify-between text-[0.6111rem] font-mono text-muted pt-1 border-t border-white/10">
               <span>Solar Gen: <strong className="text-watch">{telemetry?.power.solar_power_generated_kwh ?? 180.0} kWh</strong></span>
               <span>Demand: <strong className="text-soft">{telemetry?.power.power_consumed_kwh ?? 115.0} kWh</strong></span>
             </div>
           </div>
-          <div className="text-[11px] font-mono text-muted">
+          <div className="text-[0.6111rem] font-mono text-muted">
             Grid Balance: <strong className={dustStormActive ? 'text-watch' : 'text-nominal'}>
               {dustStormActive ? 'DEFICIT (Batt Discharging)' : 'SURPLUS (+65.0 kWh)'}
             </strong>
@@ -354,7 +354,7 @@ export const LifeSupportView: React.FC = () => {
             </p>
           </div>
           <div className="flex items-center space-x-2">
-            <span className="px-2.5 py-1 rounded bg-white/[0.06] border border-white/10 text-[11px] font-mono text-soft">
+            <span className="px-2.5 py-1 rounded bg-white/[0.06] border border-white/10 text-[0.6111rem] font-mono text-soft">
               Automated PID Pulse Irrigation: <strong className="text-nominal">ONLINE</strong>
             </span>
           </div>
@@ -377,10 +377,10 @@ export const LifeSupportView: React.FC = () => {
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-white/[0.06] text-soft">
+                  <span className="text-[0.5556rem] font-mono font-bold px-2 py-0.5 rounded bg-white/[0.06] text-soft">
                     {node.node_id}
                   </span>
-                  <div className={`flex items-center space-x-1.5 text-[11px] font-mono font-medium ${
+                  <div className={`flex items-center space-x-1.5 text-[0.6111rem] font-mono font-medium ${
                     node.irrigation_valve_open ? 'text-fg animate-pulse' : 'text-muted'
                   }`}>
                     <span className={`w-2 h-2 rounded-full ${node.irrigation_valve_open ? 'bg-series-1' : 'bg-white/[0.12]'}`} />
@@ -391,7 +391,7 @@ export const LifeSupportView: React.FC = () => {
                 <h3 className="text-sm font-semibold text-fg font-mono truncate" title={node.zone_name}>
                   {node.zone_name}
                 </h3>
-                <p className="text-[11px] text-muted font-mono mt-0.5 truncate">
+                <p className="text-[0.6111rem] text-muted font-mono mt-0.5 truncate">
                   Crop: <strong className="text-soft">{node.target_crop}</strong>
                 </p>
 
@@ -410,7 +410,7 @@ export const LifeSupportView: React.FC = () => {
                       style={{ width: `${Math.min(100, (node.volumetric_water_content_pct / 60) * 100)}%` }}
                     />
                   </div>
-                  <div className="flex justify-between text-[9px] font-mono text-muted">
+                  <div className="flex justify-between text-[0.5rem] font-mono text-muted">
                     <span>Dry (&lt;35%)</span>
                     <span>Nominal (40-50%)</span>
                     <span>Sat (&gt;55%)</span>
@@ -418,7 +418,7 @@ export const LifeSupportView: React.FC = () => {
                 </div>
 
                 {/* Telemetry Row */}
-                <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-white/10 text-[11px] font-mono">
+                <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-white/10 text-[0.6111rem] font-mono">
                   <div>
                     <span className="text-muted block">Salinity (EC)</span>
                     <span className={`font-bold ${isSaline ? 'text-act' : 'text-soft'}`}>
@@ -554,7 +554,7 @@ export const LifeSupportView: React.FC = () => {
               </svg>
 
               {/* Sol X-Axis Labels */}
-              <div className="flex justify-between pl-12 pr-4 text-[11px] font-mono text-muted mt-2">
+              <div className="flex justify-between pl-12 pr-4 text-[0.6111rem] font-mono text-muted mt-2">
                 <span>Sol 0</span>
                 <span>Sol 100</span>
                 <span>Sol 200 {dustStormActive && <span className="text-watch font-bold">(Dust Storm)</span>}</span>

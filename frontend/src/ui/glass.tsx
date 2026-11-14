@@ -1,7 +1,7 @@
 // Glass UI kit for the 3 main screens ("mission designer" look): one big panel per screen, section cards,
 // stat tiles, key-value rows, status badges (colour + word + icon), chips, selectable cards, source tags and a
-// single "Details" toggle. Root font is 18px (html 112.5%); sizes below are in px so they match the spec exactly.
-// Minimum text size on the 3 screens: 16px.
+// single "Details" toggle. Root font is 18px (html 112.5%); arbitrary sizes are rem = px / 18 (text-[1rem] = 18px),
+// so the whole UI scales to 80 % on screens >= 1600px (src/index.css). Minimum text below 1600px: 16px (0.8889rem).
 import React, { useState } from 'react';
 import {
   AlertTriangle, ArrowLeft, Check, CheckCircle2, ChevronDown, Database, FlaskConical, HelpCircle, Loader2, Lock,
@@ -23,8 +23,8 @@ export const GlassPanel: React.FC<{
   <section className="glass-panel reveal">
     <header className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
       <div className="min-w-0">
-        <h1 className="text-[34px] font-light leading-tight text-white sm:text-[44px]">{title}</h1>
-        {subtitle && <p className="mt-3 max-w-4xl text-[20px] leading-relaxed text-slate-300">{subtitle}</p>}
+        <h1 className="text-[1.8889rem] font-light leading-tight text-white sm:text-[2.4444rem]">{title}</h1>
+        {subtitle && <p className="mt-3 max-w-4xl text-[1.1111rem] leading-relaxed text-slate-300">{subtitle}</p>}
         {tags && <div className="mt-4 flex flex-wrap gap-2">{tags}</div>}
       </div>
       {onBack && (
@@ -48,7 +48,7 @@ export const Section: React.FC<{
     <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
       <div className="flex items-center gap-4">
         <span className="icon-tile"><I className="h-6 w-6" aria-hidden /></span>
-        <h2 className="text-[26px] font-semibold leading-tight text-white">{title}</h2>
+        <h2 className="text-[1.4444rem] font-semibold leading-tight text-white">{title}</h2>
       </div>
       {right}
     </div>
@@ -63,7 +63,7 @@ export const Card: React.FC<{ title?: React.ReactNode; right?: React.ReactNode; 
   <div className={`inner-card ${className}`}>
     {(title || right) && (
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        {title && <h3 className="text-[22px] font-semibold leading-snug text-white">{title}</h3>}
+        {title && <h3 className="text-[1.2222rem] font-semibold leading-snug text-white">{title}</h3>}
         {right}
       </div>
     )}
@@ -76,8 +76,8 @@ export const StatTile: React.FC<{ label: string; value: React.ReactNode; tone?: 
   label, value, tone = 'text-white', source,
 }) => (
   <div className="section-card !p-6">
-    <div className={`text-[56px] font-bold leading-none tabular-nums ${tone}`}>{value}</div>
-    <div className="mt-3 text-[18px] text-slate-300">{label}</div>
+    <div className={`text-[3.1111rem] font-bold leading-none tabular-nums ${tone}`}>{value}</div>
+    <div className="mt-3 text-[1rem] text-slate-300">{label}</div>
     {source && <div className="mt-3">{source}</div>}
   </div>
 );
@@ -101,7 +101,7 @@ export const StatusBadge: React.FC<{ status: StatusKey; label?: string; size?: '
   const I = st.icon;
   return (
     <span className={`inline-flex items-center gap-2 rounded-xl border font-semibold ${st.bg} ${st.border} ${st.text} ${
-      size === 'lg' ? 'px-4 py-2 text-[22px]' : 'px-3 py-1.5 text-[18px]'}`}>
+      size === 'lg' ? 'px-4 py-2 text-[1.2222rem]' : 'px-3 py-1.5 text-[1rem]'}`}>
       <I className={size === 'lg' ? 'h-6 w-6' : 'h-5 w-5'} aria-hidden />
       {label ?? statusWord(status)}
     </span>
@@ -153,13 +153,13 @@ export const KVRow: React.FC<{ label: React.ReactNode; value: React.ReactNode; d
   label, value, dot, valueClass = 'text-white',
 }) => (
   <div className="flex items-center justify-between gap-4 py-2.5 first:pt-0 last:pb-0">
-    <dt className="flex items-center gap-2.5 text-[18px] text-slate-400">
+    <dt className="flex items-center gap-2.5 text-[1rem] text-slate-400">
       {dot && (
         <span className={`inline-block h-3 w-3 shrink-0 rounded-full ${DOT[dot]}`} role="img" aria-label={DOT_WORD[dot]} />
       )}
       {label}
     </dt>
-    <dd className={`text-right text-[18px] font-semibold tabular-nums ${valueClass}`}>{value}</dd>
+    <dd className={`text-right text-[1rem] font-semibold tabular-nums ${valueClass}`}>{value}</dd>
   </div>
 );
 
@@ -167,8 +167,8 @@ export const KVRow: React.FC<{ label: React.ReactNode; value: React.ReactNode; d
 export const Bullets: React.FC<{ items: React.ReactNode[] }> = ({ items }) => (
   <ul className="space-y-3">
     {items.map((it, i) => (
-      <li key={i} className="flex gap-3 text-[18px] leading-relaxed text-white">
-        <span className="mt-[11px] h-2 w-2 shrink-0 rounded-full bg-indigo-400" aria-hidden />
+      <li key={i} className="flex gap-3 text-[1rem] leading-relaxed text-white">
+        <span className="mt-[0.6111rem] h-2 w-2 shrink-0 rounded-full bg-indigo-400" aria-hidden />
         <span>{it}</span>
       </li>
     ))}
@@ -195,15 +195,15 @@ export const SelectCard: React.FC<{
         </span>
       )}
       <span className="icon-tile"><I className="h-6 w-6" aria-hidden /></span>
-      <span className="mt-4 block pr-10 text-[22px] font-semibold text-white">{title}</span>
-      {subtitle && <span className="mt-1 block text-[16px] text-slate-300">{subtitle}</span>}
+      <span className="mt-4 block pr-10 text-[1.2222rem] font-semibold text-white">{title}</span>
+      {subtitle && <span className="mt-1 block text-[0.8889rem] text-slate-300">{subtitle}</span>}
     </button>
     {selected && chips && chips.length > 0 && (
       <div className="mt-4 grid grid-cols-1 gap-2">
         {chips.slice(0, 3).map((c) => (
           <span key={c.label} className={`chip !flex flex-col !items-start !gap-0 !py-2 ${CHIP_TONE[c.tone]}`}>
-            <span className="text-[16px] font-semibold">{c.label}</span>
-            <span className="text-[16px] font-normal opacity-90">{c.text}</span>
+            <span className="text-[0.8889rem] font-semibold">{c.label}</span>
+            <span className="text-[0.8889rem] font-normal opacity-90">{c.text}</span>
           </span>
         ))}
       </div>
@@ -212,24 +212,34 @@ export const SelectCard: React.FC<{
   </div>
 );
 
-/** The single collapsed "Details" toggle a screen may have. */
-export const Details: React.FC<{ label?: string; children: React.ReactNode }> = ({ label = 'Details', children }) => {
+/** The single collapsed "Details" toggle a screen may have: same glass frame as the section cards, 27px text
+ *  (1.5x the 18px body), one spaced bullet per point. */
+export const Details: React.FC<{ label?: string; items: React.ReactNode[] }> = ({ label = 'Details', items }) => {
   const [open, setOpen] = useState(false);
   return (
-    <div>
+    <div className="section-card">
       <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open}
-        className="inline-flex min-h-[48px] items-center gap-2 text-[18px] font-medium text-indigo-200 hover:text-white">
-        <ChevronDown className={`h-5 w-5 transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden />
+        className="inline-flex min-h-[2.6667rem] w-full items-center gap-3 text-left text-[1.5rem] font-semibold text-white hover:text-indigo-100">
+        <ChevronDown className={`h-7 w-7 shrink-0 text-indigo-300 transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden />
         {label}
       </button>
-      {open && <div className="mt-2 space-y-2 text-[18px] leading-relaxed text-slate-300">{children}</div>}
+      {open && (
+        <ul className="mt-5 space-y-5">
+          {items.map((it, i) => (
+            <li key={i} className="flex gap-4 text-[1.5rem] leading-relaxed text-slate-200">
+              <span className="mt-[0.9444rem] h-2.5 w-2.5 shrink-0 rounded-full bg-indigo-400" aria-hidden />
+              <span>{it}</span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };
 
 /** Pseudonym with a lock: the real name never leaves the astronaut's device. */
 export const PseudonymCode: React.FC<{ code: string }> = ({ code }) => (
-  <span className="inline-flex items-center gap-2 font-mono text-[22px] font-semibold tracking-wide text-white"
+  <span className="inline-flex items-center gap-2 font-mono text-[1.2222rem] font-semibold tracking-wide text-white"
     title="Name stays on the astronaut's device">
     <Lock className="h-5 w-5 text-indigo-300" aria-hidden />
     {code}
@@ -238,13 +248,13 @@ export const PseudonymCode: React.FC<{ code: string }> = ({ code }) => (
 );
 
 export const Loading: React.FC<{ children?: React.ReactNode }> = ({ children = 'Loading…' }) => (
-  <p className="flex items-center gap-2 text-[18px] text-slate-300" role="status">
+  <p className="flex items-center gap-2 text-[1rem] text-slate-300" role="status">
     <Loader2 className="h-5 w-5 animate-spin" aria-hidden /> {children}
   </p>
 );
 
 export const ErrorBox: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div role="alert" className="rounded-xl border border-act/45 bg-act/10 px-5 py-4 text-[18px] text-white">
+  <div role="alert" className="rounded-xl border border-act/45 bg-act/10 px-5 py-4 text-[1rem] text-white">
     <span className="font-semibold text-rose-300">Could not reach the server. </span>
     {children}
   </div>

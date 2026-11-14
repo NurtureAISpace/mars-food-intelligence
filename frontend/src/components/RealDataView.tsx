@@ -1,10 +1,66 @@
-// Real NASA Data: the crew-wide finding from Inspiration4 blood tests (GET /api/v1/real-data/i4).
-// Every number on this screen comes from that one API response (source, timepoints, series, finding, limitations).
+// NASA Evidence: the crew-wide finding from Inspiration4 blood tests (GET /api/v1/real-data/i4) plus the NASA research
+// our app builds on. Every number in the data part comes from that one API response (source, timepoints, series,
+// finding, limitations). The research list is references only (docs/DATA_SOURCES.md, "Supporting references"):
+// we did not use their raw data, and no figures are copied.
 import React, { useEffect, useState } from 'react';
-import { CheckCircle2, ExternalLink, Info, Lightbulb, Orbit, Search, TrendingDown, TrendingUp, Users } from 'lucide-react';
+import { BookOpen, CheckCircle2, ExternalLink, Info, Lightbulb, Orbit, Search, TrendingDown, TrendingUp, Users } from 'lucide-react';
 import { fetchRealDataI4 } from '../api';
 import type { RealDataI4, RealDataSharedFinding } from '../types';
 import { Card, Chip, Details, ErrorBox, GlassPanel, KVList, KVRow, Loading, Section, SourceTag } from '../ui/glass';
+
+/** NASA research behind the app (references, not datasets). */
+const RESEARCH: Array<{ label: string; where: string; text: string; usedFor: string; url: string }> = [
+  {
+    label: 'Cooper, Perchonok & Douglas 2017', where: 'npj Microgravity',
+    text: 'NASA tested 109 space foods for 3 years at room temperature: vitamins B1 and C may fall to inadequate levels after 1 and 3 years.',
+    usedFor: 'our Food forecast', url: 'https://doi.org/10.1038/s41526-017-0022-z',
+  },
+  {
+    label: 'Smith, Heer & Zwart 2020', where: 'PubMed Central',
+    text: "On the ISS, 800 IU of vitamin D per day kept astronauts' vitamin D normal (samples from 65 astronauts).",
+    usedFor: 'our vitamin D advice', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC7257693/',
+  },
+  {
+    label: 'Hardy & Theriot 2025', where: 'NASA NTRS 20240014873',
+    text: 'A NASA study of 35 astronauts found people adapt to spaceflight differently.',
+    usedFor: 'why we compare each person with their own values', url: 'https://ntrs.nasa.gov/citations/20240014873',
+  },
+  {
+    label: 'NASA Integrated Medical Model', where: 'nasa.gov',
+    text: 'NASA plans medical risk for whole crews; we add a daily, personal layer.',
+    usedFor: 'the daily Crew screen', url: 'https://www.nasa.gov/nasa-integrated-medical-model-imm-overview/',
+  },
+  {
+    label: 'Iyer et al. 2024', where: 'Foods 13(24):4093',
+    text: 'NASA food bars kept more vitamin B1 when stored cold (4 °C) — rodent food, used only as support.',
+    usedFor: 'support for the cold-storage scenario', url: 'https://www.mdpi.com/2304-8158/13/24/4093',
+  },
+];
+
+const ResearchSection: React.FC = () => (
+  <Section icon={BookOpen} title="NASA research behind our app">
+    <ol className="divide-y divide-white/10">
+      {RESEARCH.map((r) => (
+        <li key={r.url} className="flex flex-col gap-2 py-5 first:pt-0 last:pb-0">
+          <span className="text-[1.1111rem] font-semibold text-white">
+            {r.label} <span className="font-normal text-slate-400">· {r.where}</span>
+          </span>
+          <span className="text-[1rem] leading-relaxed text-slate-200">{r.text}</span>
+          <span className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <Chip tone="blue">Used for: {r.usedFor}</Chip>
+            <a href={r.url} target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-[0.8889rem] text-indigo-200 underline-offset-4 hover:text-white hover:underline">
+              {r.url.replace(/^https:\/\/(www\.)?/, '').replace(/\/$/, '')} <ExternalLink className="h-4 w-4" aria-hidden />
+            </a>
+          </span>
+        </li>
+      ))}
+    </ol>
+    <p className="mt-6 border-t border-white/10 pt-5 text-[0.8889rem] leading-relaxed text-slate-300">
+      Datasets we analyse: OSD-569 and OSD-575 (NASA OSDR). The studies above are references; we did not use their raw data.
+    </p>
+  </Section>
+);
 
 const num = (x: number | null | undefined) => (x === null || x === undefined ? '—' : x.toFixed(Math.abs(x) >= 100 ? 0 : 1));
 
@@ -18,8 +74,8 @@ const PersonCard: React.FC<{ data: RealDataI4; p: RealDataSharedFinding['per_ast
   return (
     <div className="inner-card flex flex-col gap-4">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[22px] font-semibold text-white">Crew {p.astronaut}</span>
-        <span className="text-[16px] text-slate-300">{f.unit}</span>
+        <span className="text-[1.2222rem] font-semibold text-white">Crew {p.astronaut}</span>
+        <span className="text-[0.8889rem] text-slate-300">{f.unit}</span>
       </div>
       <KVList>
         {pre.map((id) => <KVRow key={id} label={label(id)} value={num(value(id))} />)}
@@ -60,8 +116,8 @@ export const RealDataView: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
 
   return (
     <GlassPanel
-      title="Real NASA Data"
-      subtitle="NASA published blood tests from the four people who flew Inspiration4. We ran our personal-baseline check on them to see if it finds real changes."
+      title="NASA Evidence"
+      subtitle="Real NASA data (Inspiration4) + NASA research behind our app."
       onBack={onBack}
       tags={real}
     >
@@ -82,13 +138,13 @@ export const RealDataView: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
       )}
 
       {data && !f && (
-        <Section icon={Users} title="Result" right={real}><p className="text-[18px] text-white">No change was shared by the whole crew.</p></Section>
+        <Section icon={Users} title="Result" right={real}><p className="text-[1rem] text-white">No change was shared by the whole crew.</p></Section>
       )}
 
       {data && f && (
         <>
           <Section icon={Users} title={f.label} right={real}>
-            <p className="-mt-2 mb-5 text-[18px] text-slate-300">
+            <p className="-mt-2 mb-5 text-[1rem] text-slate-300">
               {nPre} tests before launch, then the test {tp(f.timepoint)}.
               {range?.low != null && range?.high != null ? ` Normal lab range: ${range.low}–${range.high} ${f.unit}.` : ''}
             </p>
@@ -99,19 +155,19 @@ export const RealDataView: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
 
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
             <Card title={<span className="inline-flex items-center gap-2"><Search className="h-5 w-5 text-indigo-300" aria-hidden />What we found</span>}>
-              <p className="text-[18px] leading-relaxed text-white">
+              <p className="text-[1rem] leading-relaxed text-white">
                 After landing, {f.n_beyond_all_preflight_values} of {f.n_crew} people were {dirWord} all their own pre-flight
                 values, yet {f.n_inside_reference_range} of {f.n_crew} stayed inside the normal lab range.
               </p>
             </Card>
             <Card title={<span className="inline-flex items-center gap-2"><Lightbulb className="h-5 w-5 text-indigo-300" aria-hidden />Why it matters</span>}>
-              <p className="text-[18px] leading-relaxed text-white">
+              <p className="text-[1rem] leading-relaxed text-white">
                 A standard lab check would call everyone normal. Comparing each person with their own usual values shows the
                 change. The Crew screen uses the same idea for daily check-ins.
               </p>
             </Card>
             <Card title={<span className="inline-flex items-center gap-2"><Info className="h-5 w-5 text-indigo-300" aria-hidden />Limits</span>}>
-              <p className="text-[18px] leading-relaxed text-white">
+              <p className="text-[1rem] leading-relaxed text-white">
                 Only {data.crew.length} people, {nPre} pre-flight tests each and a {data.source.mission_days}-day mission. It shows
                 the method works on real data; it is not proof for a Mars trip.
               </p>
@@ -119,7 +175,7 @@ export const RealDataView: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
           </div>
 
           <div className="space-y-3">
-            <p className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[18px] text-slate-300">
+            <p className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[1rem] text-slate-300">
               <span>Source: NASA Open Science Data Repository</span>
               {data.source.urls.map((u) => (
                 <a key={u.url} href={u.url} target="_blank" rel="noopener noreferrer"
@@ -128,15 +184,14 @@ export const RealDataView: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
                 </a>
               ))}
             </p>
-            {limits.length > 0 && (
-              <Details>
-                <ul className="list-disc space-y-1 pl-6">
-                  {limits.map((l) => <li key={l.key}><span className="font-semibold text-white">{l.title}.</span> {l.text}</li>)}
-                </ul>
-              </Details>
-            )}
           </div>
         </>
+      )}
+
+      <ResearchSection />
+
+      {limits.length > 0 && (
+        <Details items={limits.map((l) => <><span className="font-semibold text-white">{l.title}.</span> {l.text}</>)} />
       )}
     </GlassPanel>
   );

@@ -41,8 +41,11 @@
 }
 
 @layer base {
-  /* 18px root: every rem-based size scales with it. The 3 screens use px sizes from src/ui/glass.tsx (min 16px). */
+  /* 18px root: every size is rem-based (arbitrary sizes are written as N/18 rem, e.g. text-[1rem] = 18px), so the
+     whole UI scales with this one value. Below 1600px: 18px root, smallest text 16px (0.8889rem).
+     Large screens (>= 1600px): 14.4px root = the same layout at 80 % scale. */
   html { font-size: 112.5%; }
+  @media (min-width: 1600px) { html { font-size: 90%; } }
 
   /* html, body and #root must stay TRANSPARENT. An opaque body background is painted above the z-index:-1 photo
      layer (in the root stacking context, negative-z layers paint before in-flow block backgrounds), which hid the
@@ -82,7 +85,7 @@
 @layer components {
   /* ONE large glass panel per screen */
   .glass-panel {
-    @apply mx-auto w-full max-w-7xl rounded-3xl border backdrop-blur-md p-6 sm:p-8 lg:p-[48px];
+    @apply mx-auto w-full max-w-7xl rounded-3xl border backdrop-blur-md p-6 sm:p-8 lg:p-[2.6667rem];
     background: var(--panel);
     border-color: var(--panel-border);
     box-shadow: 0 30px 80px -40px rgba(0, 0, 0, 0.9);
@@ -103,7 +106,7 @@
 
   /* 44px rounded icon tile in section headers */
   .icon-tile {
-    @apply grid h-[44px] w-[44px] shrink-0 place-items-center rounded-xl text-indigo-300;
+    @apply grid h-[2.4444rem] w-[2.4444rem] shrink-0 place-items-center rounded-xl text-indigo-300;
     background: rgba(99, 102, 241, 0.18);
   }
 
@@ -120,7 +123,7 @@
 
   /* Buttons: h-14+ (63px at the 18px root), 20px text */
   .btn {
-    @apply inline-flex min-h-14 items-center justify-center gap-2 rounded-xl px-8 text-[20px] font-semibold transition
+    @apply inline-flex min-h-14 items-center justify-center gap-2 rounded-xl px-8 text-[1.1111rem] font-semibold transition
            disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-primary {
@@ -137,7 +140,7 @@
 
   /* Small fact chip: tinted background + coloured text */
   .chip {
-    @apply inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[16px] font-medium leading-snug;
+    @apply inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[0.8889rem] font-medium leading-snug;
   }
 
   /* ---- Legacy classes still used by the hidden "More" screens (re-themed, not deleted) ---- */

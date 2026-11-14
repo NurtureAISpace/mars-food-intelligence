@@ -35,7 +35,7 @@ export const DataLabView: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center min-h-[22.2222rem]">
         <div className="text-center font-mono text-muted">
           <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
           Auditing Data Pipeline & Ingesting Scientific Spaceflight Datasets...
@@ -62,7 +62,7 @@ export const DataLabView: React.FC = () => {
         <div className="flex items-center space-x-3 bg-nominal/10 border border-nominal/30 px-4 py-2 rounded-xl">
           <CheckCircle className="w-6 h-6 text-nominal" />
           <div className="font-mono">
-            <span className="text-[10px] text-nominal block uppercase font-semibold">Data Pipeline Audit</span>
+            <span className="text-[0.5556rem] text-nominal block uppercase font-semibold">Data Pipeline Audit</span>
             <span className="text-sm font-bold text-fg">
               {audit?.data_quality_score_pct}% Schema Checks Passed
             </span>
@@ -80,7 +80,7 @@ export const DataLabView: React.FC = () => {
             <div>
               <div className="flex items-center space-x-2">
                 <h3 className="font-mono font-bold text-fg text-sm">LITERATURE ENDPOINT CHECK</h3>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-nominal/20 text-nominal border border-nominal/40 font-bold">
+                <span className="text-[0.5556rem] font-mono px-2 py-0.5 rounded bg-nominal/20 text-nominal border border-nominal/40 font-bold">
                   {benchmarks?.validation_verdict}
                 </span>
               </div>
@@ -92,15 +92,15 @@ export const DataLabView: React.FC = () => {
 
           <div className="flex items-center space-x-6 font-mono text-xs">
             <div className="border-l border-white/10 pl-4">
-              <span className="text-muted text-[10px] block">R² (n/a, endpoint data)</span>
+              <span className="text-muted text-[0.5556rem] block">R² (n/a, endpoint data)</span>
               <span className="text-lg font-bold text-nominal">{benchmarks?.aggregate_r2_score}</span>
             </div>
             <div className="border-l border-white/10 pl-4">
-              <span className="text-muted text-[10px] block">ROOT MEAN SQ ERROR</span>
+              <span className="text-muted text-[0.5556rem] block">ROOT MEAN SQ ERROR</span>
               <span className="text-lg font-bold text-accent">{benchmarks?.aggregate_rmse}%</span>
             </div>
             <div className="border-l border-white/10 pl-4">
-              <span className="text-muted text-[10px] block">BENCHMARK SERIES</span>
+              <span className="text-muted text-[0.5556rem] block">BENCHMARK SERIES</span>
               <span className="text-lg font-bold text-fg">{benchmarks?.total_benchmark_series} Datasets</span>
             </div>
           </div>
@@ -129,7 +129,7 @@ export const DataLabView: React.FC = () => {
                       {dpIdx === 0 ? (
                         <td className="py-2 text-fg font-medium" rowSpan={3}>
                           {s.food_name} <br />
-                          <span className="text-[10px] text-accent uppercase">({s.nutrient})</span>
+                          <span className="text-[0.5556rem] text-accent uppercase">({s.nutrient})</span>
                         </td>
                       ) : null}
                       {dpIdx === 0 ? (
@@ -189,7 +189,7 @@ export const DataLabView: React.FC = () => {
       <div className="card rounded-xl border border-white/10 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left font-mono text-xs">
-            <thead className="bg-black/30 text-muted border-b border-white/10 uppercase text-[11px]">
+            <thead className="bg-black/30 text-muted border-b border-white/10 uppercase text-[0.6111rem]">
               <tr>
                 <th className="p-3.5">ID / Name</th>
                 <th className="p-3.5">Category & Preservation</th>
@@ -207,13 +207,13 @@ export const DataLabView: React.FC = () => {
                 <tr key={item.id} className="hover:bg-white/[0.06] transition">
                   <td className="p-3.5">
                     <span className="font-bold text-fg block">{item.name}</span>
-                    <span className="text-[10px] text-accent font-mono">{item.id}</span>
+                    <span className="text-[0.5556rem] text-accent font-mono">{item.id}</span>
                   </td>
                   <td className="p-3.5">
-                    <span className="inline-block px-2 py-0.5 rounded text-[10px] font-semibold bg-white/[0.06] border border-white/10 text-soft">
+                    <span className="inline-block px-2 py-0.5 rounded text-[0.5556rem] font-semibold bg-white/[0.06] border border-white/10 text-soft">
                       {item.category}
                     </span>
-                    <span className="block text-[10px] text-muted mt-0.5">{item.preservation_method}</span>
+                    <span className="block text-[0.5556rem] text-muted mt-0.5">{item.preservation_method}</span>
                   </td>
                   <td className="p-3.5 text-right text-soft">{item.serving_size_g} g</td>
                   <td className="p-3.5 text-right font-bold text-fg">{item.calories_kcal} kcal</td>

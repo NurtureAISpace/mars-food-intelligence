@@ -13,17 +13,12 @@ import { useCrewCheckins } from './hooks/useCrewCheckins';
 export function App() {
   const [activeTab, setActiveTab] = useState<string>('crewhealth');
   const [missionSol, setMissionSol] = useState<number>(450); // hidden Mission Dashboard only
-  const crew = useCrewCheckins(); // latest Astronaut App check-ins — shared with the navbar status pill
+  const crew = useCrewCheckins(); // latest Astronaut App check-ins (Crew screen)
   const goHome = () => { setActiveTab('crewhealth'); window.scrollTo({ top: 0 }); };
 
   return (
     <div className="relative flex min-h-screen flex-col">
-      <Navbar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        crewStatus={crew.worst}
-        crewSol={crew.currentSol}
-      />
+      <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
 
       <main key={activeTab} className="relative z-10 mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6 sm:py-14">
         {/* The 3 screens in navigation */}
@@ -43,7 +38,7 @@ export function App() {
         {activeTab === 'lifesupport' && <LifeSupportView />}
       </main>
 
-      <footer className="relative z-10 px-4 pb-10 text-center text-[18px] text-slate-300">
+      <footer className="relative z-10 px-4 pb-10 text-center text-[1rem] text-slate-300">
         NurtureAISpace · decision-support prototype, not a medical device.
       </footer>
     </div>

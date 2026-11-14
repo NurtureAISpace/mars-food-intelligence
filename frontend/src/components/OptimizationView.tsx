@@ -74,7 +74,7 @@ export const OptimizationView: React.FC = () => {
                   }`}
                 >
                   <span className="font-bold block text-fg">{obj.label}</span>
-                  <span className="text-[10px] text-muted">{obj.desc}</span>
+                  <span className="text-[0.5556rem] text-muted">{obj.desc}</span>
                 </div>
               ))}
             </div>
@@ -144,7 +144,7 @@ export const OptimizationView: React.FC = () => {
         {/* Right 2 Columns: Optimization Results & Meal Breakdown */}
         <div className="card rounded-xl p-5 border border-white/10 lg:col-span-2 space-y-6">
           {!result && !loading && (
-            <div className="flex flex-col items-center justify-center min-h-[350px] text-center p-8">
+            <div className="flex flex-col items-center justify-center min-h-[19.4444rem] text-center p-8">
               <Scale className="w-12 h-12 text-muted mb-3" />
               <h3 className="font-mono text-base font-bold text-fg">Solver Standing By</h3>
               <p className="text-xs font-mono text-muted max-w-md mt-1">
@@ -171,37 +171,37 @@ export const OptimizationView: React.FC = () => {
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 font-mono text-xs">
                   <div className="p-3 rounded-lg bg-black/30 border border-white/10">
-                    <span className="text-muted block text-[10px]">TOTAL CALORIES</span>
+                    <span className="text-muted block text-[0.5556rem]">TOTAL CALORIES</span>
                     <span className="text-base font-bold text-fg">
                       {result.optimal_daily_metrics.total_calories_kcal.toLocaleString()} kcal
                     </span>
-                    <span className="text-[10px] text-nominal block">
+                    <span className="text-[0.5556rem] text-nominal block">
                       {result.optimal_daily_metrics.calories_per_crew_kcal} kcal / crew
                     </span>
                   </div>
 
                   <div className="p-3 rounded-lg bg-black/30 border border-white/10">
-                    <span className="text-muted block text-[10px]">TOTAL PROTEIN</span>
+                    <span className="text-muted block text-[0.5556rem]">TOTAL PROTEIN</span>
                     <span className="text-base font-bold text-fg">
                       {result.optimal_daily_metrics.total_protein_g} g
                     </span>
-                    <span className="text-[10px] text-muted block">Daily target met</span>
+                    <span className="text-[0.5556rem] text-muted block">Daily target met</span>
                   </div>
 
                   <div className="p-3 rounded-lg bg-black/30 border border-white/10">
-                    <span className="text-muted block text-[10px]">DAILY MASS CONSUMED</span>
+                    <span className="text-muted block text-[0.5556rem]">DAILY MASS CONSUMED</span>
                     <span className="text-base font-bold text-fg">
                       {result.optimal_daily_metrics.total_daily_mass_kg} kg
                     </span>
-                    <span className="text-[10px] text-muted block">Includes packaging</span>
+                    <span className="text-[0.5556rem] text-muted block">Includes packaging</span>
                   </div>
 
                   <div className="p-3 rounded-lg bg-black/30 border border-white/10">
-                    <span className="text-muted block text-[10px]">PREPARATION WATER</span>
+                    <span className="text-muted block text-[0.5556rem]">PREPARATION WATER</span>
                     <span className="text-base font-bold text-fg">
                       {result.optimal_daily_metrics.rehydration_water_required_liters} L
                     </span>
-                    <span className="text-[10px] text-muted block">For rehydratables</span>
+                    <span className="text-[0.5556rem] text-muted block">For rehydratables</span>
                   </div>
                 </div>
               </div>
@@ -212,7 +212,7 @@ export const OptimizationView: React.FC = () => {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-xs">
                   {Object.entries(result.nasa_std_3001_compliance).map(([key, pct]) => (
                     <div key={key} className="p-2.5 rounded-lg bg-black/30 border border-white/10">
-                      <span className="text-muted text-[10px] block uppercase">{key.replace('_compliance_pct', '')}</span>
+                      <span className="text-muted text-[0.5556rem] block uppercase">{key.replace('_compliance_pct', '')}</span>
                       <span className="text-sm font-bold text-nominal">{pct}%</span>
                       <div className="w-full bg-white/[0.06] h-1.5 rounded-full mt-1.5 overflow-hidden">
                         <div
@@ -230,7 +230,7 @@ export const OptimizationView: React.FC = () => {
                 <h4 className="text-xs font-mono font-bold text-soft mb-2 uppercase">Selected Daily Rations Breakdown</h4>
                 <div className="overflow-x-auto rounded-lg border border-white/10">
                   <table className="w-full text-left font-mono text-xs">
-                    <thead className="bg-black/30 text-muted uppercase text-[10px] border-b border-white/10">
+                    <thead className="bg-black/30 text-muted uppercase text-[0.5556rem] border-b border-white/10">
                       <tr>
                         <th className="p-2.5">Food Item</th>
                         <th className="p-2.5">Category</th>
@@ -244,10 +244,10 @@ export const OptimizationView: React.FC = () => {
                         <tr key={item.id} className="hover:bg-white/[0.06]">
                           <td className="p-2.5 font-bold text-fg">
                             {item.name}
-                            <span className="text-[10px] text-muted block">ID: {item.id}</span>
+                            <span className="text-[0.5556rem] text-muted block">ID: {item.id}</span>
                           </td>
                           <td className="p-2.5">
-                            <span className="text-[10px] px-2 py-0.5 rounded bg-white/[0.06] text-soft border border-white/10">
+                            <span className="text-[0.5556rem] px-2 py-0.5 rounded bg-white/[0.06] text-soft border border-white/10">
                               {item.category}
                             </span>
                           </td>

@@ -2,7 +2,7 @@
 // Every number comes from GET /health/checkins (per seat) and GET /health/scenarios (destination label).
 // Seeded demo entries are tagged "Demo check-in"; real ones "From Astronaut App".
 import React, { useEffect, useMemo, useState } from 'react';
-import { ClipboardList, Clock, ExternalLink, Globe, QrCode, Rocket, Smartphone, UserPlus, Users } from 'lucide-react';
+import { ArrowRight, Clock, ExternalLink, Globe, QrCode, Rocket, Smartphone, UserPlus, Users } from 'lucide-react';
 import { HealthAvatar } from './HealthAvatar';
 import { JoinCrewModal } from './JoinCrewModal';
 import { fetchCrewScenarios } from '../api';
@@ -12,7 +12,7 @@ import {
 } from '../hooks/useCrewCheckins';
 import type { CheckinIndicatorKey } from '../types';
 import {
-  Bullets, Dot, ErrorBox, GlassPanel, KVList, KVRow, Loading, PseudonymCode, Section, SourceTag, StatTile, StatusBadge,
+  Chip, Dot, ErrorBox, GlassPanel, KVList, KVRow, Loading, PseudonymCode, Section, SourceTag, StatTile, StatusBadge,
 } from '../ui/glass';
 
 function when(e: NonNullable<SeatState['latest']>): string {
@@ -21,8 +21,6 @@ function when(e: NonNullable<SeatState['latest']>): string {
   const t = Number.isNaN(d.getTime()) ? iso : d.toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
   return `Sol ${e.sol} · ${t}`;
 }
-
-const nameOf = (s: SeatState) => s.pseudonym ?? s.astronautId;
 
 /** Source tags for a set of seats: demo, Astronaut App, or both. */
 const SeatSources: React.FC<{ seats: SeatState[] }> = ({ seats }) => {
@@ -37,19 +35,21 @@ const SeatSources: React.FC<{ seats: SeatState[] }> = ({ seats }) => {
   );
 };
 
-const SeatCard: React.FC<{ s: SeatState; selected: boolean; onSelect: () => void }> = ({ s, selected, onSelect }) => (
+const SeatCard: React.FC<{ s: SeatState; currentSol: number | null; selected: boolean; onSelect: () => void }> = ({
+  s, currentSol, selected, onSelect,
+}) => (
   <button type="button" onClick={onSelect} aria-pressed={selected}
     aria-label={`${s.guest ? 'Guest' : 'Seat'} ${s.seat}: show in body view`}
-    className={`inner-card flex flex-col gap-4 text-left transition ${selected ? 'ring-2 ring-indigo-400/80' : 'hover:ring-1 hover:ring-white/20'}`}>
+    className={`inner-card flex h-full flex-col gap-4 text-left transition ${selected ? 'ring-2 ring-indigo-400/80' : 'hover:ring-1 hover:ring-white/20'}`}>
     <div className="flex flex-wrap items-center justify-between gap-2">
-      <span className="text-[16px] font-medium uppercase tracking-wider text-slate-300">{s.guest ? 'Guest' : 'Seat'} {s.seat}</span>
+      <span className="text-[0.8889rem] font-medium uppercase tracking-wider text-slate-300">{s.guest ? 'Guest' : 'Seat'} {s.seat}</span>
       {s.latest && <SourceTag kind={isDemoCheckin(s.latest) ? 'demo' : 'astronaut'} />}
     </div>
     {s.latest ? (
       <>
-        {s.pseudonym ? <PseudonymCode code={s.pseudonym} /> : <span className="text-[22px] font-semibold text-white">{s.astronautId}</span>}
+        {s.pseudonym ? <PseudonymCode code={s.pseudonym} /> : <span className="text-[1.2222rem] font-semibold text-white">{s.astronautId}</span>}
         <div><StatusBadge status={s.latest.overall_status} /></div>
-        <span className="inline-flex items-center gap-2 text-[16px] text-slate-300">
+        <span className="inline-flex items-center gap-2 text-[0.8889rem] text-slate-300">
           <Clock className="h-4 w-4" aria-hidden /> {when(s.latest)}
         </span>
         <KVList>
@@ -57,39 +57,55 @@ const SeatCard: React.FC<{ s: SeatState; selected: boolean; onSelect: () => void
             <KVRow key={r.key} label={r.label} value={r.value} dot={(r.color ?? 'none') as Dot} />
           ))}
         </KVList>
-        <p className="text-[18px] leading-relaxed text-white">{checkinReason(s.latest)}</p>
+        <p className="text-[1rem] leading-relaxed text-white">{checkinReason(s.latest)}</p>
       </>
     ) : (
       <>
-        <span className="text-[22px] font-semibold text-slate-200">No check-in yet</span>
+        <span className="text-[1.2222rem] font-semibold text-slate-200">No check-in yet</span>
         <div><StatusBadge status="NONE" label="Waiting" /></div>
-        <p className="text-[18px] text-slate-300">Readings appear here after the first check-in in the Astronaut App.</p>
+        <p className="text-[1rem] text-slate-300">Readings appear here after the first check-in in the Astronaut App.</p>
       </>
     )}
+    <NextStep step={nextStep(s, currentSol)} />
   </button>
 );
 
-/** Up to 3 actions for today, built only from the latest check-in statuses and colours. */
-function todaysActions(seats: SeatState[], currentSol: number | null): string[] {
-  const out: string[] = [];
-  const keysWith = (s: SeatState, color: 'red' | 'amber') =>
-    Object.entries(s.latest!.colors ?? {}).filter(([, c]) => c === color).map(([k]) => indicatorWord(k as CheckinIndicatorKey));
-  for (const s of seats.filter((x) => x.latest?.overall_status === 'ACT')) {
-    out.push(`${nameOf(s)}: ${joinIndicatorWords(keysWith(s, 'red'))} outside the reference range. Check with the flight surgeon today.`);
+type StepTone = 'act' | 'watch' | 'missing' | 'ok';
+const NO_ACTION = 'No action needed today.';
+
+/** One next step per person, built only from their latest check-in status and colours (nothing hardcoded). */
+function nextStep(s: SeatState, currentSol: number | null): { text: string; tone: StepTone } {
+  const e = s.latest;
+  const keysWith = (color: 'red' | 'amber') =>
+    Object.entries(e?.colors ?? {}).filter(([, c]) => c === color).map(([k]) => indicatorWord(k as CheckinIndicatorKey));
+  if (e?.overall_status === 'ACT') {
+    return { tone: 'act', text: `${joinIndicatorWords(keysWith('red')) || 'A reading'} outside the reference range: check with the flight surgeon today.` };
   }
-  for (const s of seats.filter((x) => x.latest?.overall_status === 'WATCH')) {
-    const off = keysWith(s, 'amber');
-    const what = off.length ? joinIndicatorWords(off) : joinIndicatorWords((s.latest!.baseline_flags ?? []).map(indicatorWord));
-    out.push(`${nameOf(s)}: measure ${what || 'all readings'} again at the next check-in.`);
+  if (e?.overall_status === 'WATCH') {
+    const off = keysWith('amber');
+    const what = off.length ? joinIndicatorWords(off) : joinIndicatorWords((e.baseline_flags ?? []).map(indicatorWord));
+    return { tone: 'watch', text: `Measure ${what ? what.toLowerCase() : 'all readings'} again at the next check-in.` };
   }
-  for (const s of seats.filter((x) => !x.latest || (currentSol !== null && x.latest.sol < currentSol))) {
-    out.push(`Seat ${s.seat}: no check-in${currentSol !== null ? ` for Sol ${currentSol}` : ''} yet. Remind them to open the Astronaut App.`);
+  // Guests join for a live demo only, so a missing guest check-in is not a crew task.
+  if (!s.guest && (!e || (currentSol !== null && e.sol < currentSol))) {
+    return { tone: 'missing', text: `No check-in${currentSol !== null ? ` for Sol ${currentSol}` : ''} yet: remind them to open the Astronaut App.` };
   }
-  if (!out.length) {
-    out.push(`No action needed today: all ${seats.length} crew members have every reading in range. Next check-in tomorrow.`);
-  }
-  return out.slice(0, 3);
+  return { tone: 'ok', text: NO_ACTION };
 }
+
+const STEP_STYLE: Record<StepTone, string> = {
+  act: 'border-act bg-act/10',
+  watch: 'border-watch bg-watch/10',
+  missing: 'border-sky-400 bg-sky-400/10',
+  ok: 'border-nominal bg-nominal/10',
+};
+
+const NextStep: React.FC<{ step: ReturnType<typeof nextStep> }> = ({ step }) => (
+  <div className={`mt-auto rounded-xl border-l-4 px-4 py-3 ${STEP_STYLE[step.tone]}`}>
+    <span className="block text-[0.8889rem] font-semibold uppercase tracking-wider text-slate-300">Next step</span>
+    <span className="mt-1 block text-[1rem] leading-relaxed text-white">{step.text}</span>
+  </div>
+);
 
 export const CrewHealthView: React.FC<{ crew: CrewCheckinsState; onNavigate: (tab: string) => void }> = ({ crew, onNavigate }) => {
   const { seats, guests, error, reload, currentSol, allGood, needAttention } = crew;
@@ -110,6 +126,7 @@ export const CrewHealthView: React.FC<{ crew: CrewCheckinsState; onNavigate: (ta
   }, []);
 
   const checkedInToday = seats && currentSol !== null ? seats.filter((s) => s.latest?.sol === currentSol).length : 0;
+  const nActions = people.filter((p) => nextStep(p, currentSol).tone !== 'ok').length;
 
   return (
     <GlassPanel
@@ -143,34 +160,33 @@ export const CrewHealthView: React.FC<{ crew: CrewCheckinsState; onNavigate: (ta
         {seats ? <HealthAvatar person={selected} /> : <div />}
       </div>
 
-      <Section icon={Users} title="Crew: latest readings">
+      <Section icon={Users} title="Crew: latest readings"
+        right={seats ? <Chip tone={nActions ? 'amber' : 'green'}>{nActions} {nActions === 1 ? 'action' : 'actions'} today</Chip> : undefined}>
         {!seats && !error && <Loading />}
         {seats && (
           <div className="flex flex-col gap-5">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 2xl:grid-cols-4">
+              {seats.map((s) => <SeatCard key={s.astronautId} s={s} currentSol={currentSol}
+                selected={selected?.astronautId === s.astronautId} onSelect={() => setSelectedId(s.astronautId)} />)}
+            </div>
+            <h3 className="mt-2 flex items-center gap-2 text-[1.1111rem] font-semibold text-slate-200">
+              <UserPlus className="h-5 w-5" aria-hidden /> Guests <span className="text-[0.8889rem] font-normal text-slate-400">· live check-ins from the QR code</span>
+            </h3>
+            {guests.length > 0 ? (
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2 2xl:grid-cols-4">
-                {seats.map((s) => <SeatCard key={s.astronautId} s={s}
+                {guests.map((s) => <SeatCard key={s.astronautId} s={s} currentSol={currentSol}
                   selected={selected?.astronautId === s.astronautId} onSelect={() => setSelectedId(s.astronautId)} />)}
               </div>
-              {guests.length > 0 && (
-                <>
-                  <h3 className="flex items-center gap-2 text-[18px] font-semibold text-slate-200">
-                    <UserPlus className="h-5 w-5" aria-hidden /> Guests
-                  </h3>
-                  <div className="grid grid-cols-1 gap-5 md:grid-cols-2 2xl:grid-cols-4">
-                    {guests.map((s) => <SeatCard key={s.astronautId} s={s}
-                      selected={selected?.astronautId === s.astronautId} onSelect={() => setSelectedId(s.astronautId)} />)}
-                  </div>
-                </>
-              )}
+            ) : (
+              <button type="button" onClick={() => setJoinOpen(true)}
+                className="inner-card flex items-center justify-between gap-3 border-dashed text-left text-[1.1111rem] text-slate-200 hover:ring-1 hover:ring-white/20">
+                <span className="inline-flex items-center gap-3"><QrCode className="h-6 w-6 text-indigo-300" aria-hidden /> Scan the QR code to join</span>
+                <ArrowRight className="h-5 w-5 text-indigo-300" aria-hidden />
+              </button>
+            )}
           </div>
         )}
       </Section>
-
-      {seats && (
-        <Section icon={ClipboardList} title="Today's actions">
-          <Bullets items={todaysActions(seats, currentSol)} />
-        </Section>
-      )}
 
       <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-3">
@@ -181,10 +197,10 @@ export const CrewHealthView: React.FC<{ crew: CrewCheckinsState; onNavigate: (ta
             <QrCode className="h-5 w-5" aria-hidden /> Join the crew
           </button>
           <button onClick={() => onNavigate('realdata')} className="btn-secondary">
-            <Rocket className="h-5 w-5" aria-hidden /> Real NASA Data
+            <Rocket className="h-5 w-5" aria-hidden /> NASA Evidence
           </button>
         </div>
-        <p className="text-[18px] text-slate-300">Green: in range · Amber: slightly off · Red: outside the range.</p>
+        <p className="text-[1rem] text-slate-300">Green: in range · Amber: slightly off · Red: outside the range.</p>
       </div>
       {joinOpen && <JoinCrewModal onClose={() => setJoinOpen(false)} />}
     </GlassPanel>

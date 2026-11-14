@@ -28,7 +28,7 @@ downloaded on 2026-11-14. Their sizes match the OSDR file-listing API.
 - File listing API: https://osdr.nasa.gov/osdr/data/osd/files/569 and https://osdr.nasa.gov/osdr/data/osd/files/575
 - Where it is used: `backend/scripts/i4_baseline_demo.py` computes personal-baseline z-scores (pre-flight baseline,
   post-flight deviation) for each astronaut. The same data is served by the API at `GET /api/v1/real-data/i4` and shown
-  on the **Real NASA Data** screen.
+  on the **NASA Evidence** screen.
 - If you use these data, please cite OSD-569 and OSD-575 and the Inspiration4 / SOMA publications.
 
 ---
@@ -140,6 +140,20 @@ below; page numbers are printed page numbers.
 - Electrolysis and Sabatier stoichiometry: 1.126 kg H₂O per kg O₂, 0.126 kg H₂ per kg O₂, 0.818 kg H₂O per kg CO₂, all
   from molar masses.
 - Mars Sol = 1.02749 Earth days.
+
+### Supporting references (not datasets)
+
+Shown on the **NASA Evidence** screen ("NASA research behind our app"). They explain why the app is built the way it
+is. They are references only: we did not download or use their raw data, and no figures or images are copied.
+The datasets we analyse are OSD-569 and OSD-575 (Section 1).
+
+| # | Reference | What it says (plain English) | Where it shows up in the app |
+|---|---|---|---|
+| 1 | Cooper, Perchonok & Douglas 2017, *npj Microgravity*. https://doi.org/10.1038/s41526-017-0022-z | NASA tested 109 space foods for 3 years at room temperature: vitamins B1 and C may fall to inadequate levels after 1 and 3 years. | Food & Vitamins forecast |
+| 2 | Smith, Heer & Zwart 2020. https://pmc.ncbi.nlm.nih.gov/articles/PMC7257693/ | On the ISS, 800 IU of vitamin D per day kept astronauts' vitamin D normal (samples from 65 astronauts). | Vitamin D action ("ISS crews: 800 IU/day") |
+| 3 | Hardy & Theriot 2025, NASA NTRS 20240014873. https://ntrs.nasa.gov/citations/20240014873 | A NASA study of 35 astronauts found people adapt to spaceflight differently. | Why we compare each person with their own values (personal baseline) |
+| 4 | NASA Integrated Medical Model (IMM). https://www.nasa.gov/nasa-integrated-medical-model-imm-overview/ | NASA plans medical risk for whole crews; we add a daily, personal layer. | Crew screen (daily check-ins) |
+| 5 | Iyer et al. 2024, *Foods* 13(24):4093. https://www.mdpi.com/2304-8158/13/24/4093 | NASA food bars kept more vitamin B1 when stored cold (4 °C). Rodent food, used only as support. | Support for the cold-storage scenario |
 
 ---
 

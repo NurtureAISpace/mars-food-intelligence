@@ -94,12 +94,12 @@ const Timeline: React.FC<{ steps: Step[] }> = ({ steps }) => (
     <span aria-hidden className="absolute left-6 right-6 top-6 hidden h-px bg-indigo-400/40 lg:block" />
     {steps.map((s, i) => (
       <li key={s.title} className="relative flex gap-4 lg:flex-col lg:gap-3">
-        <span className="relative z-10 grid h-12 w-12 shrink-0 place-items-center rounded-full border border-indigo-400/60 bg-indigo-600 text-[22px] font-bold text-white shadow-[0_0_20px_-4px_rgba(99,102,241,0.8)]">
+        <span className="relative z-10 grid h-12 w-12 shrink-0 place-items-center rounded-full border border-indigo-400/60 bg-indigo-600 text-[1.2222rem] font-bold text-white shadow-[0_0_20px_-4px_rgba(99,102,241,0.8)]">
           {i + 1}
         </span>
         <span>
-          <span className="block text-[20px] font-semibold text-white">{s.title}</span>
-          <span className="mt-1 block text-[18px] leading-relaxed text-slate-300">{s.line}</span>
+          <span className="block text-[1.1111rem] font-semibold text-white">{s.title}</span>
+          <span className="mt-1 block text-[1rem] leading-relaxed text-slate-300">{s.line}</span>
         </span>
       </li>
     ))}
@@ -144,7 +144,7 @@ function risks(snap: CrewHealthSnapshot, h: CrewHorizon, u: ReturnType<typeof un
 const VitaminCard: React.FC<{ m: CrewMemberStatus; v: CrewHorizon['per_astronaut'][number] | undefined; u: ReturnType<typeof unitFormat> }> = ({ m, v, u }) => (
   <div className="inner-card flex flex-col gap-4">
     <div className="flex flex-wrap items-center justify-between gap-2">
-      <span className="font-mono text-[22px] font-semibold text-white">{m.astronaut_id}</span>
+      <span className="font-mono text-[1.2222rem] font-semibold text-white">{m.astronaut_id}</span>
       <StatusBadge status={m.status} />
     </div>
     <KVList>
@@ -164,12 +164,12 @@ const OptionButton: React.FC<{ selected: boolean; onClick: () => void; icon: Luc
   selected, onClick, icon: I, title, line,
 }) => (
   <button type="button" onClick={onClick} aria-pressed={selected} data-selected={selected}
-    className={`flex min-h-[72px] w-full items-center gap-3 rounded-xl border px-4 py-3 text-left transition ${
+    className={`flex min-h-[4rem] w-full items-center gap-3 rounded-xl border px-4 py-3 text-left transition ${
       selected ? 'border-indigo-400 bg-indigo-500/15 shadow-[0_0_18px_-4px_rgba(99,102,241,0.8)]' : 'border-white/15 bg-white/5 hover:border-white/30'}`}>
     <I className="h-6 w-6 shrink-0 text-indigo-200" aria-hidden />
     <span className="min-w-0 flex-1">
-      <span className="block text-[19px] font-semibold leading-tight text-white">{title}</span>
-      <span className="block text-[15px] leading-snug text-slate-300">{line}</span>
+      <span className="block text-[1.0556rem] font-semibold leading-tight text-white">{title}</span>
+      <span className="block text-[0.8333rem] leading-snug text-slate-300">{line}</span>
     </span>
     {selected && <Check className="h-5 w-5 shrink-0 text-indigo-200" aria-hidden />}
   </button>
@@ -212,6 +212,7 @@ export const PredictionView: React.FC<{ onBack?: () => void; onNavigate?: (tab: 
   }, []);
 
   const dest = destinations.find((d) => d.id === destId);
+  const mars = destinations.find((d) => d.id === 'mars' && d.unit === 'sol');
   const key = `${selected}|${dest?.horizon_sols ?? ''}`;
 
   useEffect(() => {
@@ -241,7 +242,7 @@ export const PredictionView: React.FC<{ onBack?: () => void; onNavigate?: (tab: 
       tags={sim}
     >
       {snap && (
-        <p className="-mt-4 text-[16px] text-slate-300">
+        <p className="-mt-4 text-[0.8889rem] text-slate-300">
           Simulated crew ({snap.crew.map((m) => m.astronaut_id).join(', ')}), not the Inspiration4 crew.
         </p>
       )}
@@ -250,7 +251,7 @@ export const PredictionView: React.FC<{ onBack?: () => void; onNavigate?: (tab: 
         {!destinations.length && !error && <Loading />}
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-[3fr_2fr]">
           <div>
-            <h3 className="mb-3 text-[20px] font-semibold text-slate-200">1. Where is the crew going?</h3>
+            <h3 className="mb-3 text-[1.1111rem] font-semibold text-slate-200">1. Where is the crew going?</h3>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               {destinations.map((d) => (
                 <OptionButton key={d.id} selected={d.id === destId} onClick={() => setDestId(d.id)}
@@ -259,7 +260,7 @@ export const PredictionView: React.FC<{ onBack?: () => void; onNavigate?: (tab: 
             </div>
           </div>
           <div>
-            <h3 className="mb-3 text-[20px] font-semibold text-slate-200">2. What happens to the food?</h3>
+            <h3 className="mb-3 text-[1.1111rem] font-semibold text-slate-200">2. What happens to the food?</h3>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <OptionButton selected={selected === NORMAL_ID} onClick={() => setSelected(NORMAL_ID)} icon={Snowflake}
                 title="Normal mission" line={typeof normalTemp === 'number' ? `Food stays at ${normalTemp} °C` : 'Food stays cold'} />
@@ -280,8 +281,8 @@ export const PredictionView: React.FC<{ onBack?: () => void; onNavigate?: (tab: 
             )}
             {dest.id === 'earth_orbit' && onNavigate && (
               <button type="button" onClick={() => onNavigate('realdata')}
-                className="inline-flex min-h-[44px] items-center gap-2 px-2 text-[18px] font-semibold text-indigo-200 hover:text-white">
-                See the real NASA data <ArrowRight className="h-5 w-5" aria-hidden />
+                className="inline-flex min-h-[2.4444rem] items-center gap-2 px-2 text-[1rem] font-semibold text-indigo-200 hover:text-white">
+                See NASA Evidence <ArrowRight className="h-5 w-5" aria-hidden />
               </button>
             )}
           </div>
@@ -316,18 +317,16 @@ export const PredictionView: React.FC<{ onBack?: () => void; onNavigate?: (tab: 
             <Bullets items={risks(snap, h, u)} />
           </Section>
 
-          <Details>
-            <p>{h.note}</p>
-            <p>
-              Mission length for {dest.label}: {durationText(dest)}.
-              {dest.where_in_source ? ` Source: ${dest.source_citation} (${dest.where_in_source})` : ` ${dest.note}`}
-            </p>
-            <p>The model counts in Sols (Mars days of 24 h 40 min). Day numbers are Sols × {h.sol_in_earth_days.toFixed(5)}.</p>
-          </Details>
+          <Details items={[
+            'The mission length only changes how far ahead we look; the food model is the same.',
+            'Resupply and gravity are not simulated.',
+            ...(mars ? [`Mars mission length (~${mars.mission_length} Sols ≈ ${Math.round(mars.mission_length * h.sol_in_earth_days)} days) is our assumption.`] : []),
+            'A Sol is a Mars day (24 h 40 min).',
+          ]} />
         </>
       )}
 
-      {snap && !h && <p className="text-[18px] text-white"><Users className="inline h-5 w-5" aria-hidden /> No forecast summary in this response.</p>}
+      {snap && !h && <p className="text-[1rem] text-white"><Users className="inline h-5 w-5" aria-hidden /> No forecast summary in this response.</p>}
     </GlassPanel>
   );
 };
