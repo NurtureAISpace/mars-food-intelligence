@@ -6,6 +6,7 @@ import { PredictionView } from './components/PredictionView';
 import { OptimizationView } from './components/OptimizationView';
 import { SimulatorView } from './components/SimulatorView';
 import { CrewHealthView } from './components/CrewHealthView';
+import { LifeSupportView } from './components/LifeSupportView';
 
 export function App() {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
@@ -30,6 +31,7 @@ export function App() {
         {activeTab === 'optimization' && <OptimizationView />}
         {activeTab === 'simulator' && <SimulatorView />}
         {activeTab === 'crewhealth' && <CrewHealthView />}
+        {activeTab === 'lifesupport' && <LifeSupportView />}
       </main>
 
       {/* Footer */}

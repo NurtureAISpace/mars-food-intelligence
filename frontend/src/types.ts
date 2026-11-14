@@ -302,3 +302,85 @@ export interface CrewAlertsResponse {
   count: number;
   alerts: CrewAlert[];
 }
+
+// ==========================================
+// ECLSS & Regolith Hydro-Management (Faruk)
+// ==========================================
+
+export interface RegolithSensorNodeData {
+  node_id: string;
+  zone_name: string;
+  target_crop: string;
+  depth_cm: number;
+  volumetric_water_content_pct: number;
+  soil_temperature_c: number;
+  electrical_conductivity_ds_m: number;
+  regolith_ph: number;
+  irrigation_valve_open: boolean;
+  status: string;
+}
+
+export interface LifeSupportTelemetryData {
+  sol: number;
+  crew_size: number;
+  atmosphere: {
+    total_pressure_kpa: number;
+    partial_pressure_o2_kpa: number;
+    partial_pressure_co2_kpa: number;
+    cabin_temperature_c: number;
+    relative_humidity_pct: number;
+  };
+  reserves: {
+    o2_reserve_kg: number;
+    potable_water_l: number;
+    water_loop_closure_pct: number;
+  };
+  daily_rates: {
+    crew_o2_consumption_kg: number;
+    plant_o2_generation_kg: number;
+    ogs_electrolysis_o2_kg: number;
+    co2_absorbed_by_crops_kg: number;
+    sabatier_water_recovered_l: number;
+    water_transpired_crops_l: number;
+    net_water_daily_delta_l: number;
+  };
+  power: {
+    solar_power_generated_kwh: number;
+    power_consumed_kwh: number;
+    battery_state_of_charge_pct: number;
+  };
+  contingencies: {
+    dust_storm_active: boolean;
+    o2_leak_active: boolean;
+  };
+  regolith_moisture_sensors: RegolithSensorNodeData[];
+  active_alerts: string[];
+  overall_eclss_status: string;
+  author: string;
+}
+
+export interface LifeSupportSimulationResult {
+  mission_sols: number;
+  crew_size: number;
+  closed_loop_enabled: boolean;
+  final_metrics: {
+    remaining_o2_kg: number;
+    remaining_water_l: number;
+    final_battery_soc_pct: number;
+    survival_verdict: string;
+  };
+  timeline: Array<{
+    sol: number;
+    o2_reserve_kg: number;
+    potable_water_reserve_l: number;
+    battery_soc_pct: number;
+    power_generation_kwh: number;
+    avg_regolith_moisture_vwc: number;
+    active_irrigation_valves: number;
+    dust_storm_active: boolean;
+    o2_leak_active: boolean;
+    life_support_index_pct: number;
+  }>;
+  alerts: string[];
+  author: string;
+}

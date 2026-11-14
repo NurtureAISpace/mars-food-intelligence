@@ -9,7 +9,10 @@ import {
   CrewHealthScenario,
   CrewHealthSnapshot,
   AstronautTimeline,
-  CrewAlertsResponse
+  CrewAlertsResponse,
+  LifeSupportTelemetryData,
+  RegolithSensorNodeData,
+  LifeSupportSimulationResult
 } from './types';
 
 const API_BASE = '/api/v1';
@@ -115,5 +118,52 @@ export async function fetchAstronautTimeline(astronautId: string, scenario: Crew
 export async function fetchCrewAlerts(sol: number, scenario: CrewHealthScenario): Promise<CrewAlertsResponse> {
   const res = await fetch(`${API_BASE}/health/alerts?sol=${sol}&${crewScenarioQuery(scenario)}`);
   if (!res.ok) throw new Error(`Crew alerts fetch failed: ${res.statusText}`);
+  return res.json();
+}
+
+
+export async function fetchLifeSupportTelemetry(params: {
+  sol?: number;
+  crew_size?: number;
+  dust_storm_active?: boolean;
+  o2_leak_active?: boolean;
+}): Promise<LifeSupportTelemetryData> {
+  const query = new URLSearchParams({
+    sol: String(params.sol ?? 450),
+    crew_size: String(params.crew_size ?? 4),
+    dust_storm_active: String(params.dust_storm_active ?? false),
+    o2_leak_active: String(params.o2_leak_active ?? false),
+  }).toString();
+  const res = await fetch(`${API_BASE}/life-support/telemetry?${query}`);
+  if (!res.ok) throw new Error(`Life support telemetry fetch failed: ${res.statusText}`);
+  return res.json();
+}
+
+export async function fetchRegolithSensors(): Promise<{
+  count: number;
+  sensors: RegolithSensorNodeData[];
+  controller: string;
+}> {
+  const res = await fetch(`${API_BASE}/life-support/regolith-sensors`);
+  if (!res.ok) throw new Error(`Regolith sensors fetch failed: ${res.statusText}`);
+  return res.json();
+}
+
+export async function runLifeSupportSimulation(params: {
+  mission_duration_sols: number;
+  crew_size: number;
+  dust_storm_sol: number | null;
+  dust_storm_duration: number;
+  o2_leak_sol: number | null;
+  o2_leak_duration: number;
+  greenhouse_area_m2: number;
+  enable_closed_loop: boolean;
+}): Promise<LifeSupportSimulationResult> {
+  const res = await fetch(`${API_BASE}/life-support/simulate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  if (!res.ok) throw new Error(`Life support simulation failed: ${res.statusText}`);
   return res.json();
 }
