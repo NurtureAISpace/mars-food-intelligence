@@ -1,6 +1,6 @@
 """
 NurtureAISpace — ECLSS & Regolith Hydro-Management Simulation Model.
-Author: Faruk (Computer Engineering & Life Support Simulation)
+Author: Faruk Karimli (Computer Engineering & Life Support Simulation)
 
 Models closed-loop Environmental Control and Life Support Systems (ECLSS):
 1. Oxygen Generation System (OGS) via water electrolysis (2H2O -> 2H2 + O2)
@@ -68,7 +68,7 @@ class LifeSupportTelemetrySnapshot:
 class ECLSSLifeSupportEngine:
     """
     First-principles Life Support & Closed-Loop Simulation Engine.
-    Engineered by Faruk (Computer Engineering & Life Support Simulation).
+    Engineered by Faruk Karimli (Computer Engineering & Life Support Simulation).
     """
 
     # NASA JSC baseline metabolic human consumables per astronaut per Sol
