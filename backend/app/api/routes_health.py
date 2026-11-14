@@ -3,10 +3,12 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, Query
 
 from app.ml.crew_data import CrewScenario
+from app.services.checkin_service import CheckinIn, CheckinService
 from app.services.crew_health_service import CrewHealthService
 
 router = APIRouter(prefix="/health", tags=["Crew Health Monitoring"])
 service = CrewHealthService()
+checkin_service = CheckinService(crew_service=service)
 
 _MAX_SOL = CrewScenario().mission_sols - 1
 
@@ -67,3 +69,25 @@ def get_crew_alerts(
     """Explainable early-warning alerts (first WATCH / first ACT per astronaut)."""
     sc = _scenario(failure_enabled, cooling_failure_sol, failure_duration_sols, failure_peak_temp_c)
     return service.alerts(sc, sol)
+
+
+# ---------------------------------------------------------------------------
+# Daily Check-in (astronaut self-assessment)
+# ---------------------------------------------------------------------------
+@router.post("/checkin")
+def post_checkin(payload: CheckinIn):
+    """Submit today's self-measurements; returns colour-coded, explained result per indicator and overall
+    NOMINAL / WATCH / ACT. Decision-support prototype, not a medical device."""
+    return checkin_service.submit(payload)
+
+
+@router.get("/checkins")
+def get_checkins(astronaut_id: str = Query(..., pattern=r"^[A-Za-z0-9][A-Za-z0-9_-]{0,31}$")):
+    """Check-in history (oldest first) and current streak for one astronaut."""
+    return checkin_service.history(astronaut_id)
+
+
+@router.get("/checkin/guide")
+def get_checkin_guide():
+    """How to measure each indicator, reference ranges with sources, daily routine and input limits."""
+    return checkin_service.guide()
