@@ -5,8 +5,16 @@ import type { PostResult } from './sync';
 const API = '/api/v1/health';
 const TIMEOUT_MS = 15_000;
 
+/** Static demo build (VITE_STATIC_DEMO=1, GitHub Pages /app/): no server. The guide comes from public/snapshot/
+ *  (scripts/export_snapshot.py); check-ins are saved on this device only and never POSTed. */
+export const STATIC_DEMO = import.meta.env.VITE_STATIC_DEMO === '1';
+
+/** '/api/v1/health/checkin/guide' -> 'health_checkin_guide.json' (same rule as scripts/export_snapshot.py). */
+export const snapshotKey = (url: string) => url.replace(/^\/api\/v1\//, '').replace(/[^A-Za-z0-9._-]+/g, '_') + '.json';
+
 async function getJson<T>(path: string): Promise<T> {
-  const res = await fetch(`${API}${path}`, { signal: AbortSignal.timeout(TIMEOUT_MS), cache: 'no-store' });
+  const url = STATIC_DEMO ? `${import.meta.env.BASE_URL}snapshot/${snapshotKey(`${API}${path}`)}` : `${API}${path}`;
+  const res = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS), cache: 'no-store' });
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${path}`);
   return res.json() as Promise<T>;
 }
@@ -32,6 +40,7 @@ export function errorMessage(body: unknown, fallback: string): string {
 }
 
 export async function postCheckin(payload: CheckinPayload): Promise<PostResult> {
+  if (STATIC_DEMO) return { kind: 'network', message: 'Online demo: no server, the check-in stays on this device' };
   let res: Response;
   try {
     res = await fetch(`${API}/checkin`, {

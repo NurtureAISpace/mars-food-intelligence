@@ -26,7 +26,11 @@ const proxy = {
   },
 }
 
+// VITE_BASE: public path ('/' for the laptop demo, '/app/' on GitHub Pages; scripts/build_site.ps1 sets it).
+const base = process.env.VITE_BASE || '/'
+
 export default defineConfig(({ command }) => ({
+  base,
   define: {
     __APP_BUILD__: JSON.stringify(command === 'build' ? buildLabel() : 'dev server (not the demo build)'),
   },
@@ -34,13 +38,13 @@ export default defineConfig(({ command }) => ({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'logo/logo.png', 'logo/logo-192.png', 'apple-touch-icon.png', 'bg/space.jpg', 'fonts/inter-latin-var.woff2'],
+      includeAssets: ['favicon.ico', 'logo.svg', 'logo/logo.png', 'logo/logo-192.png', 'apple-touch-icon.png', 'bg/space.jpg', 'fonts/inter-latin-var.woff2'],
       manifest: {
         name: 'NurtureAI Astronaut',
         short_name: 'Astronaut',
         description: 'Offline-first daily health check-in for crew members.',
-        start_url: '/',
-        scope: '/',
+        start_url: base,
+        scope: base,
         display: 'standalone',
         orientation: 'portrait',
         background_color: '#020617',
@@ -52,8 +56,8 @@ export default defineConfig(({ command }) => ({
       },
       workbox: {
         // Precache the app shell only. API data lives in IndexedDB (see src/db.ts), never in the SW cache.
-        globPatterns: ['**/*.{js,css,html,svg,png,jpg,woff2,webmanifest}'],
-        navigateFallback: '/index.html',
+        globPatterns: ['**/*.{js,css,html,svg,png,jpg,woff2,webmanifest,json}'],
+        navigateFallback: `${base}index.html`,
         navigateFallbackDenylist: [/^\/api\//],
       },
     }),

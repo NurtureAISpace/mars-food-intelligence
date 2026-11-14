@@ -7,7 +7,9 @@ const KEY = 'nurtureai.appLink';
 const EVENT = 'nurtureai:applink';
 
 export function defaultAppUrl(): string {
-  return import.meta.env.VITE_ASTRONAUT_PUBLIC_URL || `http://${window.location.hostname}:4173`;
+  if (import.meta.env.VITE_ASTRONAUT_PUBLIC_URL) return import.meta.env.VITE_ASTRONAUT_PUBLIC_URL;
+  if (import.meta.env.VITE_STATIC_DEMO === '1') return 'https://nurtureaispace.github.io/app/';
+  return `http://${window.location.hostname}:4173`;
 }
 
 function storedAppUrl(): string | null {
