@@ -36,9 +36,9 @@ Astronauts on a 3-year Mars surface exploration mission (NASA Moon-to-Mars Archi
    - Ingests real human spaceflight blood panel datasets from the **NASA Open Science Data Repository (OSDR)**—specifically **LSDS-7 (Inspiration4 Complete Blood Count)** and **LSDS-8 (Inspiration4 Comprehensive Metabolic Panel)** across pre-flight (`L-92`, `L-44`, `L-3`), return (`R+1`), and recovery (`R+45`, `R+82`, `R+194`) timepoints.
    - Tracks a 3-compartment pharmacokinetic body vitamin pool (Vitamin C 1,500 mg tissue reserve, Vitamin B1 30 mg reserve, Vitamin D3 serum 25(OH)D) coupled directly to the habitat's daily dietary output.
    - Runs an unsupervised **IsolationForest** anomaly detector + personal baseline z-score tracker that flags spaceflight anemia, hepatic transaminase shifts, or subclinical vitamin depletion and automatically prescribes targeted fresh hydroponic crop boosts.
-3. **Closed-Loop ECLSS Environmental Simulator (Faruk):**
+3. **Closed-Loop ECLSS Environmental Simulator (Faruk Karimli):**
    - Simulates day-by-day habitat gas and water mass balances across OGS electrolysis (`2 H2O -> 2 H2 + O2`) and Sabatier carbon capture (`CO2 + 4 H2 -> CH4 + 2 H2O`) coupled with crew metabolic respiration and photosynthetic gas exchange (`+1,240 g O2/Sol`, `-1,672 g CO2/Sol`), achieving **78.4% net loop closure**.
-4. **4-Zone Regolith Capacitive Soil Moisture Controller (Faruk):**
+4. **4-Zone Regolith Capacitive Soil Moisture Controller (Faruk Karimli):**
    - Models `150 MHz` capacitive dielectric sensors (`epsilon_r ~ 80` for liquid water vs `3-5` for dry MGS-1 Martian regolith simulant) with automatic PID drip-valve actuation across 4 crop root zones (`28%–36%` target VWC).
 
 ### NASA Data
@@ -66,7 +66,7 @@ Astronauts on a 3-year Mars surface exploration mission (NASA Moon-to-Mars Archi
    - **Hakaton zamanı sıfırdan yazılan kod (100% Mühəndislik İcrası):**
      - **Süleyman & Banu:** Arrhenius kinetik deqradasiya mühərriki, SciPy HiGHS LP rasion optimallaşdırıcısı, 6-bitki hidroponik simulyatoru və 9-bölməli interaktiv veb platforma (`nurtureaispace.github.io`).
      - **Yunis:** NASA OSDR `LSDS-7` & `LSDS-8` (Inspiration4) real astronavt qan analizlərinin emalı, 3-kameralı vitamin farmakokinetik modeli (Vit C, B1, D3) və `IsolationForest` + fərdi baza xətti (`z-score`) anomaliya detektoru.
-     - **Faruk:** Qapalı dövrəli ECLSS (OGS elektroliz + Sabatier reaktoru) qaz/su balansı simulyatoru və 4-zonalı MGS-1 reqolit tutumlu (`150 MHz`) torpaq nəmliyi PID suvarma kontrolleri.
+     - **Faruk Karimli:** Qapalı dövrəli ECLSS (OGS elektroliz + Sabatier reaktoru) qaz/su balansı simulyatoru və 4-zonalı MGS-1 reqolit tutumlu (`150 MHz`) torpaq nəmliyi PID suvarma kontrolleri.
 
 2. **Sual 02: Hansı NASA məlumatından istifadə etdiniz? Göstərin.**
    - Canlı tətbiqdə **`Crew Health`** və **`Data Lab`** bölmələrində birbaşa göstərilir:
