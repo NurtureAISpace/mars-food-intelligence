@@ -8,7 +8,8 @@ For every astronaut:
   3. IsolationForest trained on that astronaut's baseline window only -> anomaly score
      (supporting evidence, not part of the status rules).
   4. Causal per-Sol forecast: personal turnover k estimated from history up to that Sol,
-     analytic Sols-to-risk under the recent intake trend, worst nutrient.
+     analytic Sols-to-risk under the recent intake trend, worst nutrient. Vitamin D status
+     (25-OH-D) uses its personal log-linear decline rate vs NASA's 25 nmol/L band edge.
   5. Status rules:
         ACT     if Sols-to-risk <= ACT_SOLS_TO_RISK
         WATCH   if Sols-to-risk <= WATCH_SOLS_TO_RISK or |z| of any vital >= WATCH_Z
@@ -26,13 +27,17 @@ from sklearn.ensemble import IsolationForest
 
 from app.ml.crew_data import CrewData, FRESH_PREFIX, load_catalog
 from app.ml.physiology import (
+    BIOMARKERS,
     NUTRIENTS,
     VITALS,
     VITAL_SD_FLOOR,
+    VITAMIN_D,
     daily_need_mg,
     equilibrium_pool,
     personal_turnover,
     sols_to_risk,
+    vitamin_d_personal_rate,
+    vitamin_d_sols_to_risk,
 )
 
 WATCH_Z = 2.0                      # |z| of any vital vs personal baseline
@@ -47,6 +52,10 @@ ISO_CONTAMINATION = 0.02
 
 INTAKE_COLS = [f"{n}_intake_mg" for n in NUTRIENTS]
 MODEL_FEATURES = VITALS + INTAKE_COLS
+ZSCORE_COLS = VITALS + INTAKE_COLS + BIOMARKERS
+VITD = "vitamin_d"
+ALL_NUTRIENTS = list(NUTRIENTS) + [VITD]
+VITD_SUPPLEMENT_UG = VITAMIN_D["supplement_ug_day"]   # one ISS supplement tablet = one "serving"
 STATUS_RANK = {"CALIBRATING": -1, "NOMINAL": 0, "WATCH": 1, "ACT": 2}
 
 SIGNAL_LABELS = {
@@ -56,6 +65,8 @@ SIGNAL_LABELS = {
     "fatigue_score": "Fatigue score",
     **{f"{n}_intake_mg": f"{cfg['label']} intake" for n, cfg in NUTRIENTS.items()},
     **{f"{n}_pool_mg": f"{cfg['label']} body pool" for n, cfg in NUTRIENTS.items()},
+    VITAMIN_D["status_col"]: "Serum 25-hydroxyvitamin D",
+    VITAMIN_D["intake_col"]: "Vitamin D intake (food + supplement)",
 }
 
 
@@ -86,9 +97,9 @@ class CrewAnalysis:
 
 def personal_baseline(g: pd.DataFrame, baseline_sols: int) -> PersonalBaseline:
     base = g[g.sol < baseline_sols]
-    cols = VITALS + INTAKE_COLS
+    cols = ZSCORE_COLS
     mu = base[cols].mean()
-    floors = pd.Series({**VITAL_SD_FLOOR, **{c: INTAKE_SD_FLOOR_FRACTION * mu[c] for c in INTAKE_COLS}})
+    floors = pd.Series({**VITAL_SD_FLOOR, **{c: INTAKE_SD_FLOOR_FRACTION * mu[c] for c in INTAKE_COLS + BIOMARKERS}})
     sd = np.maximum(base[cols].std(), floors[cols])
     return PersonalBaseline(mean=mu, sd=sd)
 
@@ -126,8 +137,9 @@ def recommend_food(nutrient: str, gap_mg: float, sol: int, data: CrewData) -> Di
         source = "fresh greenhouse crop"
         candidates = {i: item[f] for i, item in catalog.items() if i.startswith(FRESH_PREFIX)}
     else:
-        source = "packaged (greenhouse offline; content at current Arrhenius retention)"
-        candidates = {i: catalog[i][f] * float(data.retention[i].iloc[sol]) for i in data.retention.columns}
+        source = "packaged (greenhouse offline; content at current storage retention)"
+        ret = data.retention[nutrient]
+        candidates = {i: catalog[i][f] * float(ret[i].iloc[sol]) for i in ret.columns}
     food_id = max(candidates, key=candidates.get)
     content = candidates[food_id]
     servings = gap_mg / content if content > 0 else float("inf")
@@ -137,6 +149,21 @@ def recommend_food(nutrient: str, gap_mg: float, sol: int, data: CrewData) -> Di
         "source": source,
         "nutrient_per_serving_mg": round(content, 3),
         "servings_per_sol": round(servings, 2) if np.isfinite(servings) else None,
+        "feasible": bool(servings <= MAX_PRACTICAL_SERVINGS),
+    }
+
+
+def recommend_vitamin_d(gap_ug: float) -> Dict[str, Any]:
+    """Vitamin D gap is closed with supplement tablets: the food system has very little vitamin D."""
+    servings = gap_ug / VITD_SUPPLEMENT_UG
+    return {
+        "food_id": None,
+        "food_name": f"vitamin D3 supplement ({VITD_SUPPLEMENT_UG:.0f} ug = {VITD_SUPPLEMENT_UG * VITAMIN_D['iu_per_ug']:.0f} IU tablet)",
+        "source": "supplement (space food system is low in vitamin D; no UV synthesis in flight)",
+        "nutrient_per_serving_mg": VITD_SUPPLEMENT_UG / 1000.0,
+        "dose_ug_per_day": round(gap_ug, 2),
+        "dose_iu_per_day": round(gap_ug * VITAMIN_D["iu_per_ug"], 0),
+        "servings_per_sol": round(servings, 2),
         "feasible": bool(servings <= MAX_PRACTICAL_SERVINGS),
     }
 
@@ -165,6 +192,8 @@ def explain(res: AstronautResult, data: CrewData, sol: int) -> Optional[Dict[str
     if status == "CALIBRATING":
         return None
     nutrient = row["worst_nutrient"]
+    if nutrient == VITD:
+        return _explain_vitamin_d(res, data, sol)
     cfg = NUTRIENTS[nutrient]
     fr = res.frame
     intake_col, pool_col = f"{nutrient}_intake_mg", f"{nutrient}_pool_mg"
@@ -229,6 +258,9 @@ def explain(res: AstronautResult, data: CrewData, sol: int) -> Optional[Dict[str
         "nutrient": nutrient,
         "pool_mg": _num(pool_now, 1),
         "risk_threshold_mg": cfg["risk_threshold_mg"],
+        "status_value": _num(pool_now, 1),
+        "status_unit": "mg",
+        "risk_threshold": cfg["risk_threshold_mg"],
         "sols_to_risk": _num(s2r, 0),
         "projected_risk_sol": int(round(sol + s2r)) if np.isfinite(s2r) else None,
         "top_vital_driver": driver,
@@ -238,6 +270,84 @@ def explain(res: AstronautResult, data: CrewData, sol: int) -> Optional[Dict[str
         "since_signal": since_signal,
         "changes": changes,
         "intake_gap_mg_per_sol": _num(gap_mg),
+        "intake_gap": _num(gap_mg),
+        "intake_gap_unit": "mg/Sol",
+        "recommendation": recommendation,
+        "action": action,
+        "message": message,
+    }
+
+
+def _explain_vitamin_d(res: AstronautResult, data: CrewData, sol: int) -> Dict[str, Any]:
+    """Assessment when vitamin D status is the worst-forecast nutrient (uses data up to `sol` only)."""
+    vd = VITAMIN_D
+    fr = res.frame
+    row = fr.iloc[sol]
+    col, intake_col = vd["status_col"], vd["intake_col"]
+    driver = row["top_driver"]
+    level = float(row[col])
+    base = res.pool_baseline[VITD]
+    preflight = float(fr[col].iloc[0])
+    intake = float(row[intake_col])
+    s2r = float(row["sols_to_risk"])
+    rate = float(row[f"{VITD}_k_per_sol"])
+
+    def pct(cur: float, ref: float) -> Optional[float]:
+        return _num(100.0 * (cur - ref) / ref, 1) if ref else None
+
+    recent = fr.iloc[sol - data.scenario.trend_window_sols + 1: sol + 1]
+    intake_base = float(fr[intake_col].iloc[: data.scenario.baseline_sols].mean())
+    changes = [
+        {"signal": intake_col, "label": SIGNAL_LABELS[intake_col], "baseline": _num(intake_base),
+         "current": _num(intake), "pct_change_vs_baseline": pct(intake, intake_base), "z": None},
+        {"signal": col, "label": SIGNAL_LABELS[col], "baseline": _num(base), "current": _num(level),
+         "pct_change_vs_baseline": pct(level, base), "z": _num(row[f"z_{col}"])},
+        {"signal": driver, "label": SIGNAL_LABELS[driver], "baseline": _num(float(res.baseline.mean[driver])),
+         "current": _num(float(recent[driver].mean())),
+         "pct_change_vs_baseline": pct(float(recent[driver].mean()), float(res.baseline.mean[driver])),
+         "z": _num(row["driver_z"])},
+    ]
+    since_sol = _run_start((fr[f"z_{col}"] <= ONSET_INTAKE_Z).to_numpy(), sol)
+    since_signal = col if since_sol is not None else None
+    if since_sol is None:
+        since_sol = sol
+
+    gap_ug = max(0.0, vd["requirement_ug_day"] - intake)
+    recommendation = recommend_vitamin_d(gap_ug) if gap_ug > 0 else None
+    if recommendation is None:
+        action = "monitor"
+    else:
+        action = (f"add {recommendation['servings_per_sol']:.1f} servings/Sol of {recommendation['food_name']} "
+                  f"(+{gap_ug:.1f} ug/day to reach NASA's {vd['requirement_ug_day']:.0f} ug/day requirement)")
+    forecast_txt = (f"forecast to fall below {vd['risk_threshold_nmol_l']:.0f} nmol/L in {s2r:.0f} Sols (Sol {sol + s2r:.0f})"
+                    if np.isfinite(s2r) else "no threshold crossing forecast at current intake")
+    message = (
+        f"{vd['label']} {level:.1f} nmol/L ({pct(level, preflight):+.0f}% vs pre-flight {preflight:.0f} nmol/L; "
+        f"no UV synthesis in flight), declining {100 * rate:.2f}%/Sol, {forecast_txt}. "
+        f"Vitamin D intake {intake:.1f} ug/day vs {vd['requirement_ug_day']:.0f} ug/day required. "
+        f"Top vital driver: {SIGNAL_LABELS[driver]} (z {row['driver_z']:+.1f}). Action: {action}."
+    )
+    return {
+        "astronaut_id": res.astronaut,
+        "sol": int(sol),
+        "status": row["status"],
+        "nutrient": VITD,
+        "pool_mg": None,
+        "risk_threshold_mg": None,
+        "status_value": _num(level, 1),
+        "status_unit": vd["status_unit"],
+        "risk_threshold": vd["risk_threshold_nmol_l"],
+        "sols_to_risk": _num(s2r, 0),
+        "projected_risk_sol": int(round(sol + s2r)) if np.isfinite(s2r) else None,
+        "top_vital_driver": driver,
+        "driver_z": _num(row["driver_z"]),
+        "anomaly_score": _num(row["anomaly_score"], 3),
+        "since_sol": since_sol,
+        "since_signal": since_signal,
+        "changes": changes,
+        "intake_gap_mg_per_sol": _num(gap_ug / 1000.0, 4),
+        "intake_gap": _num(gap_ug),
+        "intake_gap_unit": "ug/day",
         "recommendation": recommendation,
         "action": action,
         "message": message,
@@ -261,10 +371,11 @@ def analyze_astronaut(g: pd.DataFrame, data: CrewData) -> AstronautResult:
 
     pools = {n: g[f"{n}_pool_mg"].to_numpy() for n in NUTRIENTS}
     intakes = {n: g[f"{n}_intake_mg"].to_numpy() for n in NUTRIENTS}
+    vit_d = g[VITAMIN_D["status_col"]].to_numpy()
     zv = z[VITALS].to_numpy()
 
     per_n = {n: {"k": np.full(n_sols, np.nan), "eq": np.full(n_sols, np.nan), "s2r": np.full(n_sols, np.nan)}
-             for n in NUTRIENTS}
+             for n in ALL_NUTRIENTS}
     status = np.array(["CALIBRATING"] * n_sols, dtype=object)
     worst_n = np.array([None] * n_sols, dtype=object)
     worst_s2r = np.full(n_sols, np.nan)
@@ -285,13 +396,19 @@ def analyze_astronaut(g: pd.DataFrame, data: CrewData) -> AstronautResult:
             per_n[n]["k"][i], per_n[n]["eq"][i], per_n[n]["s2r"][i] = k, eq, s
             if s < best_s:
                 best_n, best_s = n, s
+        # Vitamin D: personal log-linear decline (no UV), forecast vs NASA band edge
+        r_d = vitamin_d_personal_rate(vit_d[: i + 1])
+        s_d = vitamin_d_sols_to_risk(float(vit_d[i]), r_d, VITAMIN_D["risk_threshold_nmol_l"])
+        per_n[VITD]["k"][i], per_n[VITD]["s2r"][i] = r_d, s_d
+        if s_d < best_s:
+            best_n, best_s = VITD, s_d
         if best_n is None:
             # no nutrient on course to the threshold: report the one with the lowest relative pool
             best_n = min(NUTRIENTS, key=lambda n: pools[n][i] / NUTRIENTS[n]["pool_max_mg"])
         worst_n[i], worst_s2r[i] = best_n, best_s
         status[i] = classify_status(best_s, abs(zv[i, d]))
 
-    for n in NUTRIENTS:
+    for n in ALL_NUTRIENTS:
         g[f"{n}_k_per_sol"] = per_n[n]["k"]
         g[f"{n}_pool_eq_mg"] = per_n[n]["eq"]
         g[f"{n}_sols_to_risk"] = per_n[n]["s2r"]
@@ -304,12 +421,15 @@ def analyze_astronaut(g: pd.DataFrame, data: CrewData) -> AstronautResult:
     res = AstronautResult(
         astronaut=astronaut,
         baseline=baseline,
-        pool_baseline={n: float(g.loc[g.sol < sc.baseline_sols, f"{n}_pool_mg"].mean()) for n in NUTRIENTS},
+        pool_baseline={**{n: float(g.loc[g.sol < sc.baseline_sols, f"{n}_pool_mg"].mean()) for n in NUTRIENTS},
+                       VITD: float(g.loc[g.sol < sc.baseline_sols, VITAMIN_D["status_col"]].mean())},
         frame=g,
     )
     for n, cfg in NUTRIENTS.items():
         below = np.flatnonzero(pools[n] <= cfg["risk_threshold_mg"])
         res.threshold_crossing_sol[n] = int(below[0]) if below.size else None
+    below = np.flatnonzero(vit_d <= VITAMIN_D["risk_threshold_nmol_l"])
+    res.threshold_crossing_sol[VITD] = int(below[0]) if below.size else None
 
     for i in range(sc.calibration_sols, n_sols):
         s = status[i]

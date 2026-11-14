@@ -50,6 +50,12 @@ def get_astronaut_timeline(
         raise HTTPException(status_code=404, detail=str(e))
 
 
+@router.get("/parameters")
+def get_model_parameters():
+    """Model parameters with literature source + status, and the literature range check."""
+    return service.parameters()
+
+
 @router.get("/alerts")
 def get_crew_alerts(
     sol: Optional[int] = Query(None, ge=0, le=_MAX_SOL, description="Only alerts raised up to this Sol"),
