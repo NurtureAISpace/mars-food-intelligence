@@ -23,7 +23,8 @@ class DietOptimizationRequest(BaseModel):
 def solve_optimal_diet(req: DietOptimizationRequest):
     """
     Runs linear programming optimization via SciPy to determine the mathematically
-    optimal daily crew ration plan fulfilling NASA STD-3001 nutrition requirements.
+    optimal daily crew ration plan meeting the daily nutrient targets (vitamin C/B1 from
+    NASA JSC 2005; other targets assumed). Food values come from the synthetic catalog.
     """
     return service.optimize_daily_crew_diet(
         crew_size=req.crew_size,

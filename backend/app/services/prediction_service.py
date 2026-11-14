@@ -8,13 +8,16 @@ from app.core.scientific_models import (
     simulate_dynamic_temperature_degradation
 )
 from app.core.constants import SOL_IN_EARTH_DAYS
-from app.pipeline.ingest import load_raw_catalog, load_raw_benchmarks
+from app.pipeline.ingest import load_raw_catalog
+from app.ml.params import param, sources
+
+# Agreement band for the thiamine comparison (percentage points); a modelling choice.
+THIAMINE_TOLERANCE_PP = 10.0
 
 
 class PredictionService:
     def __init__(self):
         self.catalog = {item["id"]: item for item in load_raw_catalog()}
-        self.benchmarks = load_raw_benchmarks()
 
     def predict_food_shelf_life(
         self,
@@ -138,79 +141,85 @@ class PredictionService:
             "timeline": timeline
         }
 
-    def validate_against_experimental_benchmarks(self) -> Dict[str, Any]:
+    def compare_with_literature_endpoints(self) -> Dict[str, Any]:
         """
-        Validates the mathematical Arrhenius degradation engine against
-        empirical NASA JSC Food Lab datasets. Computes RMSE and R^2.
-        """
-        benchmarks = self.benchmarks.get("benchmarks", [])
-        validation_results = []
-        all_actual = []
-        all_predicted = []
+        Compares the catalog's (synthetic) Arrhenius kinetics with published spaceflight-food
+        retention endpoints. The endpoints are read from app/data/literature_params.json:
 
-        for b in benchmarks:
-            food_id = b["food_id"]
+        - thiamine: Goulette et al. 2020, model-predicted retention after 720 days at 20 C for
+          three NASA thermostabilized food classes (grain 55%, legume 42%, meat 3%);
+        - vitamin C: Cooper et al. 2017, 32-83% loss after 3 years at 21 C (fruit products).
+
+        Each packaged menu item is mapped to a food class (kinetics.food_class_map, assumed).
+        Every published value is a single endpoint, so R^2 is not computed. A thiamine series
+        agrees when the prediction is within THIAMINE_TOLERANCE_PP percentage points of the
+        published value; a vitamin C series agrees when it falls inside the published range.
+        """
+        b1_ref = param("kinetics.thiamine_b1.reference")
+        vc_ref = param("kinetics.vitamin_c.reference")
+        class_map = param("kinetics.food_class_map")
+        srcs = sources()
+
+        vc_lo_pct = round((1.0 - vc_ref["loss_fraction_range"][1]) * 100.0, 1)
+        vc_hi_pct = round((1.0 - vc_ref["loss_fraction_range"][0]) * 100.0, 1)
+        vc_mid_pct = round((vc_lo_pct + vc_hi_pct) / 2.0, 2)
+
+        series = []
+        residuals = []
+        for food_id, food_class in class_map.items():
             if food_id not in self.catalog:
                 continue
             food = self.catalog[food_id]
-            A = food["arrhenius_A"]
-            Ea = food["activation_energy_Ea_kJ_mol"]
-            order = food.get("kinetic_order", 1)
-            temp_c = b["temperature_c"]
-            k = arrhenius_rate_constant(A, Ea, temp_c)
+            comparisons = [
+                ("thiamine_b1", b1_ref["temp_c"], b1_ref["days"], round(b1_ref["retention"][food_class] * 100.0, 2),
+                 None, "GOULETTE_2020", f"Goulette 2020, {food_class} class"),
+                ("vitamin_c", vc_ref["temp_c"], vc_ref["days"], vc_mid_pct,
+                 [vc_lo_pct, vc_hi_pct], "COOPER_2017", "Cooper 2017, fruit products (range midpoint)"),
+            ]
+            for nutrient, temp_c, days, published, published_range, source_id, basis in comparisons:
+                k = arrhenius_rate_constant(food["arrhenius_A"], food["activation_energy_Ea_kJ_mol"], temp_c)
+                predicted = round(first_order_retention(100.0, k, days), 2)
+                residual = round(predicted - published, 2)
+                residuals.append(residual)
+                if published_range is None:
+                    agrees = abs(residual) <= THIAMINE_TOLERANCE_PP
+                else:
+                    agrees = published_range[0] <= predicted <= published_range[1]
+                series.append({
+                    "food_id": food_id,
+                    "food_name": food["name"],
+                    "nutrient": nutrient,
+                    "temperature_c": temp_c,
+                    "sample_points": 1,
+                    "rmse": abs(residual),
+                    "r2_score": None,
+                    "published_basis": basis,
+                    "published_range_pct": published_range,
+                    "source_id": source_id,
+                    "agrees_with_literature": agrees,
+                    "datapoints": [
+                        {"sol": 0, "days": 0, "measured_retention": 100.0, "predicted_retention": 100.0, "residual": 0.0},
+                        {"sol": round(days / SOL_IN_EARTH_DAYS), "days": days, "measured_retention": published,
+                         "predicted_retention": predicted, "residual": residual},
+                    ],
+                })
 
-            series_predicted = []
-            series_actual = []
-
-            for dp in b["datapoints"]:
-                sol = dp["sol"]
-                actual_val = dp["measured_retention_pct"]
-                days = sol * SOL_IN_EARTH_DAYS
-                pred_val = first_order_retention(100.0, k, days) if order == 1 else zero_order_retention(100.0, k, days)
-                
-                series_actual.append(actual_val)
-                series_predicted.append(pred_val)
-                all_actual.append(actual_val)
-                all_predicted.append(pred_val)
-
-            series_actual_arr = np.array(series_actual)
-            series_pred_arr = np.array(series_predicted)
-            rmse = np.sqrt(np.mean((series_actual_arr - series_pred_arr) ** 2))
-            ss_tot = np.sum((series_actual_arr - np.mean(series_actual_arr)) ** 2)
-            ss_res = np.sum((series_actual_arr - series_pred_arr) ** 2)
-            r2 = 1.0 - (ss_res / ss_tot) if ss_tot > 0 else 1.0
-
-            validation_results.append({
-                "food_id": food_id,
-                "food_name": food["name"],
-                "nutrient": b["nutrient"],
-                "temperature_c": temp_c,
-                "sample_points": len(b["datapoints"]),
-                "rmse": round(float(rmse), 3),
-                "r2_score": round(float(r2), 4),
-                "datapoints": [
-                    {
-                        "sol": dp["sol"],
-                        "measured_retention": dp["measured_retention_pct"],
-                        "predicted_retention": round(pred, 2),
-                        "residual": round(pred - dp["measured_retention_pct"], 2)
-                    }
-                    for dp, pred in zip(b["datapoints"], series_predicted)
-                ]
-            })
-
-        overall_act = np.array(all_actual)
-        overall_pred = np.array(all_predicted)
-        overall_rmse = float(np.sqrt(np.mean((overall_act - overall_pred) ** 2)))
-        overall_ss_tot = float(np.sum((overall_act - np.mean(overall_act)) ** 2))
-        overall_ss_res = float(np.sum((overall_act - overall_pred) ** 2))
-        overall_r2 = float(1.0 - (overall_ss_res / overall_ss_tot)) if overall_ss_tot > 0 else 1.0
-
+        rmse = float(np.sqrt(np.mean(np.square(residuals)))) if residuals else 0.0
+        n_agree = sum(1 for s_ in series if s_["agrees_with_literature"])
         return {
-            "model_architecture": "First-Order Arrhenius Kinetic Non-linear Degradation",
-            "total_benchmark_series": len(validation_results),
-            "aggregate_rmse": round(overall_rmse, 3),
-            "aggregate_r2_score": round(overall_r2, 4),
-            "validation_verdict": "VERIFIED_ACCURATE" if overall_r2 > 0.90 else "CALIBRATION_REQUIRED",
-            "series": validation_results
+            "model_architecture": "First-order Arrhenius kinetics with synthetic per-item catalog constants",
+            "comparison_type": "published single-endpoint retention values (not measurements of these menu items)",
+            "total_benchmark_series": len(series),
+            "series_agreeing_with_literature": n_agree,
+            "aggregate_rmse": round(rmse, 3),
+            "aggregate_r2_score": None,
+            "validation_verdict": "AGREES_WITH_LITERATURE" if series and n_agree == len(series) else "DOES_NOT_MATCH_LITERATURE",
+            "thiamine_tolerance_pp": THIAMINE_TOLERANCE_PP,
+            "references": [
+                {"id": sid, "citation": srcs[sid]["citation"], "doi_or_url": srcs[sid]["doi_or_url"]}
+                for sid in ("GOULETTE_2020", "COOPER_2017")
+            ],
+            "data_provenance": ("catalog kinetics (A, Ea) are synthetic; published endpoints from literature_params.json; "
+                                "food-class mapping is assumed; vitamin C endpoint is for fruit products only"),
+            "series": series,
         }

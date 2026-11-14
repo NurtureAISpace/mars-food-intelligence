@@ -12,7 +12,7 @@ from app.api.routes_life_support import router as life_support_router
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.PROJECT_VERSION,
-    description="Mission-Grade Space Nutrition, Degradation Kinetics & Bio-Regenerative Life Support Intelligence System by NurtureAISpace",
+    description="Space nutrition, vitamin degradation and astronaut crew-health early-warning prototype by NurtureAISpace. Data provenance: docs/DATA_SOURCES.md (real NASA OSDR data, cited literature, and clearly labeled synthetic scenario data).",
     docs_url="/docs",
     redoc_url="/redoc"
 )

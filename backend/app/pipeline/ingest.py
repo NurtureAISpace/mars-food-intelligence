@@ -5,22 +5,26 @@ from app.core.config import settings
 from app.pipeline.validation import FoodItemSchema, DataAuditReport
 
 
+def _load_dataset(file_name: str) -> Dict[str, Any]:
+    """Data files are {"dataset_meta": {...provenance...}, "items": [...]}."""
+    with open(settings.DATA_DIR / file_name, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
 def load_raw_catalog() -> List[Dict[str, Any]]:
-    catalog_path = settings.DATA_DIR / "space_food_catalog.json"
-    with open(catalog_path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    return _load_dataset("space_food_catalog.json")["items"]
 
 
-def load_raw_benchmarks() -> Dict[str, Any]:
-    benchmark_path = settings.DATA_DIR / "experimental_shelf_life.json"
-    with open(benchmark_path, "r", encoding="utf-8") as f:
-        return json.load(f)
+def load_catalog_meta() -> Dict[str, Any]:
+    return _load_dataset("space_food_catalog.json")["dataset_meta"]
 
 
 def load_crop_models() -> List[Dict[str, Any]]:
-    crops_path = settings.DATA_DIR / "crop_models.json"
-    with open(crops_path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    return _load_dataset("crop_models.json")["items"]
+
+
+def load_crop_models_meta() -> Dict[str, Any]:
+    return _load_dataset("crop_models.json")["dataset_meta"]
 
 
 def process_and_audit_catalog() -> Tuple[List[FoodItemSchema], DataAuditReport]:
@@ -56,7 +60,8 @@ def process_and_audit_catalog() -> Tuple[List[FoodItemSchema], DataAuditReport]:
 
     quality_score = 100.0 if not missing_fields else max(0.0, 100.0 - (missing_fields / max(1, len(raw_data)) * 100.0))
     if bounds_passed and missing_fields == 0:
-        audit_notes.append("All nutritional quantities verified against USDA FoodData and NASA space food standard specifications.")
+        audit_notes.append("Schema and physical-bound checks passed. Catalog values are synthetic and have not been "
+                           "checked against an external food-composition database.")
 
     report = DataAuditReport(
         total_records=len(valid_items),

@@ -1,12 +1,15 @@
 import math
 from typing import Dict, Any, List, Optional
-from app.core.constants import NASA_STD_3001_REQUIREMENTS, SOL_IN_EARTH_DAYS
+from app.core.constants import DAILY_NUTRIENT_TARGETS, SOL_IN_EARTH_DAYS
 from app.core.scientific_models import (
     arrhenius_rate_constant,
     first_order_retention,
     calculate_composite_space_food_index
 )
 from app.pipeline.ingest import load_raw_catalog, load_crop_models
+
+SIMULATOR_DATA_PROVENANCE = ("synthetic scenario: storage kinetics, sensory decay, crop yield, power and microbial "
+                             "viability use assumed constants; calorie target is an assumed planning value")
 
 
 class MissionSimulatorService:
@@ -38,7 +41,7 @@ class MissionSimulatorService:
         remaining_food_mass_kg = initial_food_mass_kg
 
         # Daily consumption based on strategy
-        daily_cal_target = NASA_STD_3001_REQUIREMENTS["calories_kcal"]["nominal"]
+        daily_cal_target = DAILY_NUTRIENT_TARGETS["calories_kcal"]["nominal"]
         if ration_strategy == "CONSERVATION_15_PCT":
             daily_cal_target *= 0.85
         elif ration_strategy == "SURVIVAL":
@@ -46,9 +49,9 @@ class MissionSimulatorService:
 
         daily_mass_burn_kg = (crew_size * daily_cal_target / 2800.0) * 1.5
 
-        # Representative Arrhenius kinetic constants for space rations
-        # Weighted avg: Ea ~ 51 kJ/mol, A ~ 20000 day^-1 for Thiamine
-        # Ea ~ 58 kJ/mol for Vitamin C
+        # Arrhenius constants for the whole ration store: synthetic illustrative values (no cited source).
+        # Sensory decay, crop yield (280 g/m2/Sol), lighting (120 W/m2), chilling load and microbial
+        # viability below are also assumed scenario values.
         thiamine_A = 21000.0
         thiamine_Ea = 51.5
         vit_c_A = 35000.0
@@ -172,5 +175,6 @@ class MissionSimulatorService:
                 "total_alerts_count": len(alerts)
             },
             "critical_advisories": alerts,
-            "telemetry_timeline": time_series
+            "telemetry_timeline": time_series,
+            "data_provenance": SIMULATOR_DATA_PROVENANCE
         }

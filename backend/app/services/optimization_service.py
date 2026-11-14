@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.optimize import linprog
 from typing import Dict, Any, List, Optional
-from app.core.constants import NASA_STD_3001_REQUIREMENTS, COOLING_POWER_WATTS_PER_KG
+from app.core.constants import DAILY_NUTRIENT_TARGETS, COOLING_POWER_WATTS_PER_KG
 from app.pipeline.ingest import load_raw_catalog
 
 
@@ -20,18 +20,18 @@ class OptimizationService:
     ) -> Dict[str, Any]:
         """
         Solves constrained linear programming optimization for daily astronaut diet
-        adhering to NASA-STD-3001 nutritional constraints while balancing payload mass,
+        meeting daily nutrient targets (vitamin C/B1 from NASA JSC 2005; other targets assumed) while balancing payload mass,
         chilling energy consumption, and bio-regenerative crop freshness.
         """
         foods = self.raw_catalog
         n_items = len(foods)
 
-        # NASA daily crew targets
-        target_cals = NASA_STD_3001_REQUIREMENTS["calories_kcal"]["nominal"] * crew_size
-        target_protein = NASA_STD_3001_REQUIREMENTS["protein_g"]["nominal"] * crew_size
-        target_vit_c = NASA_STD_3001_REQUIREMENTS["vitamin_c_mg"]["nominal"] * crew_size
-        target_b1 = NASA_STD_3001_REQUIREMENTS["thiamine_b1_mg"]["nominal"] * crew_size
-        target_potassium = NASA_STD_3001_REQUIREMENTS["potassium_mg"]["min"] * crew_size
+        # Daily crew nutrient targets (see app/core/constants.py for provenance)
+        target_cals = DAILY_NUTRIENT_TARGETS["calories_kcal"]["nominal"] * crew_size
+        target_protein = DAILY_NUTRIENT_TARGETS["protein_g"]["nominal"] * crew_size
+        target_vit_c = DAILY_NUTRIENT_TARGETS["vitamin_c_mg"]["nominal"] * crew_size
+        target_b1 = DAILY_NUTRIENT_TARGETS["thiamine_b1_mg"]["nominal"] * crew_size
+        target_potassium = DAILY_NUTRIENT_TARGETS["potassium_mg"]["min"] * crew_size
 
         # Coefficients for objective function
         # c @ x to minimize
@@ -169,5 +169,8 @@ class OptimizationService:
                 "vitamin_c_compliance_pct": round((total_vit_c / target_vit_c) * 100.0, 1),
                 "thiamine_b1_compliance_pct": round((total_b1 / target_b1) * 100.0, 1)
             },
-            "allocated_food_plan": allocated_items
+            "allocated_food_plan": allocated_items,
+            "data_provenance": ("food values from the synthetic catalog; targets: vitamin C and thiamine from NASA JSC 2005, "
+                                "others assumed; the key 'nasa_std_3001_compliance' is kept for UI compatibility and means "
+                                "coverage of these daily targets, not a NASA-STD-3001 compliance check")
         }

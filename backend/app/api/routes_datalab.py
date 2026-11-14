@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.pipeline.ingest import load_raw_catalog, process_and_audit_catalog
+from app.pipeline.ingest import load_raw_catalog, load_catalog_meta, process_and_audit_catalog
 from app.services.prediction_service import PredictionService
 
 router = APIRouter(prefix="/datalab", tags=["Data Laboratory"])
@@ -14,7 +14,8 @@ def get_food_catalog():
     catalog = load_raw_catalog()
     return {
         "count": len(catalog),
-        "standards_reference": "NASA-STD-3001 & USDA FoodData Spaceflight Inventory",
+        "data_provenance": load_catalog_meta()["data_provenance"],
+        "dataset_meta": load_catalog_meta(),
         "items": catalog
     }
 
@@ -22,16 +23,16 @@ def get_food_catalog():
 @router.get("/audit")
 def get_dataset_audit():
     """
-    Returns data cleaning, schema validation, and scientific bounds audit report.
+    Returns schema validation and physical-bounds audit report for the (synthetic) catalog.
     """
     _, report = process_and_audit_catalog()
-    return report.model_dump()
+    return {**report.model_dump(), "data_provenance": load_catalog_meta()["data_provenance"]}
 
 
 @router.get("/validation-benchmarks")
 def get_model_validation_benchmarks():
     """
-    Returns experimental NASA JSC spaceflight food degradation data
-    and compares it with model predictions (computes RMSE and R^2).
+    Compares the catalog's synthetic Arrhenius kinetics with published spaceflight-food
+    retention endpoints (Goulette et al. 2020 thiamine; Cooper et al. 2017 vitamin C).
     """
-    return prediction_service.validate_against_experimental_benchmarks()
+    return prediction_service.compare_with_literature_endpoints()
