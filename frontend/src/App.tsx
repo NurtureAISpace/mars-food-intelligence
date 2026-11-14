@@ -9,16 +9,27 @@ import { CrewHealthView } from './components/CrewHealthView';
 import { LifeSupportView } from './components/LifeSupportView';
 
 export function App() {
-  const [activeTab, setActiveTab] = useState<string>('dashboard');
-  const [missionSol, setMissionSol] = useState<number>(450);
+  // Demo-First Navigation: Crew Health is the primary Challenge Hero Screen
+  const [activeTab, setActiveTab] = useState<string>('crewhealth');
+  const [missionSol, setMissionSol] = useState<number>(192);
 
   return (
-    <div className="min-h-screen bg-mars-dark flex flex-col selection:bg-orange-500 selection:text-white">
-      {/* Top Navigation */}
+    <div className="min-h-screen deep-space-bg text-slate-100 flex flex-col selection:bg-orange-500 selection:text-white relative">
+      {/* Top Atmospheric Gradient Lighting (Inspired by Image 2 NOVA & Image 3 Mars Orbit) */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-gradient-to-b from-orange-500/10 via-cyan-500/5 to-transparent pointer-events-none blur-3xl -z-10" />
+
+      {/* Top Floating Glass Navigation */}
       <Navbar activeTab={activeTab} setActiveTab={setActiveTab} missionSol={missionSol} />
 
-      {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Main Mission Viewport */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {activeTab === 'crewhealth' && (
+          <CrewHealthView
+            missionSol={missionSol}
+            setMissionSol={setMissionSol}
+            onNavigate={(tab) => setActiveTab(tab)}
+          />
+        )}
         {activeTab === 'dashboard' && (
           <DashboardView
             onNavigate={(tab) => setActiveTab(tab)}
@@ -26,27 +37,27 @@ export function App() {
             setMissionSol={setMissionSol}
           />
         )}
-        {activeTab === 'datalab' && <DataLabView />}
         {activeTab === 'prediction' && <PredictionView />}
         {activeTab === 'optimization' && <OptimizationView />}
         {activeTab === 'simulator' && <SimulatorView />}
-        {activeTab === 'crewhealth' && <CrewHealthView />}
         {activeTab === 'lifesupport' && <LifeSupportView />}
+        {activeTab === 'datalab' && <DataLabView />}
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-mars-border bg-mars-dark/80 py-6 mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs font-mono text-slate-500 gap-4">
+      {/* Honest Scientific Footer (No unverified claims) */}
+      <footer className="border-t border-white/10 bg-mars-void/90 py-6 mt-12 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs font-mono text-slate-400 gap-4">
           <div>
-            <span className="text-white font-bold">NURTUREAISPACE</span> • Sol-450 Deep Space Engine
-            <span className="block text-[11px] text-slate-400 mt-0.5">
-              Autonomous Space Nutrition & Bio-Regenerative Life Support System (N-BLSS)
+            <span className="text-white font-bold tracking-wider">NURTUREAISPACE</span> • Sol-450 Deep Space Mission Architecture
+            <span className="block text-[11px] text-slate-400 mt-0.5 font-sans">
+              Autonomous Space Nutrition & Bio-Regenerative Life Support System • Decision-Support Prototype
             </span>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-[11px]">
             <span className="text-emerald-400">● Backend: FastAPI + SciPy</span>
             <span className="text-cyan-400">● Arrhenius First-Order Kinetics</span>
             <span className="text-orange-400">● Prototype · synthetic scenario data</span>
+            <span className="text-slate-400">● NASA OSDR Inspiration4 Benchmark</span>
           </div>
         </div>
       </footer>
