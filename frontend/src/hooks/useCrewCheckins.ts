@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { fetchCheckins } from '../api';
-import type { CheckinHistoryEntry, CheckinIndicatorKey, CheckinOverallStatus } from '../types';
+import type { CheckinColor, CheckinHistoryEntry, CheckinIndicatorKey, CheckinOverallStatus } from '../types';
 
 /**
  * Astronaut App seats 1-4. Seat k checks in as Inspiration4 subject C00k (links the demo to the real
@@ -81,8 +81,28 @@ export function checkinReason(e: CheckinHistoryEntry): string {
   const reds = keys.filter((k) => e.colors[k as CheckinIndicatorKey] === 'red').map(word);
   const ambers = keys.filter((k) => e.colors[k as CheckinIndicatorKey] === 'amber').map(word);
   const flags = (e.baseline_flags ?? []).map(word);
-  if (reds.length) return `${joinWords(reds)} outside the safe range — call the flight doctor today.`;
-  if (ambers.length) return `${joinWords(ambers)} slightly off — check again tomorrow.`;
+  if (reds.length) return `${joinWords(reds)} outside the reference range — may need attention; check with the flight surgeon today.`;
+  if (ambers.length) return `${joinWords(ambers)} slightly off — measure again at the next check-in.`;
   if (flags.length) return `${joinWords(flags)} different from their usual — keep an eye on it.`;
-  return `All ${keys.length} readings in the normal range.`;
+  return `All ${keys.length} readings in the reference range.`;
 }
+
+/** Seeded demo entries (backend/scripts/seed_demo_checkins.py) vs real Astronaut App check-ins. */
+export const isDemoCheckin = (e: CheckinHistoryEntry) =>
+  e.notes === 'demo seed' || (e.client_id ?? '').startsWith('demo-seed');
+
+/** The 6 latest readings of a check-in as label / value / colour rows (values straight from the API record). */
+export function checkinReadings(e: CheckinHistoryEntry): Array<{ key: CheckinIndicatorKey; label: string; value: string; color: CheckinColor | undefined }> {
+  const c = e.colors ?? ({} as CheckinHistoryEntry['colors']);
+  return [
+    { key: 'heart_rate', label: 'Heart rate', value: `${e.heart_rate_bpm} bpm`, color: c.heart_rate },
+    { key: 'blood_pressure', label: 'Blood pressure', value: `${e.systolic_mmHg}/${e.diastolic_mmHg} mmHg`, color: c.blood_pressure },
+    { key: 'blood_glucose', label: 'Blood sugar', value: `${e.blood_glucose_mg_dl} mg/dL`, color: c.blood_glucose },
+    { key: 'body_temperature', label: 'Temperature', value: `${e.body_temp_c} °C`, color: c.body_temperature },
+    { key: 'sleep', label: 'Sleep', value: `${e.sleep_hours} h`, color: c.sleep },
+    { key: 'mood', label: 'Mood', value: `${e.mood_1_5} / 5`, color: c.mood },
+  ];
+}
+
+export const indicatorWord = word;
+export const joinIndicatorWords = joinWords;

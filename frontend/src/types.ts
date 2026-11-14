@@ -195,7 +195,8 @@ export interface CrewAlert {
   astronaut_id: string;
   sol: number;
   status: CrewStatus;
-  nutrient: NutrientKey;
+  /** null when the alert is driven by a vital sign; 'vitamin_d' for vitamin D status alerts. */
+  nutrient: NutrientKey | 'vitamin_d';
   pool_mg: number | null;
   risk_threshold_mg: number;
   sols_to_risk: number | null;
@@ -250,9 +251,56 @@ export interface CrewScenarioPreset {
   parameters?: CrewHealthScenario & Record<string, unknown>;
 }
 
+export interface CrewDestination {
+  id: 'earth_orbit' | 'moon' | 'mars' | string;
+  label: string;
+  unit: 'day' | 'sol';
+  mission_length: number;
+  mission_length_unit: string;
+  horizon_sols: number;
+  horizon_days: number;
+  gravity: string;
+  resupply: string;
+  status: 'literature' | 'derived' | 'assumed';
+  source: string;
+  source_citation: string | null;
+  where_in_source: string | null;
+  note: string;
+  parameter: string;
+}
+
 export interface CrewScenarioPresets {
   default: string;
   scenarios: CrewScenarioPreset[];
+  default_destination?: string;
+  destinations?: CrewDestination[];
+}
+
+/** A model Sol and the matching mission day (1 Sol = 1.02749 days), both computed by the backend. */
+export interface SolDay { sol: number; day: number }
+
+export interface CrewHorizon {
+  horizon_sols: number;
+  horizon_days: number;
+  last: SolDay;
+  assessed: SolDay;
+  sol_in_earth_days: number;
+  first_warning: {
+    astronaut_id: string;
+    nutrient: string;
+    warning: SolDay;
+    problem: SolDay;
+    lead_sols: number;
+    lead_days: number;
+    recommendation: CrewAlert['recommendation'];
+  } | null;
+  vitamins_last_whole_mission: boolean;
+  cooling_failure: { start: SolDay; end: SolDay; duration_sols: number; peak_temp_c: number; in_mission: boolean } | null;
+  per_astronaut: Array<{
+    astronaut_id: string;
+    vitamins: Record<string, { runs_low: SolDay | null; basis: 'forecast' | 'simulated' | null }>;
+  }>;
+  note: string;
 }
 
 export interface CrewHealthSnapshot {
@@ -269,6 +317,7 @@ export interface CrewHealthSnapshot {
   nutrients: Record<NutrientKey, CrewNutrientMeta>;
   crew: CrewMemberStatus[];
   active_alerts: CrewAlert[];
+  horizon?: CrewHorizon;
 }
 
 export interface AstronautTimelinePoint {

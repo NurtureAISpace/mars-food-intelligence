@@ -1,10 +1,16 @@
 // Crew (landing): latest Astronaut App check-in per seat, shown only by its anonymized code.
-// The web Daily Check-in form, streaks, demo values and the alert/rules section were removed from the web UI;
-// the backend endpoints stay because the Astronaut App uses them.
-import React from 'react';
-import { Clock, ExternalLink, Rocket, Smartphone, Users } from 'lucide-react';
-import { CrewCheckinsState, SeatState, checkinReason } from '../hooks/useCrewCheckins';
-import { ErrorBox, GlassPanel, Loading, PseudonymCode, Section, StatTile, StatusBadge } from '../ui/glass';
+// Every number comes from GET /health/checkins (per seat) and GET /health/scenarios (destination label).
+// Seeded demo entries are tagged "Demo check-in"; real ones "From Astronaut App".
+import React, { useEffect, useState } from 'react';
+import { ClipboardList, Clock, ExternalLink, Globe, Rocket, Smartphone, Users } from 'lucide-react';
+import { fetchCrewScenarios } from '../api';
+import {
+  CrewCheckinsState, SeatState, checkinReadings, checkinReason, indicatorWord, isDemoCheckin, joinIndicatorWords,
+} from '../hooks/useCrewCheckins';
+import type { CheckinIndicatorKey } from '../types';
+import {
+  Bullets, Dot, ErrorBox, GlassPanel, KVList, KVRow, Loading, PseudonymCode, Section, SourceTag, StatTile, StatusBadge,
+} from '../ui/glass';
 
 // Offline-first Astronaut App (apps/astronaut). Override with VITE_ASTRONAUT_APP_URL at build time.
 const ASTRONAUT_APP_URL: string = import.meta.env.VITE_ASTRONAUT_APP_URL ?? 'http://localhost:3001';
@@ -16,53 +22,125 @@ function when(e: NonNullable<SeatState['latest']>): string {
   return `Sol ${e.sol} · ${t}`;
 }
 
+const nameOf = (s: SeatState) => s.pseudonym ?? s.astronautId;
+
+/** Source tags for a set of seats: demo, Astronaut App, or both. */
+const SeatSources: React.FC<{ seats: SeatState[] }> = ({ seats }) => {
+  const withData = seats.filter((s) => s.latest);
+  const demo = withData.some((s) => isDemoCheckin(s.latest!));
+  const real = withData.some((s) => !isDemoCheckin(s.latest!));
+  return (
+    <span className="flex flex-wrap gap-2">
+      {real && <SourceTag kind="astronaut" />}
+      {demo && <SourceTag kind="demo" />}
+    </span>
+  );
+};
+
 const SeatCard: React.FC<{ s: SeatState }> = ({ s }) => (
-  <div className="section-card flex flex-col gap-3 !p-5">
-    <span className="text-sm font-medium uppercase tracking-wider text-slate-300">Seat {s.seat}</span>
+  <div className="inner-card flex flex-col gap-4">
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <span className="text-[16px] font-medium uppercase tracking-wider text-slate-300">Seat {s.seat}</span>
+      {s.latest && <SourceTag kind={isDemoCheckin(s.latest) ? 'demo' : 'astronaut'} />}
+    </div>
     {s.latest ? (
       <>
-        {s.pseudonym ? <PseudonymCode code={s.pseudonym} /> : <span className="text-xl font-semibold text-white">{s.astronautId}</span>}
+        {s.pseudonym ? <PseudonymCode code={s.pseudonym} /> : <span className="text-[22px] font-semibold text-white">{s.astronautId}</span>}
         <div><StatusBadge status={s.latest.overall_status} /></div>
-        <span className="inline-flex items-center gap-1.5 text-base text-slate-300">
+        <span className="inline-flex items-center gap-2 text-[16px] text-slate-300">
           <Clock className="h-4 w-4" aria-hidden /> {when(s.latest)}
         </span>
-        <p className="text-base text-white">{checkinReason(s.latest)}</p>
+        <KVList>
+          {checkinReadings(s.latest).map((r) => (
+            <KVRow key={r.key} label={r.label} value={r.value} dot={(r.color ?? 'none') as Dot} />
+          ))}
+        </KVList>
+        <p className="text-[18px] leading-relaxed text-white">{checkinReason(s.latest)}</p>
       </>
     ) : (
       <>
-        <span className="text-xl font-semibold text-slate-200">No check-in yet</span>
+        <span className="text-[22px] font-semibold text-slate-200">No check-in yet</span>
         <div><StatusBadge status="NONE" label="Waiting" /></div>
+        <p className="text-[18px] text-slate-300">Readings appear here after the first check-in in the Astronaut App.</p>
       </>
     )}
   </div>
 );
 
+/** Up to 3 actions for today, built only from the latest check-in statuses and colours. */
+function todaysActions(seats: SeatState[], currentSol: number | null): string[] {
+  const out: string[] = [];
+  const keysWith = (s: SeatState, color: 'red' | 'amber') =>
+    Object.entries(s.latest!.colors ?? {}).filter(([, c]) => c === color).map(([k]) => indicatorWord(k as CheckinIndicatorKey));
+  for (const s of seats.filter((x) => x.latest?.overall_status === 'ACT')) {
+    out.push(`${nameOf(s)}: ${joinIndicatorWords(keysWith(s, 'red'))} outside the reference range. Check with the flight surgeon today.`);
+  }
+  for (const s of seats.filter((x) => x.latest?.overall_status === 'WATCH')) {
+    const off = keysWith(s, 'amber');
+    const what = off.length ? joinIndicatorWords(off) : joinIndicatorWords((s.latest!.baseline_flags ?? []).map(indicatorWord));
+    out.push(`${nameOf(s)}: measure ${what || 'all readings'} again at the next check-in.`);
+  }
+  for (const s of seats.filter((x) => !x.latest || (currentSol !== null && x.latest.sol < currentSol))) {
+    out.push(`Seat ${s.seat}: no check-in${currentSol !== null ? ` for Sol ${currentSol}` : ''} yet. Remind them to open the Astronaut App.`);
+  }
+  if (!out.length) {
+    out.push(`No action needed today: all ${seats.length} crew members have every reading in range. Next check-in tomorrow.`);
+  }
+  return out.slice(0, 3);
+}
+
 export const CrewHealthView: React.FC<{ crew: CrewCheckinsState; onNavigate: (tab: string) => void }> = ({ crew, onNavigate }) => {
   const { seats, error, reload, currentSol, allGood, needAttention } = crew;
+  const [destination, setDestination] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchCrewScenarios()
+      .then((d) => setDestination(d.destinations?.find((x) => x.id === d.default_destination)?.label ?? null))
+      .catch(() => setDestination(null));
+  }, []);
+
+  const checkedInToday = seats && currentSol !== null ? seats.filter((s) => s.latest?.sol === currentSol).length : 0;
 
   return (
-    <GlassPanel title="MONITOR. PREDICT. PROTECT." subtitle="The Mars crew's daily health, at a glance.">
+    <GlassPanel
+      title="MONITOR. PREDICT. PROTECT."
+      subtitle="The crew's daily health at a glance. Each astronaut measures six readings in the Astronaut App; we compare them with reference ranges and with their own usual values."
+    >
       {error && !seats && (
         <ErrorBox>
           Start the backend, then <button onClick={() => void reload()} className="underline">try again</button>.
         </ErrorBox>
       )}
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatTile label="Crew members" value={seats ? seats.length : '—'} />
-        <StatTile label="Current Sol" value={currentSol ?? '—'} />
-        <StatTile label="All good" value={seats ? allGood : '—'} tone="text-nominal" />
-        <StatTile label="Need attention" value={seats ? needAttention : '—'} tone={needAttention ? 'text-watch' : 'text-white'} />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_1fr_1fr]">
+        <Section icon={Globe} title="Mission" right={seats ? <SeatSources seats={seats} /> : undefined}>
+          <KVList>
+            <KVRow label="Destination" value={destination ?? '—'} />
+            <KVRow label="Crew size" value={seats ? seats.length : '—'} />
+            <KVRow label="Current Sol" value={currentSol ?? '—'} />
+            <KVRow label="Check-ins today" value={seats ? `${checkedInToday} / ${seats.length}` : '—'} />
+          </KVList>
+        </Section>
+        <StatTile label="All readings in range" value={seats ? allGood : '—'} tone="text-nominal"
+          source={seats ? <SeatSources seats={seats} /> : undefined} />
+        <StatTile label="Need attention" value={seats ? needAttention : '—'} tone={needAttention ? 'text-watch' : 'text-white'}
+          source={seats ? <SeatSources seats={seats} /> : undefined} />
       </div>
 
-      <Section icon={Users} title="Crew">
+      <Section icon={Users} title="Crew: latest readings">
         {!seats && !error && <Loading />}
         {seats && (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 2xl:grid-cols-4">
             {seats.map((s) => <SeatCard key={s.astronautId} s={s} />)}
           </div>
         )}
       </Section>
+
+      {seats && (
+        <Section icon={ClipboardList} title="Today's actions">
+          <Bullets items={todaysActions(seats, currentSol)} />
+        </Section>
+      )}
 
       <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-3">
@@ -73,7 +151,7 @@ export const CrewHealthView: React.FC<{ crew: CrewCheckinsState; onNavigate: (ta
             <Rocket className="h-5 w-5" aria-hidden /> Real NASA Data
           </button>
         </div>
-        <p className="text-base text-slate-300">Daily check-ins come from the Astronaut App.</p>
+        <p className="text-[18px] text-slate-300">Green: in range · Amber: slightly off · Red: outside the range.</p>
       </div>
     </GlassPanel>
   );
