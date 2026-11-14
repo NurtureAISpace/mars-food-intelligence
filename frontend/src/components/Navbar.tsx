@@ -1,176 +1,113 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Activity, ChevronDown, Compass, Cpu, Database, Droplets, Menu, X } from 'lucide-react';
-import type { CrewStatus } from '../types';
-import { STATUS_TONE, TONE } from '../ui/tokens';
+import { AlertTriangle, CheckCircle2, HelpCircle, Menu, Stethoscope, X } from 'lucide-react';
+import type { CheckinOverallStatus } from '../types';
+import { StatusKey, statusText, statusWord } from '../ui/glass';
 
 interface NavbarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  crewStatus: CrewStatus | null; // worst status for the Crew Health scenario/Sol
-  crewSol: number;
+  crewStatus: CheckinOverallStatus | null; // worst status of the latest Astronaut App check-ins
+  crewSol: number | null;
 }
 
-type Tab = { id: string; label: string; icon?: React.ComponentType<{ className?: string }> };
+type Tab = { id: string; label: string };
 
-// Primary navigation (challenge story first). Everything else stays reachable under "More".
+// The only 3 screens in navigation. The older "More" screens (Dashboard, Data Lab, Optimizer, Simulator,
+// Life Support) keep their code and routes in App.tsx but are intentionally not linked anywhere.
 export const PRIMARY_TABS: Tab[] = [
-  { id: 'crewhealth', label: 'Crew Health' },
+  { id: 'crewhealth', label: 'Crew' },
   { id: 'realdata', label: 'Real NASA Data' },
   { id: 'prediction', label: 'Food & Vitamins' },
 ];
 
-export const MORE_TABS: Tab[] = [
-  { id: 'dashboard', label: 'Mission Dashboard', icon: Activity },
-  { id: 'datalab', label: 'Data Laboratory', icon: Database },
-  { id: 'optimization', label: 'SciPy Optimizer', icon: Cpu },
-  { id: 'simulator', label: 'Mission Simulator', icon: Compass },
-  { id: 'lifesupport', label: 'Life Support Sim', icon: Droplets },
-];
-
-/** Closes a popover on outside click / Escape. */
-function useDismiss(open: boolean, setOpen: (v: boolean) => void, ref: React.RefObject<HTMLElement>) {
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
-    document.addEventListener('mousedown', onDown);
-    document.addEventListener('keydown', onKey);
-    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
-  }, [open, setOpen, ref]);
-}
+const PILL_ICON: Record<StatusKey, React.ComponentType<{ className?: string }>> = {
+  NOMINAL: CheckCircle2, WATCH: AlertTriangle, ACT: Stethoscope, CALIBRATING: HelpCircle, NONE: HelpCircle,
+};
 
 const Wordmark: React.FC<{ onClick: () => void }> = ({ onClick }) => (
-  <button onClick={onClick} className="group flex items-center gap-2.5" aria-label="NurtureAISpace — go to Crew Health">
-    <span className="relative grid h-7 w-7 place-items-center" aria-hidden>
-      <span className="planet planet-mars h-4 w-4" />
-      <span className="absolute inset-0 rounded-full border border-white/25" style={{ transform: 'rotate(-20deg) scaleY(0.38)' }} />
-    </span>
-    <span className="font-display text-[15px] font-bold tracking-[0.04em] text-fg">
-      NURTURE<span className="text-accent">AI</span>SPACE
+  <button onClick={onClick} className="flex items-center gap-2.5" aria-label="NurtureAISpace — go to Crew">
+    <span className="h-3 w-3 rounded-full bg-indigo-400 shadow-[0_0_14px_rgba(129,140,248,0.9)]" aria-hidden />
+    <span className="text-lg font-bold tracking-wide text-white">
+      NURTURE<span className="text-indigo-300">AI</span>SPACE
     </span>
   </button>
 );
 
-const CrewStatusPill: React.FC<{ status: CrewStatus | null; sol: number; compact?: boolean; onClick: () => void }> = ({
-  status, sol, compact, onClick,
-}) => {
-  const tone = status ? TONE[STATUS_TONE[status]] : TONE.neutral;
-  const isAct = status === 'ACT';
+const CrewStatusPill: React.FC<{ status: CheckinOverallStatus | null; sol: number | null; onClick: () => void }> = ({ status, sol, onClick }) => {
+  const key: StatusKey = status ?? 'NONE';
+  const I = PILL_ICON[key];
   return (
-    <button
-      onClick={onClick}
-      title={`Worst crew status at Sol ${sol} for the selected Crew Health scenario`}
-      className={`inline-flex items-center gap-2 rounded-full border bg-black/40 backdrop-blur-md font-mono text-[11px] uppercase tracking-[0.16em] transition hover:bg-white/[0.06] ${
-        tone.border
-      } ${compact ? 'px-2.5 py-1.5' : 'px-3.5 py-2'} ${isAct ? 'glow-act' : ''}`}
-    >
-      <span className={`h-2 w-2 rounded-full ${tone.dot} ${isAct ? 'animate-pulse' : ''}`} />
-      {!compact && <span className="text-muted">Crew status ·</span>}
-      <span className={`font-semibold ${tone.text}`}>{status ?? '…'}</span>
-      {!compact && <span className="border-l border-white/15 pl-2 text-muted">Sol {sol}</span>}
+    <button onClick={onClick} title="Worst status of the latest crew check-ins"
+      className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-white/15 bg-slate-950/50 px-4 text-sm font-semibold uppercase tracking-wider text-slate-200 backdrop-blur-md hover:bg-white/10">
+      <span>Crew</span>
+      <span className="text-slate-500" aria-hidden>·</span>
+      <span className={`inline-flex items-center gap-1.5 normal-case tracking-normal ${statusText(key)}`}>
+        <I className="h-4 w-4" />{status ? statusWord(key) : 'No check-ins yet'}
+      </span>
+      {sol !== null && (<><span className="text-slate-500" aria-hidden>·</span><span>Sol {sol}</span></>)}
     </button>
   );
 };
 
 export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, crewStatus, crewSol }) => {
-  const [moreOpen, setMoreOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const moreRef = useRef<HTMLDivElement>(null);
-  const mobileRef = useRef<HTMLDivElement>(null);
-  useDismiss(moreOpen, setMoreOpen, moreRef);
-  useDismiss(mobileOpen, setMobileOpen, mobileRef);
-  const activeMore = MORE_TABS.find((t) => t.id === activeTab);
+  const ref = useRef<HTMLElement>(null);
 
-  const go = (id: string) => { setActiveTab(id); setMoreOpen(false); setMobileOpen(false); window.scrollTo({ top: 0 }); };
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onDown = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setMobileOpen(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMobileOpen(false); };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
+  }, [mobileOpen]);
 
-  const pillItem = (isActive: boolean) =>
-    `rounded-full px-4 py-2 text-sm font-medium transition whitespace-nowrap ${
-      isActive ? 'bg-accent text-white shadow-[0_0_20px_-4px_rgba(255,107,44,0.7)]' : 'text-soft hover:text-fg hover:bg-white/[0.06]'
+  const go = (id: string) => { setActiveTab(id); setMobileOpen(false); window.scrollTo({ top: 0 }); };
+
+  const item = (active: boolean) =>
+    `min-h-[48px] rounded-xl px-5 text-lg font-semibold transition whitespace-nowrap ${
+      active ? 'bg-indigo-600 text-white shadow-[0_0_24px_-6px_rgba(99,102,241,0.8)]' : 'text-slate-200 hover:bg-white/10 hover:text-white'
     }`;
 
   return (
-    <header ref={mobileRef} className="sticky top-0 z-50 bg-gradient-to-b from-ink from-55% via-ink/80 to-transparent px-4 pb-5 pt-3 sm:px-6 lg:px-8">
-      <div className="mx-auto flex h-12 max-w-[1440px] items-center justify-between gap-4">
+    <header ref={ref} className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/60 px-4 backdrop-blur-md sm:px-6">
+      <div className="mx-auto flex min-h-[72px] max-w-6xl items-center justify-between gap-4">
         <Wordmark onClick={() => go('crewhealth')} />
 
-        {/* Desktop: floating glass pill, centered */}
-        <nav aria-label="Primary" className="absolute left-1/2 hidden -translate-x-1/2 xl:block">
-          <div className="flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur-xl">
-            {PRIMARY_TABS.map((t) => (
-              <button key={t.id} onClick={() => go(t.id)} className={pillItem(activeTab === t.id)} aria-current={activeTab === t.id ? 'page' : undefined}>
-                {t.label}
-              </button>
-            ))}
-            <div className="relative" ref={moreRef}>
-              <button onClick={() => setMoreOpen((o) => !o)} aria-haspopup="menu" aria-expanded={moreOpen}
-                className={`${pillItem(Boolean(activeMore))} inline-flex items-center gap-1`}>
-                {activeMore ? `More · ${activeMore.label}` : 'More'}
-                <ChevronDown className={`h-3.5 w-3.5 transition-transform ${moreOpen ? 'rotate-180' : ''}`} />
-              </button>
-              {moreOpen && (
-                <div role="menu" className="card reveal absolute right-0 mt-3 w-60 !rounded-xl bg-ink/90 p-1.5">
-                  {MORE_TABS.map((t) => {
-                    const Icon = t.icon!;
-                    const isActive = activeTab === t.id;
-                    return (
-                      <button key={t.id} role="menuitem" onClick={() => go(t.id)}
-                        className={`flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition ${
-                          isActive ? 'bg-accent/15 text-accent' : 'text-soft hover:bg-white/[0.06] hover:text-fg'
-                        }`}>
-                        <Icon className="h-4 w-4" />
-                        {t.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </div>
+        <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">
+          {PRIMARY_TABS.map((t) => (
+            <button key={t.id} onClick={() => go(t.id)} className={item(activeTab === t.id)}
+              aria-current={activeTab === t.id ? 'page' : undefined}>
+              {t.label}
+            </button>
+          ))}
         </nav>
 
         <div className="flex items-center gap-2">
           <span className="hidden sm:inline-flex">
             <CrewStatusPill status={crewStatus} sol={crewSol} onClick={() => go('crewhealth')} />
           </span>
-          <span className="sm:hidden">
-            <CrewStatusPill status={crewStatus} sol={crewSol} compact onClick={() => go('crewhealth')} />
-          </span>
           <button
-            className="grid h-10 w-10 place-items-center rounded-full border border-white/10 bg-white/[0.04] text-fg backdrop-blur-md xl:hidden"
+            className="grid h-12 w-12 place-items-center rounded-xl border border-white/15 text-white lg:hidden"
             aria-label={mobileOpen ? 'Close menu' : 'Open menu'} aria-expanded={mobileOpen} aria-controls="mobile-nav"
             onClick={() => setMobileOpen((o) => !o)}
           >
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
       </div>
 
-      {/* Mobile / tablet menu */}
       {mobileOpen && (
-        <nav id="mobile-nav" aria-label="Mobile" className="card reveal mx-auto mt-2 max-w-[1440px] bg-ink/90 p-2 xl:hidden">
-          {PRIMARY_TABS.map((t, i) => (
+        <nav id="mobile-nav" aria-label="Mobile" className="mx-auto max-w-6xl space-y-1 pb-4 lg:hidden">
+          <div className="pb-2 sm:hidden">
+            <CrewStatusPill status={crewStatus} sol={crewSol} onClick={() => go('crewhealth')} />
+          </div>
+          {PRIMARY_TABS.map((t) => (
             <button key={t.id} onClick={() => go(t.id)} aria-current={activeTab === t.id ? 'page' : undefined}
-              className={`flex w-full items-baseline gap-3 rounded-xl px-4 py-3 text-left transition ${
-                activeTab === t.id ? 'bg-accent/15 text-fg' : 'text-soft hover:bg-white/[0.05]'
-              }`}>
-              <span className="font-mono text-[11px] text-accent">0{i + 1}</span>
-              <span className="display text-xl">{t.label}</span>
+              className={`${item(activeTab === t.id)} w-full text-left`}>
+              {t.label}
             </button>
           ))}
-          <div className="mt-2 border-t border-line px-4 pb-1 pt-3"><span className="eyebrow">More</span></div>
-          <div className="grid grid-cols-1 gap-0.5 sm:grid-cols-2">
-            {MORE_TABS.map((t) => {
-              const Icon = t.icon!;
-              return (
-                <button key={t.id} onClick={() => go(t.id)}
-                  className={`flex items-center gap-2.5 rounded-lg px-4 py-2.5 text-left text-sm transition ${
-                    activeTab === t.id ? 'bg-accent/15 text-accent' : 'text-soft hover:bg-white/[0.05]'
-                  }`}>
-                  <Icon className="h-4 w-4" />{t.label}
-                </button>
-              );
-            })}
-          </div>
         </nav>
       )}
     </header>

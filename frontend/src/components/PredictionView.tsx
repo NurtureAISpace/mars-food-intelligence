@@ -1,241 +1,150 @@
+// Food & Vitamins: what happens to the crew's vitamins in a normal mission vs. a food-storage failure.
+// Uses the existing demo presets (GET /health/scenarios: "nominal" and "severe_cooling_failure"), the crew
+// snapshot at the last mission Sol and the early-warning alerts. Every number shown comes from those responses.
 import React, { useEffect, useState } from 'react';
-import { fetchFoodCatalog, predictShelfLife } from '../api';
-import { FoodItem, ShelfLifePrediction } from '../types';
-import { Hero } from '../ui/Hero';
-import { Card, DataBadge, SectionHead, Stat, TonePill } from '../ui/primitives';
-import { C } from '../ui/tokens';
-import {
-  ANNOT, AXIS_TITLE, ChartLegend, GlowFilter, HaloDot, SvgTooltip, TICK, nearest, useHoverX, useSvgId,
-} from '../ui/chart';
+import { Flag, Snowflake, ThermometerSun, Users } from 'lucide-react';
+import { fetchAlertsPreset, fetchCrewPreset, fetchCrewScenarios } from '../api';
+import type { CrewAlert, CrewAlertsResponse, CrewHealthSnapshot, CrewMemberStatus, CrewScenarioPreset } from '../types';
+import { DataTag, ErrorBox, GlassPanel, Loading, Section, SelectCard, StatusBadge } from '../ui/glass';
 
-const MAX_SOL = 800;
-const TARGET_SOL = 450;
+const NORMAL_ID = 'nominal';
+const FAILURE_ID = 'severe_cooling_failure';
 
-// Storage temperature band → text tone (warmer = faster vitamin loss)
-const tempTone = (t: number) => (t <= 4 ? 'text-fg' : t <= 21 ? 'text-watch' : 'text-act');
-
-const RetentionChart: React.FC<{ prediction: ShelfLifePrediction | null; thresholdPct: number; loading: boolean }> = ({
-  prediction, thresholdPct, loading,
-}) => {
-  const W = 800, H = 300, L = 62, R = 20, T = 34, B = 50;
-  const glowId = useSvgId('glow');
-  const fadeId = useSvgId('fade');
-  const sx = (sol: number) => L + (sol / MAX_SOL) * (W - L - R);
-  const sy = (pct: number) => H - B - (pct / 100) * (H - T - B);
-  const pts: Array<[number, number]> = (prediction?.retention_curve ?? []).map((p) => [p.sol, p.retention_pct]);
-  const line = pts.map(([s, r], i) => `${i ? 'L' : 'M'} ${sx(s).toFixed(1)} ${sy(r).toFixed(1)}`).join(' ');
-  const area = pts.length ? `${line} L ${sx(pts[pts.length - 1][0]).toFixed(1)} ${sy(0)} L ${sx(pts[0][0]).toFixed(1)} ${sy(0)} Z` : '';
-  const { hx, bind } = useHoverX({ x0: L, x1: W - R, d0: 0, d1: MAX_SOL, width: W });
-  const hp = hx !== null ? nearest(pts, hx) : null;
-  const dd = prediction?.drop_dead_sol;
-
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} className={`h-auto w-full min-w-[560px] transition-opacity ${loading ? 'opacity-60' : ''}`}
-      role="img" aria-label="Nutrient retention over mission Sols">
-      <defs>
-        <GlowFilter id={glowId} />
-        <linearGradient id={fadeId} x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor={C.series1} stopOpacity={0.22} />
-          <stop offset="100%" stopColor={C.series1} stopOpacity={0} />
-        </linearGradient>
-      </defs>
-
-      {[0, 25, 50, 75, 100].map((v) => (
-        <g key={v}>
-          <line x1={L} y1={sy(v)} x2={W - R} y2={sy(v)} stroke={C.grid} />
-          <text x={L - 10} y={sy(v) + 4} textAnchor="end" {...TICK} fontSize={12}>{v}%</text>
-        </g>
-      ))}
-      {[0, 200, 400, 600, 800].map((s) => (
-        <text key={s} x={sx(s)} y={H - B + 19} textAnchor="middle" {...TICK} fontSize={12}>{s}</text>
-      ))}
-      <line x1={L} y1={sy(0)} x2={W - R} y2={sy(0)} stroke={C.axis} />
-      <text x={(L + W - R) / 2} y={H - 6} textAnchor="middle" {...AXIS_TITLE} fontSize={11.5}>MISSION SOL</text>
-      <text transform={`translate(16 ${(T + H - B) / 2}) rotate(-90)`} textAnchor="middle" {...AXIS_TITLE} fontSize={11.5}>
-        THIAMINE (B1) RETAINED (%)
-      </text>
-
-      {/* Sol-450 mission target */}
-      <line x1={sx(TARGET_SOL)} y1={T} x2={sx(TARGET_SOL)} y2={H - B} stroke={C.accent} strokeWidth="1" strokeDasharray="4 4" />
-      <text x={sx(TARGET_SOL)} y={T - 12} textAnchor="middle" {...ANNOT} fontSize={12} fontWeight={600}>MISSION TARGET · SOL 450</text>
-
-      {/* Viability cut-off (glowing, status red) */}
-      <line x1={L} y1={sy(thresholdPct)} x2={W - R} y2={sy(thresholdPct)} stroke={C.act} strokeWidth="1.5" strokeDasharray="6 4"
-        filter={`url(#${glowId})`} />
-      <text x={L + 8} y={sy(thresholdPct) + 18} {...ANNOT} fontSize={12}>cut-off {thresholdPct}%</text>
-
-      {area && <path d={area} fill={`url(#${fadeId})`} />}
-      {line && <path d={line} fill="none" stroke={C.series1} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />}
-
-      {dd !== undefined && dd !== null && dd <= MAX_SOL && (
-        <g>
-          <HaloDot cx={sx(dd)} cy={sy(thresholdPct)} color={C.act} r={4.5} />
-          <text x={sx(dd) > W * 0.65 ? sx(dd) - 12 : sx(dd) + 12} y={sy(thresholdPct) - 14}
-            textAnchor={sx(dd) > W * 0.65 ? 'end' : 'start'} {...ANNOT} fontSize={12} fontWeight={600} fill={C.fg}>
-            Below cut-off at Sol {dd}
-          </text>
-        </g>
-      )}
-
-      {hp && (
-        <g pointerEvents="none">
-          <line x1={sx(hp[0])} y1={T} x2={sx(hp[0])} y2={H - B} stroke={C.fg} opacity={0.25} />
-          <circle cx={sx(hp[0])} cy={sy(hp[1])} r={4} fill={C.series1} stroke={C.ink} strokeWidth={1.5} />
-          <SvgTooltip x={sx(hp[0])} y={T + 6} maxX={W - R}
-            lines={[{ text: `Sol ${Math.round(hp[0])}` }, { text: `${hp[1].toFixed(1)}% retained`, color: C.series1 }]} />
-        </g>
-      )}
-      <rect x={L} y={T} width={W - L - R} height={H - T - B} fill="transparent" {...bind} />
-    </svg>
-  );
+const VITAMIN: Record<string, string> = { vitamin_c: 'Vitamin C', thiamine_b1: 'Vitamin B1', vitamin_d: 'Vitamin D' };
+const DRIVER: Record<string, string> = {
+  hr_rest: 'Resting heart rate', sleep_h: 'Sleep', body_mass_kg: 'Body weight', fatigue_score: 'Tiredness',
 };
 
-export const PredictionView: React.FC = () => {
-  const [catalog, setCatalog] = useState<FoodItem[]>([]);
-  const [selectedFoodId, setSelectedFoodId] = useState<string>('TH-001');
-  const [storageTemp, setStorageTemp] = useState<number>(4.0);
-  const [thresholdPct, setThresholdPct] = useState<number>(50.0);
-  const [prediction, setPrediction] = useState<ShelfLifePrediction | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+const vit = (key: string | null | undefined) => (key ? VITAMIN[key] ?? key.replace(/_/g, ' ') : 'A vitamin');
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+/** Plain action from the model's recommendation ("change the menu" when it is a food). */
+function actionOf(a: CrewAlert): string {
+  const r = a.recommendation;
+  if (!r) return 'measure again and check the crew log';
+  return r.food_id ? `change the menu — add ${r.food_name}` : `add a ${vit(a.nutrient)} supplement`;
+}
+
+/** One sentence + one action per crew member, from the snapshot's own numbers. */
+function crewSentence(m: CrewMemberStatus): string {
+  if (m.status === 'CALIBRATING') return "Still learning this person's normal.";
+  const a = m.assessment;
+  if (m.status === 'NOMINAL' || !a) return 'Vitamins stay above the safe level.';
+  if (!a.recommendation) return `${DRIVER[a.top_vital_driver] ?? 'A vital sign'} changed from their usual. Action: measure again.`;
+  const s = a.sols_to_risk;
+  if (s !== null && s <= 0) return `${vit(a.nutrient)} is already below the safe level. Action: ${actionOf(a)}.`;
+  const when = s !== null ? ` — expected problem in ~${Math.round(s)} Sols` : '';
+  return `${vit(a.nutrient)} is running low${when}. Action: ${actionOf(a)}.`;
+}
+
+type Step = { title: string; line: string };
+
+/** 4-step briefing from the first vitamin alert of the scenario (earliest Sol with a forecast problem date). */
+function timeline(snap: CrewHealthSnapshot, alerts: CrewAlertsResponse, preset?: CrewScenarioPreset): Step[] | null {
+  const focus = [...alerts.alerts]
+    .filter((a) => a.nutrient && a.projected_risk_sol !== null)
+    .sort((x, y) => x.sol - y.sol)[0];
+  if (!focus) return null;
+  const ev = snap.events.cooling_failure;
+  const cold = preset?.parameters?.nominal_storage_temp_c;
+  const start = ev
+    ? `Sol ${ev.start_sol}: food storage warms to ${ev.peak_temp_c} °C for ${ev.end_sol - ev.start_sol} Sols.`
+    : `Food stays cold${typeof cold === 'number' ? ` (${cold} °C)` : ''} all mission.`;
+  const lead = (focus.projected_risk_sol as number) - focus.sol;
+  return [
+    { title: 'Start', line: start },
+    { title: `Warning · Sol ${focus.sol}`, line: `${focus.astronaut_id}: ${vit(focus.nutrient)} starts running low.` },
+    { title: `Problem would start · Sol ${focus.projected_risk_sol}`, line: `${lead} Sols after the warning.` },
+    { title: 'Action', line: `${cap(actionOf(focus))}.` },
+  ];
+}
+
+const Timeline: React.FC<{ steps: Step[] }> = ({ steps }) => (
+  <ol className="relative grid grid-cols-1 gap-6 lg:grid-cols-4 lg:gap-4">
+    <span aria-hidden className="absolute left-6 right-6 top-6 hidden h-px bg-indigo-400/40 lg:block" />
+    {steps.map((s, i) => (
+      <li key={s.title} className="relative flex gap-4 lg:flex-col lg:gap-3">
+        <span className="relative z-10 grid h-12 w-12 shrink-0 place-items-center rounded-full border border-indigo-400/60 bg-indigo-600 text-xl font-bold text-white shadow-[0_0_20px_-4px_rgba(99,102,241,0.8)]">
+          {i + 1}
+        </span>
+        <span>
+          <span className="block text-lg font-semibold text-white">{s.title}</span>
+          <span className="block text-base text-slate-300">{s.line}</span>
+        </span>
+      </li>
+    ))}
+  </ol>
+);
+
+export const PredictionView: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
+  const [presets, setPresets] = useState<CrewScenarioPreset[]>([]);
+  const [selected, setSelected] = useState<string>(FAILURE_ID);
+  const [result, setResult] = useState<{ id: string; snap: CrewHealthSnapshot; alerts: CrewAlertsResponse } | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchFoodCatalog()
-      .then((data) => {
-        setCatalog(data.items);
-        if (data.items.length > 0) {
-          setSelectedFoodId(data.items[0].id);
-        }
-      })
-      .catch(console.error);
+    fetchCrewScenarios().then((d) => setPresets(d.scenarios)).catch((e) => setError(String(e)));
   }, []);
 
   useEffect(() => {
-    if (!selectedFoodId) return;
-    setLoading(true);
-    predictShelfLife({
-      food_id: selectedFoodId,
-      storage_temperature_c: storageTemp,
-      critical_nutrient: 'thiamine_b1',
-      degradation_threshold_pct: thresholdPct,
-      max_sols: 800,
-    })
-      .then((data) => {
-        setPrediction(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setLoading(false);
-      });
-  }, [selectedFoodId, storageTemp, thresholdPct]);
+    let cancelled = false;
+    setError(null);
+    (async () => {
+      try {
+        const snap = await fetchCrewPreset(selected);
+        const alerts = await fetchAlertsPreset(selected, snap.sol);
+        if (!cancelled) setResult({ id: selected, snap, alerts });
+      } catch (e) {
+        if (!cancelled) setError(String(e));
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [selected]);
 
-  const selectedItem = catalog.find((i) => i.id === selectedFoodId);
-  const stable = prediction?.status === 'STABLE';
-  const survives = (prediction?.drop_dead_sol ?? 0) >= TARGET_SOL;
+  const preset = (id: string) => presets.find((p) => p.id === id);
+  const normal = preset(NORMAL_ID)?.parameters;
+  const failure = preset(FAILURE_ID)?.parameters;
+  const current = result && result.id === selected ? result : null;
+  const steps = current ? timeline(current.snap, current.alerts, preset(selected)) : null;
 
   return (
-    <div>
-      <Hero
-        index="03"
-        label="Food & Vitamins"
-        lines={['Food fades.']}
-        subtitle="Stored space food loses vitamins over time — faster when it's warm."
-        planet="mars"
-      >
-        <DataBadge kind="synthetic">Model forecast · Arrhenius kinetics</DataBadge>
-      </Hero>
-
-      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,2.2fr)] lg:gap-5">
-        {/* Controls */}
-        <Card className="space-y-6">
-          <SectionHead index="04" label="Storage conditions" title="Pick food & heat" />
-
-          <label className="block">
-            <span className="eyebrow mb-2 block">Space ration item</span>
-            <select value={selectedFoodId} onChange={(e) => setSelectedFoodId(e.target.value)} className="field">
-              {catalog.map((item) => (
-                <option key={item.id} value={item.id}>
-                  [{item.id}] {item.name} ({item.category})
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="block">
-            <span className="flex items-baseline justify-between">
-              <span className="eyebrow">Storage temperature</span>
-              <span className={`font-mono text-2xl font-semibold ${tempTone(storageTemp)}`}>{storageTemp}°C</span>
-            </span>
-            <input type="range" min="-20" max="40" step="1" value={storageTemp}
-              onChange={(e) => setStorageTemp(Number(e.target.value))} className="range mt-3 h-4" />
-            <span className="mt-1.5 flex justify-between font-mono text-[11px] text-muted">
-              <span>−20 freeze</span><span className="text-fg">4 chilled</span><span>21 ambient</span><span>35 overheat</span>
-            </span>
-          </label>
-
-          <label className="block">
-            <span className="flex items-baseline justify-between">
-              <span className="eyebrow">Viability cut-off</span>
-              <span className="font-mono text-2xl font-semibold text-accent">{thresholdPct}%</span>
-            </span>
-            <input type="range" min="20" max="80" step="5" value={thresholdPct}
-              onChange={(e) => setThresholdPct(Number(e.target.value))} className="range mt-3 h-4" />
-            <span className="mt-1.5 block text-xs text-muted">User-selected threshold (not a NASA standard).</span>
-          </label>
-
-          {selectedItem && (
-            <div className="well space-y-2 p-4 text-sm">
-              <span className="eyebrow block">Item Arrhenius constants</span>
-              {([
-                ['Activation energy (Ea)', `${selectedItem.activation_energy_Ea_kJ_mol} kJ/mol`],
-                ['Frequency factor (A)', `${selectedItem.arrhenius_A.toLocaleString()} day⁻¹`],
-                ['Reaction order', `${selectedItem.kinetic_order}-order exponential`],
-              ] as const).map(([k, v]) => (
-                <div key={k} className="flex justify-between gap-3 border-b border-line pb-2 last:border-0 last:pb-0">
-                  <span className="text-muted">{k}</span>
-                  <span className="text-right font-mono text-fg">{v}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
-
-        {/* Curve */}
-        <Card className="space-y-5">
-          <SectionHead
-            index="05"
-            label="Nutrient retention curve"
-            title={selectedItem?.name ?? '—'}
-            right={prediction && (
-              <TonePill tone={stable ? 'nominal' : 'act'} pulse={!stable} size="md">
-                {stable ? 'Stable past Sol 450' : 'Critical degradation'}
-              </TonePill>
-            )}
-          />
-          <p className="-mt-2 font-mono text-xs text-muted">
-            Storage <span className="text-fg">{storageTemp}°C</span> · rate constant k = <span className="text-fg">{prediction?.rate_constant_k_per_day ?? '—'} day⁻¹</span>
-          </p>
-
-          <p className="-mb-2 font-mono text-[11px] uppercase tracking-[0.12em] text-muted md:hidden">Swipe the chart to see all 800 Sols →</p>
-          <div className="well overflow-x-auto p-3 sm:p-4">
-            <RetentionChart prediction={prediction} thresholdPct={thresholdPct} loading={loading} />
-          </div>
-          <ChartLegend items={[
-            { kind: 'line', color: C.series1, label: 'Thiamine (B1) retained (model)' },
-            { kind: 'threshold', color: C.act, label: 'Viability cut-off' },
-            { kind: 'dash', color: C.accent, label: 'Mission target Sol 450' },
-            { kind: 'dot', color: C.act, label: 'Falls below cut-off' },
-          ]} />
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <Stat label="Half-life (t½)" value={prediction?.half_life_sols ?? '—'} unit="Sols" hint="50% nutrient loss point" />
-            <Stat label="Below cut-off at" value={prediction ? `Sol ${prediction.drop_dead_sol}` : '—'}
-              tone={survives ? 'text-nominal' : 'text-act'} hint={`Falls below ${thresholdPct}% retention`} />
-            <Stat label="Sol 450 status" value={prediction ? (survives ? 'Survives' : 'Expires early') : '—'}
-              tone={survives ? 'text-nominal' : 'text-act'} hint="Baseline mission gate" />
-          </div>
-        </Card>
+    <GlassPanel
+      title="Food & Vitamins"
+      subtitle="Stored food loses vitamins, faster when warm. We warn before the crew runs low."
+      onBack={onBack}
+      tags={<DataTag kind="simulated" />}
+    >
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <SelectCard selected={selected === NORMAL_ID} onClick={() => setSelected(NORMAL_ID)} icon={Snowflake}
+          title="Normal mission"
+          subtitle={typeof normal?.nominal_storage_temp_c === 'number' ? `Food stored at ${normal.nominal_storage_temp_c} °C` : undefined} />
+        <SelectCard selected={selected === FAILURE_ID} onClick={() => setSelected(FAILURE_ID)} icon={ThermometerSun}
+          title="Storage failure"
+          subtitle={failure?.cooling_failure_sol != null ? `Cooling fails at Sol ${failure.cooling_failure_sol}, up to ${failure.failure_peak_temp_c} °C` : undefined} />
       </div>
-    </div>
+
+      {error && <ErrorBox>{error}</ErrorBox>}
+      {!current && !error && <Loading />}
+
+      {current && (
+        <>
+          <Section icon={Users} title={`Crew at Sol ${current.snap.sol}`}>
+            <ul className="divide-y divide-white/10">
+              {current.snap.crew.map((m) => (
+                <li key={m.astronaut_id} className="flex flex-col gap-2 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:gap-5">
+                  <span className="w-24 shrink-0 font-mono text-lg font-semibold text-white">{m.astronaut_id}</span>
+                  <span className="w-44 shrink-0"><StatusBadge status={m.status} /></span>
+                  <span className="text-base text-white">{crewSentence(m)}</span>
+                </li>
+              ))}
+            </ul>
+          </Section>
+
+          <Section icon={Flag} title="Mission timeline">
+            {steps ? <Timeline steps={steps} /> : <p className="text-lg text-white">No vitamin problem expected in this mission.</p>}
+          </Section>
+        </>
+      )}
+    </GlassPanel>
   );
 };

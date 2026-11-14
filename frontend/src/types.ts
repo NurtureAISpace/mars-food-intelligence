@@ -615,6 +615,10 @@ export interface CheckinResult {
 
 export interface CheckinHistoryEntry extends CheckinInput {
   recorded_at: string;
+  measured_at?: string;
+  client_id?: string;
+  /** Anonymized code made on the Astronaut App ("CREW-XXXXXX"); the name never leaves the device. */
+  pseudonym?: string;
   overall_status: CheckinOverallStatus;
   colors: Record<CheckinIndicatorKey, CheckinColor>;
   baseline_flags: CheckinIndicatorKey[];
@@ -623,6 +627,7 @@ export interface CheckinHistoryEntry extends CheckinInput {
 export interface CheckinHistory {
   disclaimer: string;
   astronaut_id: string;
+  pseudonym: string | null;
   count: number;
   streak: CheckinStreak;
   checkins: CheckinHistoryEntry[];

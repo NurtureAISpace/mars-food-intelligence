@@ -127,6 +127,20 @@ export async function fetchAstronautTimeline(astronautId: string, scenario: Crew
   return res.json();
 }
 
+/** Crew snapshot for a demo preset from GET /health/scenarios (default Sol: last mission Sol). */
+export async function fetchCrewPreset(scenarioId: string): Promise<CrewHealthSnapshot> {
+  const res = await fetch(`${API_BASE}/health/crew?scenario=${encodeURIComponent(scenarioId)}`);
+  if (!res.ok) throw new Error(`Crew health fetch failed: ${res.statusText}`);
+  return res.json();
+}
+
+/** All early-warning alerts up to `sol` for a demo preset. */
+export async function fetchAlertsPreset(scenarioId: string, sol: number): Promise<CrewAlertsResponse> {
+  const res = await fetch(`${API_BASE}/health/alerts?sol=${sol}&scenario=${encodeURIComponent(scenarioId)}`);
+  if (!res.ok) throw new Error(`Crew alerts fetch failed: ${res.statusText}`);
+  return res.json();
+}
+
 export async function fetchCrewAlerts(sol: number, scenario: CrewHealthScenario): Promise<CrewAlertsResponse> {
   const res = await fetch(`${API_BASE}/health/alerts?sol=${sol}&${crewScenarioQuery(scenario)}`);
   if (!res.ok) throw new Error(`Crew alerts fetch failed: ${res.statusText}`);
