@@ -10,7 +10,7 @@ import { LifeSupportView } from './components/LifeSupportView';
 import { RealDataView } from './components/RealDataView';
 
 export function App() {
-  const [activeTab, setActiveTab] = useState<string>('dashboard');
+  const [activeTab, setActiveTab] = useState<string>('crewhealth');
   const [missionSol, setMissionSol] = useState<number>(450);
 
   return (

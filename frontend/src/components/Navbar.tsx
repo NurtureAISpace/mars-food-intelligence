@@ -1,5 +1,5 @@
-import React from 'react';
-import { ShieldCheck, Cpu, Database, Activity, TrendingUp, Compass, HeartPulse, Droplets, Satellite } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { ShieldCheck, Cpu, Database, Activity, TrendingUp, Compass, HeartPulse, Droplets, Satellite, ChevronDown, MoreHorizontal } from 'lucide-react';
 
 interface NavbarProps {
   activeTab: string;
@@ -7,17 +7,48 @@ interface NavbarProps {
   missionSol: number;
 }
 
+type Tab = { id: string; label: string; icon: React.ComponentType<{ className?: string }> };
+
+// Primary navigation (challenge story first). Everything else stays reachable under "More".
+export const PRIMARY_TABS: Tab[] = [
+  { id: 'crewhealth', label: 'Crew Health', icon: HeartPulse },
+  { id: 'realdata', label: 'Real NASA Data', icon: Satellite },
+  { id: 'prediction', label: 'Food & Vitamins', icon: TrendingUp },
+];
+
+export const MORE_TABS: Tab[] = [
+  { id: 'dashboard', label: 'Mission Dashboard', icon: Activity },
+  { id: 'datalab', label: 'Data Laboratory', icon: Database },
+  { id: 'optimization', label: 'SciPy Optimizer', icon: Cpu },
+  { id: 'simulator', label: 'Mission Simulator', icon: Compass },
+  { id: 'lifesupport', label: 'Life Support Sim', icon: Droplets },
+];
+
 export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, missionSol }) => {
-  const tabs = [
-    { id: 'dashboard', label: 'Mission Dashboard', icon: Activity },
-    { id: 'datalab', label: 'Data Laboratory', icon: Database },
-    { id: 'prediction', label: 'Prediction & Kinetics', icon: TrendingUp },
-    { id: 'optimization', label: 'SciPy Optimizer', icon: Cpu },
-    { id: 'simulator', label: 'Mission Simulator', icon: Compass },
-    { id: 'crewhealth', label: 'Crew Health', icon: HeartPulse },
-    { id: 'lifesupport', label: 'Life Support Sim', icon: Droplets },
-    { id: 'realdata', label: 'Real NASA Data', icon: Satellite },
-  ];
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
+  const activeMore = MORE_TABS.find((t) => t.id === activeTab);
+
+  useEffect(() => {
+    if (!moreOpen) return;
+    const close = (e: MouseEvent) => {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMoreOpen(false); };
+    document.addEventListener('mousedown', close);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', close);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [moreOpen]);
+
+  const tabClass = (isActive: boolean) =>
+    `flex items-center space-x-2 px-3.5 py-2 rounded-md text-xs font-medium font-mono transition-all ${
+      isActive
+        ? 'bg-orange-500 text-white shadow-md shadow-orange-500/25'
+        : 'text-slate-300 hover:bg-mars-card hover:text-white'
+    }`;
 
   return (
     <header className="border-b border-mars-border bg-mars-dark/95 backdrop-blur-md sticky top-0 z-50">
@@ -40,25 +71,50 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, mission
           </div>
 
           {/* Navigation Tabs */}
-          <nav className="hidden md:flex space-x-1">
-            {tabs.map((tab) => {
+          <nav className="hidden md:flex items-center space-x-1">
+            {PRIMARY_TABS.map((tab) => {
               const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
               return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center space-x-2 px-3.5 py-2 rounded-md text-xs font-medium font-mono transition-all ${
-                    isActive
-                      ? 'bg-orange-500 text-white shadow-md shadow-orange-500/25'
-                      : 'text-slate-300 hover:bg-mars-card hover:text-white'
-                  }`}
-                >
+                <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={tabClass(activeTab === tab.id)}>
                   <Icon className="w-4 h-4" />
                   <span>{tab.label}</span>
                 </button>
               );
             })}
+
+            <div className="relative" ref={moreRef}>
+              <button
+                onClick={() => setMoreOpen((o) => !o)}
+                aria-haspopup="menu"
+                aria-expanded={moreOpen}
+                className={tabClass(Boolean(activeMore))}
+              >
+                <MoreHorizontal className="w-4 h-4" />
+                <span>{activeMore ? `More · ${activeMore.label}` : 'More'}</span>
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${moreOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {moreOpen && (
+                <div role="menu" className="absolute right-0 mt-2 w-56 rounded-lg border border-mars-border bg-mars-dark shadow-xl py-1 z-50">
+                  {MORE_TABS.map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = activeTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        role="menuitem"
+                        onClick={() => { setActiveTab(tab.id); setMoreOpen(false); }}
+                        className={`w-full flex items-center space-x-2 px-3.5 py-2 text-xs font-mono text-left transition-all ${
+                          isActive ? 'text-orange-400 bg-orange-500/10' : 'text-slate-300 hover:bg-mars-card hover:text-white'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4" />
+                        <span>{tab.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </nav>
 
           {/* Telemetry Indicator */}
