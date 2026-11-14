@@ -1,6 +1,6 @@
 // ONE source for the Astronaut App link, used by both the "Open Astronaut App" button and the "Join the crew" QR.
 // Order: the "App link" saved in the QR modal (localStorage) -> VITE_ASTRONAUT_PUBLIC_URL -> http://<this host>:4173
-// (the production build served by `npm run preview` in apps/astronaut; the dev server on :3001 is never linked).
+// (the production build served by `npm run preview` in apps/astronaut; the astronaut dev server is never linked).
 import { useEffect, useState } from 'react';
 
 const KEY = 'nurtureai.appLink';

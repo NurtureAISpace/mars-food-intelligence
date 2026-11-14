@@ -123,7 +123,8 @@ function risks(snap: CrewHealthSnapshot, h: CrewHorizon, u: ReturnType<typeof un
   for (const p of h.per_astronaut) {
     for (const [n, v] of Object.entries(p.vitamins)) {
       if (!v.runs_low || (fw && p.astronaut_id === fw.astronaut_id && n === fw.nutrient)) continue;
-      out.push(`${p.astronaut_id}: ${vit(n)} may run low around ${u.at(v.runs_low)}. Check with the flight surgeon.`);
+      const act = n === 'vitamin_d' || n === 'thiamine_b1' ? `Action: ${actionOf(null, n)}.` : 'Check with the flight surgeon.';
+      out.push(`${p.astronaut_id}: ${vit(n)} may run low around ${u.at(v.runs_low)}. ${act}`);
     }
   }
   const lowIds = new Set(h.per_astronaut.filter((p) => Object.values(p.vitamins).some((v) => v.runs_low)).map((p) => p.astronaut_id));
