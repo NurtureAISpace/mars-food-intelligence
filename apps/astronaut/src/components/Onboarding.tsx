@@ -1,8 +1,10 @@
-// Onboarding: full name + seat. The name is turned into an anonymized crew code on this device and stored only
-// here (IndexedDB). The backend and the dashboard only ever see the seat's crew id and the code.
+// Onboarding: Name -> Code. The name is turned into an anonymized crew code on this device and stored only here
+// (IndexedDB). Everyone is a guest: the app picks GUEST-1…4 itself (guest.ts). The backend and the dashboard only
+// ever see the guest id and the code; C001–C004 are reserved for NASA/demo data and never used here.
 import { useEffect, useState } from 'react';
-import { GUEST_SEAT_BASE, GUEST_SLOTS, SEATS, guestCrewId, isGuestSeat, seatLabel, seatToCrewId } from '../config';
+import { isGuestSeat } from '../config';
 import { fetchHistory } from '../api';
+import { pickGuestSeat } from '../guest';
 import { isFullName, pseudonymFor } from '../pseudonym';
 import type { Profile } from '../types';
 
@@ -17,27 +19,7 @@ const Lock = () => (
   </svg>
 );
 
-/**
- * Guest slot for a live demo: the first GUEST-k with no check-in yet, else the one whose latest check-in is oldest.
- * Offline (history unreachable) -> GUEST-1.
- */
-async function pickGuestSeat(): Promise<number> {
-  try {
-    const last = await Promise.all(GUEST_SLOTS.map(async (k) => {
-      const h = await fetchHistory(guestCrewId(k));
-      const times = h.checkins.map((c) => c.recorded_at ?? c.measured_at ?? '');
-      times.sort();
-      return { k, latest: times.length ? times[times.length - 1] : null };
-    }));
-    const free = last.find((x) => x.latest === null);
-    const pick = free ?? last.reduce((a, b) => (b.latest! < a.latest! ? b : a));
-    return GUEST_SEAT_BASE + pick.k;
-  } catch {
-    return GUEST_SEAT_BASE + 1;
-  }
-}
-
-/** 3 dots joined by a thin line; a dot turns green with a check when its step is done. */
+/** Dots joined by a thin line; a dot turns green with a check when its step is done. */
 function Steps({ done, labels }: { done: boolean[]; labels: string[] }) {
   return (
     <ol className="flex items-start" aria-label="Progress">
@@ -48,7 +30,7 @@ function Steps({ done, labels }: { done: boolean[]; labels: string[] }) {
             done[i] ? 'bg-emerald-400 border-emerald-400 text-slate-950' : 'border-slate-500 bg-slate-900 text-slate-400'}`}>
             {done[i] ? <Check /> : <span className="text-sm font-bold">{i + 1}</span>}
           </span>
-          <span className={`mt-1.5 text-sm ${done[i] ? 'text-emerald-300' : 'text-slate-400'}`}>{l}</span>
+          <span className={`mt-1.5 text-base ${done[i] ? 'text-emerald-300' : 'text-slate-300'}`}>{l}</span>
           <span className="sr-only">{done[i] ? 'done' : 'to do'}</span>
         </li>
       ))}
@@ -62,11 +44,9 @@ export function Onboarding({ current, onSave, onCancel }: {
   onCancel?: () => void;
 }) {
   const [name, setName] = useState(current?.name ?? '');
-  const [seat, setSeat] = useState<number | null>(current?.seat ?? null);
   const [code, setCode] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [guestBusy, setGuestBusy] = useState(false);
   const nameOk = isFullName(name);
 
   useEffect(() => {
@@ -76,18 +56,7 @@ export function Onboarding({ current, onSave, onCancel }: {
     return () => { cancelled = true; };
   }, [name, nameOk]);
 
-  const ready = nameOk && seat !== null && code !== null;
-  const guest = seat !== null && isGuestSeat(seat);
-
-  const chooseGuest = async () => {
-    if (guest) return;
-    setGuestBusy(true);
-    try {
-      setSeat(await pickGuestSeat());
-    } finally {
-      setGuestBusy(false);
-    }
-  };
+  const ready = nameOk && code !== null;
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,7 +64,9 @@ export function Onboarding({ current, onSave, onCancel }: {
     if (!ready) return;
     setBusy(true);
     try {
-      await onSave({ name: name.trim().replace(/\s+/g, ' '), seat: seat!, pseudonym: code!, created_at: new Date().toISOString() });
+      // Changing the name keeps this phone's guest seat; a new profile gets the first free guest seat.
+      const seat = current && isGuestSeat(current.seat) ? current.seat : await pickGuestSeat(fetchHistory);
+      await onSave({ name: name.trim().replace(/\s+/g, ' '), seat, pseudonym: code!, created_at: new Date().toISOString() });
     } finally {
       setBusy(false);
     }
@@ -108,7 +79,7 @@ export function Onboarding({ current, onSave, onCancel }: {
           <h1 className="text-3xl font-light text-white">Welcome aboard</h1>
           <p className="text-lg text-slate-300 mt-1">Your name stays on this phone.</p>
         </div>
-        <Steps labels={['Name', 'Seat', 'Code']} done={[nameOk, seat !== null, ready]} />
+        <Steps labels={['Name', 'Code']} done={[nameOk, ready]} />
       </div>
 
       <div className="glass p-5 space-y-2">
@@ -117,30 +88,6 @@ export function Onboarding({ current, onSave, onCancel }: {
           placeholder="First and last name" autoComplete="name" autoCapitalize="words"
           className="w-full min-h-14 rounded-xl bg-slate-950/60 border border-slate-600 px-4 text-xl text-white placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none" />
         {touched && !nameOk && <p className="text-base text-amber-300">Please enter your first and last name.</p>}
-      </div>
-
-      <div className="glass p-5 space-y-3">
-        <div className="text-xl font-semibold text-white">Your seat</div>
-        <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="Seat">
-          {SEATS.map((s) => (
-            <button key={s} type="button" role="radio" aria-checked={seat === s} onClick={() => setSeat(s)}
-              className={`relative min-h-20 rounded-2xl border text-left px-4 transition ${
-                seat === s ? 'border-indigo-500 bg-indigo-500/15 shadow-[0_0_24px_rgba(99,102,241,0.35)]' : 'border-slate-700 bg-slate-900/50'}`}>
-              {seat === s && <span className="absolute top-2 right-2 grid place-items-center w-6 h-6 rounded-full bg-indigo-500 text-white"><Check /></span>}
-              <span className="block text-xl font-semibold text-white">Seat {s}</span>
-              <span className="block text-sm text-slate-400 font-mono">{seatToCrewId(s)}</span>
-            </button>
-          ))}
-          <button type="button" role="radio" aria-checked={guest} onClick={() => void chooseGuest()} disabled={guestBusy}
-            className={`relative col-span-2 min-h-16 rounded-2xl border text-left px-4 transition ${
-              guest ? 'border-indigo-500 bg-indigo-500/15 shadow-[0_0_24px_rgba(99,102,241,0.35)]' : 'border-slate-700 bg-slate-900/50'}`}>
-            {guest && <span className="absolute top-2 right-2 grid place-items-center w-6 h-6 rounded-full bg-indigo-500 text-white"><Check /></span>}
-            <span className="block text-xl font-semibold text-white">{guest ? seatLabel(seat!) : 'Guest'}</span>
-            <span className="block text-sm text-slate-400 font-mono">
-              {guestBusy ? 'Finding a free guest seat…' : guest ? seatToCrewId(seat!) : 'Visitor / judge: GUEST-1…4'}
-            </span>
-          </button>
-        </div>
       </div>
 
       {code && (

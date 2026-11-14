@@ -146,3 +146,16 @@ describe('helpers', () => {
     expect(calls).toBe(2); // the overlapping trigger gets exactly one follow-up run
   });
 });
+
+describe('reserved crew ids', () => {
+  it('never posts C001–C004: such an entry is marked failed and the queue goes on', async () => {
+    const reserved = entry('r', '2026-11-14T07:00:00Z');
+    reserved.payload = { ...reserved.payload, astronaut_id: 'C002' };
+    const h = harness([reserved, entry('g', '2026-11-14T08:00:00Z')], { g: [{ kind: 'ok', body: okBody() }] });
+    const r = await runSync(h.deps);
+    expect(h.posted).toEqual(['g']);
+    expect(r).toMatchObject({ failed: 1, synced: 1 });
+    expect(h.store.get('r')!.sync).toBe('failed');
+    expect(h.store.get('r')!.last_error).toMatch(/reserved/);
+  });
+});

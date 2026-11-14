@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { fetchGuide, fetchHistory, postCheckin } from './api';
-import { cache, countPending, deleteCheckin, listCheckins, listPending, saveCheckin } from './db';
+import { cache, countFailed, countPending, deleteCheckin, listCheckins, listPending, saveCheckin } from './db';
 import { provisionalCheck } from './provisional';
-import { createSyncer, type SyncReport } from './sync';
+import { createSyncer } from './sync';
 import type { Field, Guide, LocalCheckin, Profile, ServerHistory } from './types';
 import { uuid4 } from './uuid';
 import { Header } from './components/Header';
 import { Onboarding } from './components/Onboarding';
 import { makeLocalCheckin } from './checkin';
 import { seatToCrewId } from './config';
+import { migratePending, migrateProfile, pickGuestSeat } from './guest';
+import { syncView } from './syncView';
 import { CheckinForm, type FormValues } from './components/CheckinForm';
 import { History } from './components/History';
 import { LocalEntryCard } from './components/ui';
@@ -17,28 +19,19 @@ import { LocalEntryCard } from './components/ui';
 const DEFAULT_SOL = 250;
 const RETRY_TICK_MS = 10_000;
 
-function describe(r: SyncReport): string {
-  const parts: string[] = [];
-  if (r.synced) parts.push(`${r.synced} synced`);
-  if (r.failed) parts.push(`${r.failed} failed`);
-  if (r.retrying) parts.push('will retry');
-  if (r.waiting) parts.push(`${r.waiting} waiting`);
-  return parts.length ? `Last sync: ${parts.join(', ')}` : 'Nothing to sync';
-}
-
 export default function App() {
   const [online, setOnline] = useState(navigator.onLine);
   const [loaded, setLoaded] = useState(false);
   const [guide, setGuide] = useState<{ value: Guide; fetched_at: string } | null>(null);
-  // Device profile (name stays here). The seat's crew id is what the backend sees, plus the anonymized code.
+  // Device profile (name stays here). The guest id (GUEST-1…4) is what the backend sees, plus the anonymized code.
   const [profile, setProfile] = useState<Profile | null>(null);
   const [editingProfile, setEditingProfile] = useState(false);
   const astronaut = profile ? seatToCrewId(profile.seat) : null;
   const [entries, setEntries] = useState<LocalCheckin[]>([]);
   const [server, setServer] = useState<{ value: ServerHistory; fetched_at: string } | null>(null);
   const [pending, setPending] = useState(0);
-  const [syncing, setSyncing] = useState(false);
-  const [syncMsg, setSyncMsg] = useState<string | null>(null);
+  const [failed, setFailed] = useState(0);
+  const [lastError, setLastError] = useState<string | null>(null); // last run could not reach the server
   const [tab, setTab] = useState<'checkin' | 'history'>('checkin');
   const [lastSubmitted, setLastSubmitted] = useState<string | null>(null);
   const [formKey, setFormKey] = useState(0);
@@ -48,6 +41,7 @@ export default function App() {
 
   const refreshLocal = useCallback(async () => {
     setPending(await countPending());
+    setFailed(await countFailed());
     const id = astronautRef.current;
     setEntries(id ? await listCheckins(id) : []);
   }, []);
@@ -80,7 +74,9 @@ export default function App() {
       createSyncer(
         { listPending, save: saveCheckin, post: postCheckin, now: Date.now },
         (r, err) => {
-          setSyncMsg(r ? describe(r) : `Sync error: ${(err as Error)?.message ?? err}`);
+          if (!r) setLastError(String((err as Error)?.message ?? err));
+          else if (r.retrying) setLastError('retrying');
+          else if (r.attempted) setLastError(null);
           void refreshLocal();
           if (r?.synced) void refreshServerHistory();
         },
@@ -89,14 +85,11 @@ export default function App() {
   );
 
   const doSync = useCallback(
-    async (force = false) => {
-      setSyncing(true);
+    async () => {
       try {
-        await syncer.sync({ force });
+        await syncer.sync();
       } catch {
         /* reported through onSettled */
-      } finally {
-        setSyncing(false);
       }
     },
     [syncer],
@@ -105,10 +98,20 @@ export default function App() {
   // Start: cached data first (works offline), then refresh from the server and flush the queue.
   useEffect(() => {
     (async () => {
-      const [g, p] = await Promise.all([cache.getGuide(), cache.getProfile()]);
+      const [g, stored] = await Promise.all([cache.getGuide(), cache.getProfile()]);
       if (g) setGuide(g);
-      if (p) setProfile(p);
+      let p = stored;
+      if (p) {
+        // Old profiles picked a crew seat (C001–C004, reserved for NASA/demo data): move them to a guest seat once,
+        // and move their unsent check-ins with them, before anything is synced.
+        const m = await migrateProfile(p, () => pickGuestSeat(fetchHistory));
+        p = m.profile;
+        if (m.changed) await cache.putProfile(p);
+        for (const e of migratePending(await listPending(), p)) await saveCheckin(e);
+        setProfile(p);
+      }
       setPending(await countPending());
+      setFailed(await countFailed());
       setLoaded(true);
       await refreshFromServer();
       if (navigator.onLine) await doSync();
@@ -119,6 +122,7 @@ export default function App() {
   useEffect(() => {
     const on = () => {
       setOnline(true);
+      setLastError(null);
       void refreshFromServer();
       void doSync().then(refreshServerHistory);
     };
@@ -164,7 +168,7 @@ export default function App() {
   const submit = async (v: FormValues) => {
     if (!profile || !guide) return;
     const { sol, notes, ...values } = v;
-    // Payload = seat crew id + anonymized code; the profile's name is never copied into it (see checkin.ts).
+    // Payload = guest id + anonymized code; the profile's name is never copied into it (see checkin.ts).
     const entry: LocalCheckin = makeLocalCheckin(profile, {
       sol,
       notes,
@@ -208,8 +212,8 @@ export default function App() {
 
   return (
     <div className="min-h-screen text-slate-100 max-w-xl mx-auto flex flex-col">
-      <Header online={online} pending={pending} syncing={syncing} syncMsg={syncMsg} profile={profile}
-        onSync={() => void doSync(true).then(refreshServerHistory)} onChangeProfile={() => setEditingProfile(true)} />
+      <Header profile={profile} onChangeProfile={() => setEditingProfile(true)}
+        sync={profile && !editingProfile ? syncView({ pending, failed, online, lastError }) : null} />
 
       <main className="flex-1 pb-24">
         {!profile || editingProfile ? (
@@ -220,8 +224,8 @@ export default function App() {
             {justSubmitted && (
               <div className="px-4 pt-4 space-y-2">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl text-white font-semibold">Saved</h2>
-                  <button onClick={() => setLastSubmitted(null)} className="min-h-11 px-3 text-base text-slate-300">Hide</button>
+                  <h2 className="text-2xl text-white font-semibold">Saved</h2>
+                  <button onClick={() => setLastSubmitted(null)} className="min-h-11 px-3 text-lg text-slate-300">Hide</button>
                 </div>
                 <LocalEntryCard e={justSubmitted} onDiscard={discard} />
               </div>
@@ -230,7 +234,7 @@ export default function App() {
               <CheckinForm key={`${astronaut}-${formKey}`} guide={guide.value} guideFetchedAt={guide.fetched_at}
                 defaultSol={defaultSol} takenSols={new Set(sols)} last={lastValues} onSubmit={submit} />
             ) : (
-              <p className="m-4 p-4 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-200 text-base">
+              <p className="m-4 p-5 rounded-2xl border border-amber-500/40 bg-amber-500/15 text-amber-100 text-lg">
                 The check-in guide (indicators and ranges) has not been downloaded yet. Connect to the backend once;
                 after that the form works fully offline.
               </p>
@@ -240,7 +244,7 @@ export default function App() {
           <History local={entries} server={server?.value ?? null} serverFetchedAt={server?.fetched_at ?? null}
             online={online} onDiscard={discard} />
         )}
-        {guide && <p className="px-4 pb-4 text-sm text-slate-400 text-center">{guide.value.disclaimer}</p>}
+        {guide && <p className="px-4 pb-4 text-base text-slate-300 text-center">{guide.value.disclaimer}</p>}
         <p className="px-4 pb-4 text-xs text-slate-500 text-center font-mono" data-testid="build-label">{__APP_BUILD__}</p>
       </main>
 

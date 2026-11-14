@@ -1,5 +1,5 @@
 // IndexedDB (via `idb`): every check-in is written here first; the guide and server history are cached here so the
-// app works fully offline after one online start. The profile (name, seat, crew code) lives here too: the name
+// app works fully offline after one online start. The profile (name, guest seat, crew code) lives here too: the name
 // never leaves this device.
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { Guide, LocalCheckin, Profile, ServerHistory } from './types';
@@ -52,6 +52,10 @@ export async function listCheckins(astronautId: string): Promise<LocalCheckin[]>
 
 export async function countPending(): Promise<number> {
   return (await db()).countFromIndex('checkins', 'by_sync', 'pending');
+}
+
+export async function countFailed(): Promise<number> {
+  return (await db()).countFromIndex('checkins', 'by_sync', 'failed');
 }
 
 export async function deleteCheckin(clientId: string): Promise<void> {

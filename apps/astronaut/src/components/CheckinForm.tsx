@@ -39,15 +39,15 @@ function Stepper({ field, label, value, guide, last, onChange }: {
   };
   return (
     <div>
-      {label && <div className="text-sm text-slate-400 mb-1">{label}</div>}
+      {label && <div className="text-base text-slate-300 mb-1">{label}</div>}
       <div className="flex items-stretch gap-2">
         <button type="button" onClick={() => bump(-1)} aria-label={`decrease ${field}`}
-          className="w-14 min-h-14 rounded-xl border border-mars-border bg-mars-dark text-2xl text-white active:bg-white/10">−</button>
+          className="w-16 min-h-16 rounded-xl bg-slate-950/60 border border-slate-600 text-3xl text-white active:bg-white/10">−</button>
         <input value={value} onChange={(e) => onChange(e.target.value.replace(',', '.'))} inputMode="decimal"
           aria-label={label ?? field} placeholder={last !== undefined ? `last ${last}` : '—'}
-          className="flex-1 min-w-0 min-h-14 rounded-xl bg-mars-dark border border-mars-border text-center text-2xl font-mono text-white placeholder:text-slate-600 placeholder:text-base" />
+          className="flex-1 min-w-0 min-h-16 rounded-xl bg-slate-950/60 border border-slate-600 text-center text-3xl font-mono text-white placeholder:text-slate-500 placeholder:text-lg focus:border-indigo-400 focus:outline-none" />
         <button type="button" onClick={() => bump(1)} aria-label={`increase ${field}`}
-          className="w-14 min-h-14 rounded-xl border border-mars-border bg-mars-dark text-2xl text-white active:bg-white/10">+</button>
+          className="w-16 min-h-16 rounded-xl bg-slate-950/60 border border-slate-600 text-3xl text-white active:bg-white/10">+</button>
       </div>
     </div>
   );
@@ -56,16 +56,16 @@ function Stepper({ field, label, value, guide, last, onChange }: {
 function IndicatorCard({ ind, children }: { ind: GuideIndicator; children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="rounded-xl border border-mars-border bg-mars-card/55 backdrop-blur-md p-3 space-y-2">
-      <div className="flex items-start justify-between gap-2">
+    <div className="glass p-5 space-y-3">
+      <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-white font-semibold">{ind.label} <span className="text-slate-400 font-normal">({ind.unit})</span></div>
-          <div className="text-sm text-slate-400">{ind.range_text}</div>
+          <div className="text-xl text-white font-semibold">{ind.label} <span className="text-slate-400 font-normal text-lg">({ind.unit})</span></div>
+          <div className="text-base text-slate-300">{ind.range_text}</div>
         </div>
         <button type="button" onClick={() => setOpen(!open)} aria-expanded={open}
-          className="shrink-0 min-h-10 px-3 rounded-lg border border-mars-border text-sm text-slate-300">How?</button>
+          className="shrink-0 min-h-11 px-4 rounded-xl border border-slate-400/50 text-base text-slate-200 active:bg-white/10">How?</button>
       </div>
-      {open && <p className="text-sm text-slate-300 bg-mars-dark/60 rounded-lg p-2">{ind.how_to_measure}</p>}
+      {open && <p className="text-base leading-relaxed text-slate-200 bg-slate-950/50 rounded-xl p-3">{ind.how_to_measure}</p>}
       {children}
     </div>
   );
@@ -136,20 +136,23 @@ export function CheckinForm({ guide, guideFetchedAt, defaultSol, takenSols, last
   const set = (f: NumberField) => (v: string) => setRaw((r) => ({ ...r, [f]: v }));
 
   return (
-    <form onSubmit={submit} className="px-4 py-4 space-y-3" noValidate>
-      <div className="rounded-xl border border-mars-border bg-mars-card/55 backdrop-blur-md p-3 flex items-center justify-between gap-3">
+    <form onSubmit={submit} className="px-4 py-6 space-y-4" noValidate>
+      <div className="glass p-5 space-y-4">
         <div>
-          <div className="text-white font-semibold">Sol</div>
+          <h1 className="text-3xl font-light text-white">Daily check-in</h1>
           {takenSols.has(sol)
-            ? <div className="text-sm text-amber-300">You already have a check-in for this Sol; the server keeps the latest.</div>
-            : <div className="text-sm text-slate-400">{guide.routine.when}</div>}
+            ? <p className="text-lg text-amber-300 mt-1">You already have a check-in for this Sol; the server keeps the latest.</p>
+            : <p className="text-lg text-slate-300 mt-1">{guide.routine.when}</p>}
         </div>
-        <div className="flex items-center gap-2">
-          <button type="button" onClick={() => setSol(Math.max(0, sol - 1))} aria-label="previous Sol"
-            className="w-12 min-h-12 rounded-xl border border-mars-border text-xl text-white">−</button>
-          <span className="w-14 text-center text-2xl font-mono text-white">{sol}</span>
-          <button type="button" onClick={() => setSol(sol + 1)} aria-label="next Sol"
-            className="w-12 min-h-12 rounded-xl border border-mars-border text-xl text-white">+</button>
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-xl font-semibold text-white">Sol</span>
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={() => setSol(Math.max(0, sol - 1))} aria-label="previous Sol"
+              className="w-14 min-h-14 rounded-xl bg-slate-950/60 border border-slate-600 text-2xl text-white active:bg-white/10">−</button>
+            <span className="w-20 text-center text-3xl font-mono text-white">{sol}</span>
+            <button type="button" onClick={() => setSol(sol + 1)} aria-label="next Sol"
+              className="w-14 min-h-14 rounded-xl bg-slate-950/60 border border-slate-600 text-2xl text-white active:bg-white/10">+</button>
+          </div>
         </div>
       </div>
 
@@ -160,10 +163,10 @@ export function CheckinForm({ guide, guideFetchedAt, defaultSol, takenSols, last
               {MOODS.map((m) => (
                 <button type="button" key={m.v} onClick={() => setMood(m.v)} role="radio" aria-checked={mood === m.v}
                   title={m.label}
-                  className={`min-h-16 rounded-xl border flex flex-col items-center justify-center ${
-                    mood === m.v ? 'border-mars-accent bg-mars-accent/20' : 'border-mars-border bg-mars-dark'}`}>
-                  <span className="text-2xl leading-none">{m.emoji}</span>
-                  <span className="text-xs text-slate-300 mt-1">{m.v}</span>
+                  className={`min-h-20 rounded-xl border flex flex-col items-center justify-center ${
+                    mood === m.v ? 'border-indigo-400 bg-indigo-500/25 shadow-[0_0_18px_rgba(99,102,241,0.45)]' : 'border-slate-600 bg-slate-950/60'}`}>
+                  <span className="text-3xl leading-none">{m.emoji}</span>
+                  <span className="text-sm text-slate-200 mt-1.5">{m.label}</span>
                 </button>
               ))}
             </div>
@@ -177,14 +180,14 @@ export function CheckinForm({ guide, guideFetchedAt, defaultSol, takenSols, last
         </IndicatorCard>
       ))}
 
-      <div className="rounded-xl border border-mars-border bg-mars-card/55 backdrop-blur-md p-3">
-        <label htmlFor="notes" className="text-white font-semibold">Notes <span className="text-slate-400 font-normal">(optional)</span></label>
+      <div className="glass p-5">
+        <label htmlFor="notes" className="text-xl text-white font-semibold">Notes <span className="text-slate-400 font-normal text-lg">(optional)</span></label>
         <textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value.slice(0, 500))} rows={2}
-          className="mt-2 w-full rounded-lg bg-mars-dark border border-mars-border p-2 text-white" />
+          className="mt-2 w-full rounded-xl bg-slate-950/60 border border-slate-600 p-3 text-lg text-white focus:border-indigo-400 focus:outline-none" />
       </div>
 
       {errors.length > 0 && (
-        <ul className="rounded-xl border border-red-500/50 bg-red-500/10 p-3 text-sm text-red-200 space-y-1" role="alert">
+        <ul className="rounded-2xl border border-red-500/50 bg-red-500/15 p-4 text-lg text-red-100 space-y-1" role="alert">
           {errors.map((e) => <li key={e}>{e}</li>)}
         </ul>
       )}
@@ -193,7 +196,7 @@ export function CheckinForm({ guide, guideFetchedAt, defaultSol, takenSols, last
         className="btn-primary w-full">
         {busy ? 'Saving…' : 'Submit check-in'}
       </button>
-      <p className="text-sm text-slate-400 text-center">
+      <p className="text-base text-slate-300 text-center">
         Saved on this device first, then sent when online. Ranges from the server guide
         {guideFetchedAt ? `, cached ${new Date(guideFetchedAt).toLocaleString()}` : ''}.
       </p>

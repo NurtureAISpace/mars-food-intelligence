@@ -121,7 +121,7 @@ export interface LocalCheckin {
   payload: CheckinPayload;
   sync: SyncState;
   attempts: number;
-  /** epoch ms; earliest time an automatic retry may run (manual "Sync now" ignores it) */
+  /** epoch ms; earliest time an automatic retry may run */
   next_attempt_at: number | null;
   last_error: string | null;
   provisional: Provisional | null;
@@ -131,7 +131,7 @@ export interface LocalCheckin {
 /** Who uses this device. Stored ONLY in this device's IndexedDB; `name` is never sent to the backend. */
 export interface Profile {
   name: string;
-  seat: number;      // 1..4 -> crew id C00k; 101..104 -> GUEST-1..4 (config.ts)
+  seat: number;      // 101..104 -> GUEST-1..4 (config.ts). Old profiles with 1..4 are migrated on start (guest.ts).
   pseudonym: string; // "CREW-XXXXXX", the only identity the backend and dashboard see
   created_at: string;
 }

@@ -37,17 +37,25 @@ describe('pseudonym', () => {
 });
 
 describe('check-in payload', () => {
-  it('carries seat crew id + pseudonym and never the name', async () => {
-    const profile: Profile = { name: 'Ada Lovelace', seat: 3, pseudonym: await pseudonymFor('Ada Lovelace'), created_at: '2026-11-14T06:00:00Z' };
+  it('carries the guest id + pseudonym and never the name', async () => {
+    const profile: Profile = { name: 'Ada Lovelace', seat: 103, pseudonym: await pseudonymFor('Ada Lovelace'), created_at: '2026-11-14T06:00:00Z' };
     const e = makeLocalCheckin(profile, {
       sol: 12, notes: null, client_id: '3f2b8c1e-6a4d-4e2f-9b1a-0c7d5e8f9a10', created_at: '2026-11-14T06:30:00Z', provisional: null,
       values: { heart_rate_bpm: 64, systolic_mmHg: 112, diastolic_mmHg: 72, blood_glucose_mg_dl: 88, body_temp_c: 36.7, sleep_hours: 7.5, mood_1_5: 4 },
     });
-    expect(e.payload.astronaut_id).toBe('C003');
+    expect(e.payload.astronaut_id).toBe('GUEST-3');
     expect(e.payload.pseudonym).toBe('CREW-F594D6');
     const sent = JSON.stringify(e.payload).toLowerCase();
     expect(sent).not.toContain('ada');
     expect(sent).not.toContain('lovelace');
     expect(Object.keys(e.payload)).not.toContain('name');
+  });
+
+  it('never builds a C00x payload: an old crew-seat profile is refused', async () => {
+    const old: Profile = { name: 'Ada Lovelace', seat: 3, pseudonym: 'CREW-F594D6', created_at: '2026-11-14T06:00:00Z' };
+    expect(() => makeLocalCheckin(old, {
+      sol: 1, notes: null, client_id: 'x', created_at: '2026-11-14T06:30:00Z', provisional: null,
+      values: { heart_rate_bpm: 64, systolic_mmHg: 112, diastolic_mmHg: 72, blood_glucose_mg_dl: 88, body_temp_c: 36.7, sleep_hours: 7.5, mood_1_5: 4 },
+    })).toThrow();
   });
 });

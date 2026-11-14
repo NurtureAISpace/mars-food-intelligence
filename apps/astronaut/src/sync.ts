@@ -7,6 +7,7 @@
 //  - network error, 5xx, 408, 429 -> stay Pending, attempts+1, exponential backoff; STOP the run so that later
 //    entries are never sent before earlier ones (Sol order matters for the server's personal baseline)
 //  - Retries are safe: every payload carries the same client_id, the server deduplicates on it.
+import { isReservedCrewId } from './config';
 import type { CheckinPayload, LocalCheckin, ServerOutcome, ServerStatus } from './types';
 
 export type PostResult =
@@ -73,6 +74,13 @@ export async function runSync(deps: SyncDeps, opts: { force?: boolean } = {}): P
     if (!opts.force && entry.next_attempt_at !== null && entry.next_attempt_at > deps.now()) {
       report.waiting = queue.length - i;
       break;
+    }
+    if (isReservedCrewId(entry.payload.astronaut_id)) {
+      // Last guard: C001–C004 belong to the NASA/demo data and are never sent from this app.
+      await deps.save({ ...entry, sync: 'failed', last_error: `${entry.payload.astronaut_id} is reserved for NASA/demo data; not sent`,
+                        next_attempt_at: null });
+      report.failed++;
+      continue;
     }
     report.attempted++;
     const res = await deps.post(entry.payload);

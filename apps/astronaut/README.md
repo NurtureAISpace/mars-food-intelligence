@@ -8,22 +8,28 @@ same repo as the main dashboard (`frontend/`) but is a separate Vite app.
 
 ## What it does
 
-- **Onboarding (name -> pseudonym)**: the astronaut types their full name (first + last) and picks seat 1-4.
-  Seat k checks in as Inspiration4 subject `C00k` (links the demo to the real NASA blood data). On the device the
-  name is normalized (trim, lowercase, collapse spaces) and hashed: `SHA-256(name + ":" + APP_SALT)`
+- **Onboarding (Name -> Code)**: the user types their full name (first + last); there is no seat choice. Everyone
+  is a guest: the app assigns `GUEST-1`…`GUEST-4` itself (first free one, else the one with the oldest check-in;
+  `src/guest.ts`). `C001`–`C004` are reserved for the NASA Inspiration4 data and the seeded demo check-ins: the app
+  never sends them (`seatToCrewId` only maps guest seats, `makeLocalCheckin` and the sync queue refuse `C00x`).
+  Profiles saved by older builds with a crew seat are moved to a guest seat on the next start, together with any
+  unsent check-ins. On the device the name is normalized (trim, lowercase, collapse spaces) and hashed: `SHA-256(name + ":" + APP_SALT)`
   (`src/config.ts`), code = `CREW-` + first 6 hex chars, uppercase. WebCrypto is used when available; on plain
   http (e.g. a phone on the LAN) a tested plain-JS SHA-256 gives the same result.
   The name is stored **only** in this device's IndexedDB (for "Hi, <first name>"); it is never sent. Check-ins
-  carry only the seat's crew id and the anonymized code (`pseudonym`), and the dashboard shows only that code.
+  carry only the guest id and the anonymized code (`pseudonym`), and the dashboard shows only that code.
   It is only a pseudonym (anonymized code): the salt ships with the app, so anyone who already knows a name could
   recompute its code.
 - **Check-in form**: the 6 indicators, units and ranges from `GET /api/v1/health/checkin/guide` (heart rate, blood
   pressure, blood sugar, body temperature, sleep, mood), with big +/- steppers and a mood picker. The guide is
   cached in IndexedDB, so the form works fully offline after one online start.
-- **History**: the latest check-ins for the selected crew member, each with a sync badge (**Pending / Synced /
+- **History**: the latest check-ins for this phone's guest id, each with a sync badge (**Pending / Synced /
   Failed**) and, once synced, the server status in plain words (**All good / Take care / Call doctor** for NOMINAL / WATCH / ACT). Check-ins made elsewhere (e.g. in the
   main dashboard) are shown too, labelled "from server".
-- **Header**: Online/Offline indicator, "N pending", and a manual **Sync now** button.
+- **Header**: "Hi, <first name> · CREW-XXXXXX" and a small "Change name" link.
+- **Sync banner** (top, always visible): green "All check-ins sent" / amber "N check-in(s) waiting — they send
+  automatically when you're back online" / red when the server rejected an entry or cannot be reached while online.
+  There is no manual sync button: sending is automatic.
 
 ### Offline-first design
 
@@ -33,11 +39,11 @@ same repo as the main dashboard (`frontend/`) but is a separate Vite app.
   guide ranges only, always labelled *"Provisional (range check only, offline) — personal baseline applies after
   sync"*. It is never shown as the final status: the server also checks the crew member's personal baseline,
   so the final status can differ (e.g. provisional green, server WATCH).
-- **Sync queue** (`src/sync.ts`): runs on app start, on the browser `online` event, on "Sync now", right after a
-  submit, and every 10 s while entries are waiting for a retry. Entries are sent oldest first.
+- **Sync queue** (`src/sync.ts`): runs on app start, on the browser `online` event, right after a submit, and every
+  10 s while entries are waiting for a retry. Entries are sent oldest first.
   - 2xx: **Synced**, server status stored.
   - Network error, 5xx, 408, 429: stays **Pending**, exponential backoff (5 s, 10 s, 20 s ... max 5 min). The run
-    stops there so later entries are never sent before earlier ones. "Sync now" ignores the backoff.
+    stops there so later entries are never sent before earlier ones.
   - Other 4xx (e.g. 422 validation): **Failed**, the server's message is shown; the entry can be discarded.
 - **Idempotency**: retries resend the same `client_id`. The backend stores it and, if it sees a `client_id` again,
   returns the stored record (`200`, `duplicate: true`) instead of inserting a second check-in.
@@ -91,15 +97,15 @@ npm run build
 npm run preview      # http://localhost:4173
 ```
 
-1. With the backend running, open http://localhost:4173 in Chrome or Edge, enter your full name and pick a seat (e.g. Seat 1 = `C001`).
+1. With the backend running, open http://localhost:4173 in Chrome or Edge and enter your full name (you get a guest id, e.g. `GUEST-1`).
    This first online visit downloads the check-in guide and installs the service worker.
-2. DevTools (F12) -> **Network** -> throttling dropdown -> **Offline**. The header switches to **Offline**.
+2. DevTools (F12) -> **Network** -> throttling dropdown -> **Offline**.
    Reload the page: the app still loads (from the service worker) and the form still works.
-3. Fill in a check-in and **Submit**. It shows **Pending** with the labelled provisional colour, and the header
-   shows **1 pending**. Submit a second one (the Sol moves on by itself). "Sync now" keeps them pending.
+3. Fill in a check-in and **Submit**. It shows **Pending** with the labelled provisional colour, and the amber banner
+   says **1 check-in waiting**. Submit a second one (the Sol moves on by itself).
 4. Set throttling back to **No throttling**. The `online` event triggers a sync: both entries turn **Synced**
-   with the server status (All good / Take care / Call doctor), and the header shows **0 pending**.
-5. Optional: check `http://127.0.0.1:8001/api/v1/health/checkins?astronaut_id=C001`: one record per check-in,
+   with the server status (All good / Take care / Call doctor), and the banner turns green: **All check-ins sent**.
+5. Optional: check `http://127.0.0.1:8001/api/v1/health/checkins?astronaut_id=GUEST-1`: one record per check-in,
    each with its `client_id`, `measured_at` and `pseudonym` (no name).
 
 On a phone: open `http://<your-PC-IP>:4173` (see "Live demo with judges"). Note that browsers only enable service workers on `https` or
@@ -109,7 +115,7 @@ limitations).
 ### Demo seed for the Crew screen
 
 Crew screen demo check-ins for C001–C003 are seeded test entries, not real astronaut data. They fill the
-dashboard Crew screen before the demo; seat C004 stays empty so you can check in live from this app.
+dashboard Crew screen before the demo; C004 stays empty. Live check-ins from this app always land in the Guests row.
 
 ```powershell
 cd backend; .venv\Scripts\python scripts\seed_demo_checkins.py
@@ -187,7 +193,7 @@ demo.
   always the server's.
 - No background sync while the app is closed (Background Sync API is not used); syncing happens when the app is
   open.
-- No login: anyone using the device can check in for any crew ID. Local data is per browser/device.
+- No login: whoever uses the device checks in as its guest id. Local data is per browser/device.
 - The service worker updates automatically on the next visit after a new build (`registerType: autoUpdate`).
 - Icons are simple generated shapes (`npm run icons`, `scripts/make-icons.mjs`); no agency logos are used.
 - Decision-support prototype, not a medical device. All ranges and their sources come from the backend

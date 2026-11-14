@@ -33,28 +33,28 @@ export function History({ local, server, serverFetchedAt, online, onDiscard }: {
 }) {
   const rows = mergeHistory(local, server?.checkins ?? []).slice(0, LIMIT);
   return (
-    <section className="px-4 py-4 space-y-3">
-      <div className="flex items-baseline justify-between">
-        <h2 className="text-lg font-bold text-white">History</h2>
-        <span className="text-sm text-slate-400">
-          {serverFetchedAt ? `server data ${online ? 'as of' : 'cached'} ${formatTime(serverFetchedAt)}` : 'no server data yet'}
-        </span>
+    <section className="px-4 py-6 space-y-3">
+      <div className="glass p-5 space-y-1">
+        <h1 className="text-3xl font-light text-white">History</h1>
+        <p className="text-base text-slate-300">
+          {serverFetchedAt ? `Server data ${online ? 'as of' : 'cached'} ${formatTime(serverFetchedAt)}` : 'No server data yet'}
+        </p>
+        {server && <p className="text-base text-slate-300">Streak: {server.streak.current_sols} Sol(s) · {server.count} on the server</p>}
       </div>
-      {server && <p className="text-sm text-slate-400">Streak: {server.streak.current_sols} Sol(s) · {server.count} on the server</p>}
-      {rows.length === 0 && <p className="text-slate-400 text-sm">No check-ins yet.</p>}
+      {rows.length === 0 && <p className="text-slate-300 text-lg px-1">No check-ins yet.</p>}
       {rows.map((r) =>
         r.kind === 'local' ? (
           <LocalEntryCard key={r.e.client_id} e={r.e} replaced={r.replaced} onDiscard={onDiscard} />
         ) : (
-          <div key={`s-${r.s.sol}-${r.s.recorded_at}`} className="rounded-xl border border-mars-border bg-mars-card/55 backdrop-blur-md p-3 space-y-2">
+          <div key={`s-${r.s.sol}-${r.s.recorded_at}`} className="glass p-4 space-y-2.5">
             <div className="flex items-center justify-between gap-2">
               <div>
-                <div className="text-white font-semibold">Sol {r.s.sol}</div>
-                <div className="text-sm text-slate-400">Recorded {formatTime(r.t)} · from server</div>
+                <div className="text-xl text-white font-semibold">Sol {r.s.sol}</div>
+                <div className="text-base text-slate-300">Recorded {formatTime(r.t)} · from server</div>
               </div>
               <SyncBadge state="synced" />
             </div>
-            <div className="text-sm text-slate-400 font-mono">{valuesLine(r.s)}</div>
+            <div className="text-base text-slate-300 font-mono">{valuesLine(r.s)}</div>
             <StatusPill status={r.s.overall_status} />
           </div>
         ),

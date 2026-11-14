@@ -1,6 +1,7 @@
 // Builds the locally stored check-in (and the payload later sent by the sync queue) from the device profile.
-// Only the seat's crew id and the anonymized code go into the payload. The profile's `name` is never copied.
-import { seatToCrewId } from './config';
+// Only the guest id (GUEST-1…4) and the anonymized code go into the payload. The profile's `name` is never copied,
+// and a reserved crew id (C001–C004) can never end up here: seatToCrewId only maps guest seats.
+import { isReservedCrewId, seatToCrewId } from './config';
 import type { Field, LocalCheckin, Profile, Provisional } from './types';
 
 export interface NewCheckin {
@@ -14,6 +15,7 @@ export interface NewCheckin {
 
 export function makeLocalCheckin(profile: Profile, c: NewCheckin): LocalCheckin {
   const astronaut_id = seatToCrewId(profile.seat);
+  if (isReservedCrewId(astronaut_id)) throw new Error(`${astronaut_id} is reserved for NASA/demo data`);
   return {
     client_id: c.client_id,
     astronaut_id,
