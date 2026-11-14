@@ -12,17 +12,17 @@
 ```mermaid
 flowchart TD
     subgraph Data Layer
-        A1[NASA Space Food Inventory] --> P1[Data Pipeline & Auditor]
-        A2[USDA FoodData Central] --> P1
-        A3[NASA JSC Empirical Stability Benchmarks] --> P1
-        P1 --> D1[(Validated Food & Crop Database)]
+        A1[Food & Crop Catalog - synthetic] --> P1[Data Pipeline & Schema Auditor]
+        A2[Literature Parameters - literature_params.json] --> P1
+        A3[NASA OSDR Inspiration4 Blood Panels - script only] --> P1
+        P1 --> D1[(Food, Crop & Parameter Data with provenance)]
     end
 
     subgraph Scientific Engines
         D1 --> E1[First-Principles Arrhenius Kinetics Engine]
         D1 --> E2[SciPy Linear Programming Diet Optimizer]
         D1 --> E3[Sol-by-Sol Dynamic Habitat Simulator]
-        E1 --> V1[Model Verification & R² Metric Suite]
+        E1 --> V1[Literature Endpoint Check]
     end
 
     subgraph API & Backend
@@ -34,7 +34,7 @@ flowchart TD
 
     subgraph User Experience
         API --> UI1[Executive Sol-450 Dashboard]
-        API --> UI2[Data Laboratory & Benchmark Audit]
+        API --> UI2[Data Laboratory & Literature Check]
         API --> UI3[Dynamic Shelf-Life Predictor]
         API --> UI4[SciPy Constrained Diet Planner]
         API --> UI5[Sol Event Stress-Test Simulator]
@@ -69,7 +69,7 @@ The time required for 50% degradation of a critical micronutrient:
 
 $$t_{1/2} = \frac{\ln(2)}{k(T)}$$
 
-The **Drop-Dead Sol** is defined as the exact mission Sol where nutrient concentration drops below the NASA-STD-3001 threshold:
+The **Drop-Dead Sol** is defined as the first mission Sol where nutrient retention drops below a user-selected threshold:
 
 $$\text{Drop-Dead Sol} = \min \{ \text{Sol} \mid [C](\text{Sol}) < [C]_{\text{threshold}} \}$$
 
@@ -78,7 +78,7 @@ The optimal daily meal composition $x \in \mathbb{R}^N$ ($x_i =$ servings of ite
 
 $$\min_{x} c^T x$$
 
-Subject to NASA-STD-3001 dietary constraints:
+Subject to daily nutrient targets (vitamin C and thiamine from NASA JSC 2005; the other targets are assumed):
 
 $$A_{\text{ub}} x \ge b_{\text{ub}} \iff -A_{\text{ub}} x \le -b_{\text{ub}}$$
 
@@ -100,13 +100,13 @@ $$A_{\text{ub}} x \ge b_{\text{ub}} \iff -A_{\text{ub}} x \le -b_{\text{ub}}$$
 ## 3. Modular Architecture
 
 ### 3.1 Backend (`/backend`)
-- **`app/core/constants.py`**: NASA-STD-3001 dietary references, thermal regimes, physical constants.
+- **`app/core/constants.py`**: daily nutrient targets (with per-entry source), thermal regimes, physical constants.
 - **`app/core/scientific_models.py`**: Numerical integration of Arrhenius equations, Q10 acceleration factors, and composite viability scoring.
-- **`app/models/life_support_eclss.py`**: Closed-loop ECLSS mass balance, Sabatier reaction, and IoT soil moisture controller (Faruk).
-- **`app/data/`**: Space food catalog with verified mass, nutritional content, and Arrhenius activation parameters; NASA JSC experimental validation benchmarks.
+- **`app/models/life_support_eclss.py`**: Closed-loop ECLSS mass balance (crew rates from NASA BVAD), Sabatier reaction, and IoT soil moisture controller (Faruk).
+- **`app/data/`**: synthetic space food catalog and crop models (labeled in `dataset_meta`), and `literature_params.json` (every Crew Health parameter with source, page and status). Real NASA data lives in `backend/data/real/i4/`. See [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md).
 - **`app/pipeline/`**: Pydantic schema validation, unit auditing, physiological bounds enforcement.
 - **`app/services/`**:
-  - `prediction_service.py`: Shelf-life calculation, thermal excursion modeling, and NASA benchmark calibration.
+  - `prediction_service.py`: Shelf-life calculation, thermal excursion modeling, and comparison with published retention endpoints.
   - `optimization_service.py`: SciPy linear programming solver.
   - `simulator_service.py`: Sol-by-Sol habitat simulation engine with failure injections.
   - `life_support_service.py`: ECLSS telemetry, Sabatier water looping, and dynamic Sol-450 simulation (Faruk).
@@ -117,7 +117,7 @@ $$A_{\text{ub}} x \ge b_{\text{ub}} \iff -A_{\text{ub}} x \le -b_{\text{ub}}$$
 - **Interactive SVG Vector Graphing**: High-precision rendering of exponential degradation curves, dynamic milestone markers, and mission stress-test bands.
 - **Core Application Views**:
   1. *Mission Dashboard*: Sol timeline scrubber, food security gauge, ration count, cooling power.
-  2. *Data Laboratory*: Catalog inspector, 100% audit integrity, empirical NASA JSC benchmark comparison ($R^2 \ge 0.99$).
+  2. *Data Laboratory*: Catalog inspector (synthetic values), schema checks, comparison with published retention endpoints (Goulette 2020, Cooper 2017).
   3. *Prediction & Kinetics*: Temperature sliders, Arrhenius parameter inspection, drop-dead Sol detection.
   4. *SciPy Optimizer*: Linear programming solver for daily astronaut meal plans.
   5. *Mission Simulator*: Sol event failure injections (cooling failure, crop blight), survival verdicts, and real-time hazard logs.
@@ -128,6 +128,6 @@ $$A_{\text{ub}} x \ge b_{\text{ub}} \iff -A_{\text{ub}} x \le -b_{\text{ub}}$$
 
 ## 4. Verification & Testing Standards
 
-- **Unit & Integration Suite**: 11 automated Pytest tests verifying kinetic temperature sensitivity, first-order decay, $R^2$ benchmark accuracy, linear optimizer convergence, and API endpoints.
+- **Unit & Integration Suite**: Pytest suite (49 tests + 3 strict xfails) covering kinetics, the literature-endpoint comparison, the optimizer, the simulator, Crew Health, the Inspiration4 script, life support and API endpoints.
 - **Continuous Integration**: GitHub Actions CI workflow running on every commit.
 - **Zero-Error Frontend Build**: Vite + TypeScript compiled with strict checks.

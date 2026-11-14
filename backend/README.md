@@ -1,4 +1,4 @@
 # NurtureAI - Backend Service
 Autonomous Deep-Space Nutrition & Life Support Intelligence
 
-Production FastAPI backend incorporating Arrhenius nutrient degradation kinetics, SciPy diet & payload optimization, Sol-by-Sol dynamic space mission simulator, and validated space food telemetry.
+FastAPI backend: Arrhenius nutrient degradation kinetics, SciPy diet optimization, a Sol-by-Sol mission simulator, crew-health early warning, and life-support simulation. Data provenance (real NASA data, cited literature, labeled synthetic data): see ../docs/DATA_SOURCES.md.
