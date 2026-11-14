@@ -16,14 +16,15 @@ client = TestClient(app)
 
 
 def test_metabolic_demands_calculation():
-    """Verify human metabolic consumables calculation for 4-person crew."""
+    """Crew consumables use the cited NASA BVAD per-crewmember-day rates, converted to Sols."""
+    sol = 1.02749125
     demands = ECLSSLifeSupportEngine.calculate_metabolic_demands(crew_size=4)
-    # 4 * 0.84 = 3.36 kg O2
-    assert demands["o2_demand_kg_sol"] == pytest.approx(3.36, rel=1e-2)
-    # 4 * 1.00 = 4.00 kg CO2
-    assert demands["co2_output_kg_sol"] == pytest.approx(4.0, rel=1e-2)
-    # 4 * 2.80 = 11.2 L potable water
-    assert demands["potable_water_demand_l_sol"] == pytest.approx(11.2, rel=1e-2)
+    # BVAD REV1 Table 3-33: O2 0.816 kg/CM-d, CO2 1.04 kg/CM-d
+    assert demands["o2_demand_kg_sol"] == pytest.approx(4 * 0.816 * sol, rel=1e-6)
+    assert demands["co2_output_kg_sol"] == pytest.approx(4 * 1.04 * sol, rel=1e-6)
+    # BVAD REV1 Table 4-20: 2.50 kg/CM-d human consumption, 7.32 kg/CM-d hygiene (mature base)
+    assert demands["potable_water_demand_l_sol"] == pytest.approx(4 * 2.50 * sol, rel=1e-6)
+    assert demands["total_water_demand_l_sol"] == pytest.approx(4 * (2.50 + 7.32) * sol, rel=1e-6)
 
 
 def test_regolith_hydro_management_microcontroller():
@@ -58,7 +59,8 @@ def test_snapshot_telemetry_nominal():
     assert snap["overall_eclss_status"] == "OPTIMAL"
     assert snap["reserves"]["water_loop_closure_pct"] >= 90.0
     assert snap["atmosphere"]["total_pressure_kpa"] == pytest.approx(101.3, abs=0.5)
-    assert len(snap["regolith_moisture_sensors"]) >= 4
+    assert len(snap["regolith_moisture_sensors"]) == 3
+    assert "synthetic" in snap["data_provenance"]
 
 
 def test_dust_storm_and_leak_contingencies():
@@ -111,7 +113,7 @@ def test_life_support_api_endpoints():
     # Regolith sensor nodes
     res_sensors = client.get("/api/v1/life-support/regolith-sensors")
     assert res_sensors.status_code == 200
-    assert res_sensors.json()["count"] >= 4
+    assert res_sensors.json()["count"] == 3
 
     # Post simulation
     res_sim = client.post("/api/v1/life-support/simulate", json={

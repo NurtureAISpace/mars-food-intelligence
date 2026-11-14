@@ -51,7 +51,8 @@ def get_regolith_moisture_sensors():
     return {
         "count": len(service.default_sensor_nodes),
         "sensors": service.get_regolith_sensors(),
-        "controller": "Automated Closed-Loop Micro-Irrigation PID Subsystem"
+        "controller": "Automated Closed-Loop Micro-Irrigation PID Subsystem",
+        "data_provenance": "synthetic illustrative sensor readings"
     }
 
 

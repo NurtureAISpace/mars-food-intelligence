@@ -8,11 +8,24 @@ Models closed-loop Environmental Control and Life Support Systems (ECLSS):
 3. Regolith Soil Moisture & Closed-Loop Hydro-Management (VWC % telemetry, automated irrigation valves)
 4. Water Recovery System (WRS - Urine Processor + Graywater distillation)
 5. Power, Cabin Atmosphere (pO2, pCO2, pressure) & Contingency Fault Injection
+
+Data provenance: per-crewmember O2/CO2/water rates are cited from NASA BVAD (see
+ECLSSLifeSupportEngine). Stoichiometric ratios follow from the reaction equations. Everything
+else (reserves, power, sensor readings, recovery efficiencies, event effects) is a synthetic
+scenario assumption.
 """
 
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any
 import math
+
+from app.core.constants import SOL_IN_EARTH_DAYS
+
+LIFE_SUPPORT_DATA_PROVENANCE = (
+    "synthetic scenario; per-crewmember O2, CO2 and water rates from NASA BVAD "
+    "(NASA/TP-2015-218570/REV1, Tables 3-33 and 4-20); stoichiometric ratios from the reaction "
+    "equations; reserves, power, sensor readings, recovery efficiencies and event effects are assumed"
+)
 
 
 @dataclass
@@ -35,7 +48,7 @@ class RegolithSensorNode:
 
 @dataclass
 class HabitatAtmosphere:
-    """Intra-habitat atmospheric state under NASA-STD-3001."""
+    """Intra-habitat atmospheric state (nominal values are scenario assumptions)."""
     total_pressure_kpa: float = 101.325   # Standard 1 atm habitat
     partial_pressure_o2_kpa: float = 21.3 # 21.0% O2 nominal
     partial_pressure_co2_kpa: float = 0.4 # Nominal < 0.53 kPa (4 mmHg)
@@ -71,12 +84,21 @@ class ECLSSLifeSupportEngine:
     Engineered by Faruk (Computer Engineering & Life Support Simulation).
     """
 
-    # NASA JSC baseline metabolic human consumables per astronaut per Sol
-    O2_CONSUMPTION_KG_PERSON_SOL = 0.840
-    CO2_PRODUCTION_KG_PERSON_SOL = 1.000
-    POTABLE_WATER_NEED_L_PERSON_SOL = 2.800
-    HYGIENE_WATER_NEED_L_PERSON_SOL = 12.500
-    METABOLIC_WATER_OUTPUT_L_PERSON_SOL = 0.350
+    # Per-crewmember rates per Earth day (kg/CM-d) from NASA Life Support Baseline Values and
+    # Assumptions Document (BVAD): Anderson MS, Ewert MK, Keener JF. NASA/TP-2015-218570/REV1,
+    # Jan 2018. https://ntrs.nasa.gov/citations/20180001338 (page numbers = printed page numbers).
+    O2_CONSUMPTION_KG_PER_CM_DAY = 0.816      # Table 3-33 "Oxygen Consumed", p. 63
+    CO2_PRODUCTION_KG_PER_CM_DAY = 1.04       # Table 3-33 "Carbon Dioxide Load", p. 63
+    POTABLE_WATER_KG_PER_CM_DAY = 2.50        # Table 4-20 "Total Human Consumption" (2.00 drinking + 0.50 food rehydration), p. 77
+    HYGIENE_WATER_KG_PER_CM_DAY = 7.32        # Table 4-20 "Total Hygiene", Mature Planetary Base column, p. 77
+    METABOLIC_WATER_KG_PER_CM_DAY = 0.345     # Table 3-33 footnote 82, p. 63
+
+    # Converted to per Sol (1 Sol = 1.02749 Earth days); water mass taken as 1 kg = 1 L.
+    O2_CONSUMPTION_KG_PERSON_SOL = O2_CONSUMPTION_KG_PER_CM_DAY * SOL_IN_EARTH_DAYS
+    CO2_PRODUCTION_KG_PERSON_SOL = CO2_PRODUCTION_KG_PER_CM_DAY * SOL_IN_EARTH_DAYS
+    POTABLE_WATER_NEED_L_PERSON_SOL = POTABLE_WATER_KG_PER_CM_DAY * SOL_IN_EARTH_DAYS
+    HYGIENE_WATER_NEED_L_PERSON_SOL = HYGIENE_WATER_KG_PER_CM_DAY * SOL_IN_EARTH_DAYS
+    METABOLIC_WATER_OUTPUT_L_PERSON_SOL = METABOLIC_WATER_KG_PER_CM_DAY * SOL_IN_EARTH_DAYS
 
     # Stoichiometry constants
     WATER_TO_O2_ELECTROLYSIS_RATIO = 1.126   # kg H2O required per kg O2 (2H2O -> 2H2 + O2)
