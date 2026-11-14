@@ -4,13 +4,10 @@ import { createPortal } from 'react-dom';
 import QRCode from 'qrcode';
 import { Smartphone, X } from 'lucide-react';
 
-/** Phone-reachable Astronaut App (vite preview on the LAN). Override with VITE_ASTRONAUT_PUBLIC_URL. */
-export function astronautPublicUrl(): string {
-  return import.meta.env.VITE_ASTRONAUT_PUBLIC_URL || `http://${window.location.hostname}:4173`;
-}
+import { useAppUrl } from '../appLink';
 
 export const JoinCrewModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  const url = astronautPublicUrl();
+  const url = useAppUrl(); // same link as the "Open Astronaut App" button
   const [svg, setSvg] = useState<string | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
 

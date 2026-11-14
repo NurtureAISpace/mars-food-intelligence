@@ -241,6 +241,7 @@ export default function App() {
             online={online} onDiscard={discard} />
         )}
         {guide && <p className="px-4 pb-4 text-sm text-slate-400 text-center">{guide.value.disclaimer}</p>}
+        <p className="px-4 pb-4 text-xs text-slate-500 text-center font-mono" data-testid="build-label">{__APP_BUILD__}</p>
       </main>
 
       {profile && !editingProfile && (

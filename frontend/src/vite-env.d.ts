@@ -1,8 +1,7 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  /** URL of the offline-first Astronaut App (apps/astronaut). */
-  readonly VITE_ASTRONAUT_APP_URL?: string;
-  /** Phone-reachable Astronaut App for the "Join the crew" QR (default http://<this host>:4173). */
+  /** Astronaut App link for the "Open Astronaut App" button and the "Join the crew" QR (default http://<this host>:4173).
+   *  The "App link" field in the QR window overrides it (src/appLink.ts). */
   readonly VITE_ASTRONAUT_PUBLIC_URL?: string;
 }

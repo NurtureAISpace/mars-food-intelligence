@@ -6,6 +6,7 @@ import { ClipboardList, Clock, ExternalLink, Globe, QrCode, Rocket, Smartphone, 
 import { HealthAvatar } from './HealthAvatar';
 import { JoinCrewModal } from './JoinCrewModal';
 import { fetchCrewScenarios } from '../api';
+import { useAppUrl } from '../appLink';
 import {
   CrewCheckinsState, SeatState, checkinReadings, checkinReason, indicatorWord, isDemoCheckin, joinIndicatorWords,
 } from '../hooks/useCrewCheckins';
@@ -13,9 +14,6 @@ import type { CheckinIndicatorKey } from '../types';
 import {
   Bullets, Dot, ErrorBox, GlassPanel, KVList, KVRow, Loading, PseudonymCode, Section, SourceTag, StatTile, StatusBadge,
 } from '../ui/glass';
-
-// Offline-first Astronaut App (apps/astronaut). Override with VITE_ASTRONAUT_APP_URL at build time.
-const ASTRONAUT_APP_URL: string = import.meta.env.VITE_ASTRONAUT_APP_URL ?? 'http://localhost:3001';
 
 function when(e: NonNullable<SeatState['latest']>): string {
   const iso = e.measured_at ?? e.recorded_at;
@@ -97,6 +95,7 @@ export const CrewHealthView: React.FC<{ crew: CrewCheckinsState; onNavigate: (ta
   const { seats, guests, error, reload, currentSol, allGood, needAttention } = crew;
   const [destination, setDestination] = useState<string | null>(null);
   const [joinOpen, setJoinOpen] = useState(false);
+  const appUrl = useAppUrl(); // same link as the QR code
   const [selectedId, setSelectedId] = useState<string | null>(null);
   // Body view: the clicked card; default = first card needing attention, else Seat 1.
   const people = useMemo(() => [...(seats ?? []), ...guests], [seats, guests]);
@@ -175,7 +174,7 @@ export const CrewHealthView: React.FC<{ crew: CrewCheckinsState; onNavigate: (ta
 
       <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-3">
-          <a href={ASTRONAUT_APP_URL} target="_blank" rel="noopener noreferrer" className="btn-primary">
+          <a href={appUrl} target="_blank" rel="noopener noreferrer" className="btn-primary">
             <Smartphone className="h-5 w-5" aria-hidden /> Open Astronaut App <ExternalLink className="h-4 w-4" aria-hidden />
           </a>
           <button onClick={() => setJoinOpen(true)} className="btn-secondary">

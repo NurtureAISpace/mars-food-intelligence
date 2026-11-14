@@ -53,15 +53,21 @@ cd backend
 .\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8001
 ```
 
-Astronaut App, dev mode (second terminal):
+**Demo = the production build on port 4173, only.** The dashboard's "Open Astronaut App" button and the "Join the
+crew" QR both open this build (one shared link, `frontend/src/appLink.ts`):
 
 ```powershell
 cd apps\astronaut
 npm install
-npm run dev          # http://localhost:3001  (proxies /api -> http://127.0.0.1:8001)
+npm run build; npm run preview     # http://localhost:4173  (proxies /api -> http://127.0.0.1:8001)
 ```
 
-Main dashboard (optional, third terminal; it has an "Open Astronaut App" link in Crew Health -> Daily Check-in):
+The footer shows `build <git hash> · <build time>`, so you can see which build is open. Rebuild after every pull.
+
+`npm run dev` (http://localhost:3001) is for code changes only; nothing links to it and its footer says
+"dev server (not the demo build)".
+
+Main dashboard (optional, third terminal; "Open Astronaut App" button on the Crew screen):
 
 ```powershell
 cd frontend
