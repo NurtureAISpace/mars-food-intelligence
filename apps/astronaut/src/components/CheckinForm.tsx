@@ -39,7 +39,7 @@ function Stepper({ field, label, value, guide, last, onChange }: {
   };
   return (
     <div>
-      {label && <div className="text-xs text-slate-400 mb-1">{label}</div>}
+      {label && <div className="text-sm text-slate-400 mb-1">{label}</div>}
       <div className="flex items-stretch gap-2">
         <button type="button" onClick={() => bump(-1)} aria-label={`decrease ${field}`}
           className="w-14 min-h-14 rounded-xl border border-mars-border bg-mars-dark text-2xl text-white active:bg-white/10">−</button>
@@ -56,16 +56,16 @@ function Stepper({ field, label, value, guide, last, onChange }: {
 function IndicatorCard({ ind, children }: { ind: GuideIndicator; children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="rounded-xl border border-mars-border bg-mars-card p-3 space-y-2">
+    <div className="rounded-xl border border-mars-border bg-mars-card/55 backdrop-blur-md p-3 space-y-2">
       <div className="flex items-start justify-between gap-2">
         <div>
           <div className="text-white font-semibold">{ind.label} <span className="text-slate-400 font-normal">({ind.unit})</span></div>
-          <div className="text-xs text-slate-500">{ind.range_text}</div>
+          <div className="text-sm text-slate-400">{ind.range_text}</div>
         </div>
         <button type="button" onClick={() => setOpen(!open)} aria-expanded={open}
-          className="shrink-0 min-h-10 px-3 rounded-lg border border-mars-border text-xs text-slate-300">How?</button>
+          className="shrink-0 min-h-10 px-3 rounded-lg border border-mars-border text-sm text-slate-300">How?</button>
       </div>
-      {open && <p className="text-xs text-slate-300 bg-mars-dark/60 rounded-lg p-2">{ind.how_to_measure}</p>}
+      {open && <p className="text-sm text-slate-300 bg-mars-dark/60 rounded-lg p-2">{ind.how_to_measure}</p>}
       {children}
     </div>
   );
@@ -137,12 +137,12 @@ export function CheckinForm({ guide, guideFetchedAt, defaultSol, takenSols, last
 
   return (
     <form onSubmit={submit} className="px-4 py-4 space-y-3" noValidate>
-      <div className="rounded-xl border border-mars-border bg-mars-card p-3 flex items-center justify-between gap-3">
+      <div className="rounded-xl border border-mars-border bg-mars-card/55 backdrop-blur-md p-3 flex items-center justify-between gap-3">
         <div>
           <div className="text-white font-semibold">Sol</div>
           {takenSols.has(sol)
-            ? <div className="text-xs text-amber-300">You already have a check-in for this Sol; the server keeps the latest.</div>
-            : <div className="text-xs text-slate-500">{guide.routine.when}</div>}
+            ? <div className="text-sm text-amber-300">You already have a check-in for this Sol; the server keeps the latest.</div>
+            : <div className="text-sm text-slate-400">{guide.routine.when}</div>}
         </div>
         <div className="flex items-center gap-2">
           <button type="button" onClick={() => setSol(Math.max(0, sol - 1))} aria-label="previous Sol"
@@ -163,7 +163,7 @@ export function CheckinForm({ guide, guideFetchedAt, defaultSol, takenSols, last
                   className={`min-h-16 rounded-xl border flex flex-col items-center justify-center ${
                     mood === m.v ? 'border-mars-accent bg-mars-accent/20' : 'border-mars-border bg-mars-dark'}`}>
                   <span className="text-2xl leading-none">{m.emoji}</span>
-                  <span className="text-[10px] text-slate-300 mt-1">{m.v}</span>
+                  <span className="text-xs text-slate-300 mt-1">{m.v}</span>
                 </button>
               ))}
             </div>
@@ -177,7 +177,7 @@ export function CheckinForm({ guide, guideFetchedAt, defaultSol, takenSols, last
         </IndicatorCard>
       ))}
 
-      <div className="rounded-xl border border-mars-border bg-mars-card p-3">
+      <div className="rounded-xl border border-mars-border bg-mars-card/55 backdrop-blur-md p-3">
         <label htmlFor="notes" className="text-white font-semibold">Notes <span className="text-slate-400 font-normal">(optional)</span></label>
         <textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value.slice(0, 500))} rows={2}
           className="mt-2 w-full rounded-lg bg-mars-dark border border-mars-border p-2 text-white" />
@@ -190,10 +190,10 @@ export function CheckinForm({ guide, guideFetchedAt, defaultSol, takenSols, last
       )}
 
       <button type="submit" disabled={busy}
-        className="w-full min-h-14 rounded-xl bg-mars-accent text-white text-lg font-bold disabled:opacity-60 active:brightness-110">
+        className="btn-primary w-full">
         {busy ? 'Saving…' : 'Submit check-in'}
       </button>
-      <p className="text-xs text-slate-500 text-center">
+      <p className="text-sm text-slate-400 text-center">
         Saved on this device first, then sent when online. Ranges from the server guide
         {guideFetchedAt ? `, cached ${new Date(guideFetchedAt).toLocaleString()}` : ''}.
       </p>

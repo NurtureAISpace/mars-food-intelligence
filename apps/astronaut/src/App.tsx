@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { fetchCrewIds, fetchGuide, fetchHistory, postCheckin } from './api';
+import { fetchGuide, fetchHistory, postCheckin } from './api';
 import { cache, countPending, deleteCheckin, listCheckins, listPending, saveCheckin } from './db';
 import { provisionalCheck } from './provisional';
 import { createSyncer, type SyncReport } from './sync';
-import type { Field, Guide, LocalCheckin, ServerHistory } from './types';
+import type { Field, Guide, LocalCheckin, Profile, ServerHistory } from './types';
 import { uuid4 } from './uuid';
 import { Header } from './components/Header';
-import { CrewSelect } from './components/CrewSelect';
+import { Onboarding } from './components/Onboarding';
+import { makeLocalCheckin } from './checkin';
+import { seatToCrewId } from './config';
 import { CheckinForm, type FormValues } from './components/CheckinForm';
 import { History } from './components/History';
 import { LocalEntryCard } from './components/ui';
@@ -28,9 +30,10 @@ export default function App() {
   const [online, setOnline] = useState(navigator.onLine);
   const [loaded, setLoaded] = useState(false);
   const [guide, setGuide] = useState<{ value: Guide; fetched_at: string } | null>(null);
-  const [crew, setCrew] = useState<{ value: string[]; fetched_at: string } | null>(null);
-  const [astronaut, setAstronaut] = useState<string | null>(null);
-  const [pickingCrew, setPickingCrew] = useState(false);
+  // Device profile (name stays here). The seat's crew id is what the backend sees, plus the anonymized code.
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const astronaut = profile ? seatToCrewId(profile.seat) : null;
   const [entries, setEntries] = useState<LocalCheckin[]>([]);
   const [server, setServer] = useState<{ value: ServerHistory; fetched_at: string } | null>(null);
   const [pending, setPending] = useState(0);
@@ -70,15 +73,6 @@ export default function App() {
     } catch {
       /* offline or backend down: keep the cached guide */
     }
-    try {
-      const ids = await fetchCrewIds();
-      if (ids.length) {
-        await cache.putCrew(ids);
-        setCrew({ value: ids, fetched_at: new Date().toISOString() });
-      }
-    } catch {
-      /* keep the cached crew list */
-    }
   }, []);
 
   const syncer = useMemo(
@@ -111,10 +105,9 @@ export default function App() {
   // Start: cached data first (works offline), then refresh from the server and flush the queue.
   useEffect(() => {
     (async () => {
-      const [g, c, last] = await Promise.all([cache.getGuide(), cache.getCrew(), cache.getLastCrew()]);
+      const [g, p] = await Promise.all([cache.getGuide(), cache.getProfile()]);
       if (g) setGuide(g);
-      if (c) setCrew(c);
-      if (last) setAstronaut(last);
+      if (p) setProfile(p);
       setPending(await countPending());
       setLoaded(true);
       await refreshFromServer();
@@ -159,32 +152,28 @@ export default function App() {
     })();
   }, [astronaut, refreshLocal, refreshServerHistory]);
 
-  const pickCrew = async (id: string) => {
-    await cache.putLastCrew(id);
-    setAstronaut(id);
-    setPickingCrew(false);
+  const saveProfile = async (p: Profile) => {
+    await cache.putProfile(p); // IndexedDB on this device only
+    setProfile(p);
+    setEditingProfile(false);
     setLastSubmitted(null);
     setFormKey((k) => k + 1);
     setTab('checkin');
   };
 
   const submit = async (v: FormValues) => {
-    if (!astronaut || !guide) return;
-    const client_id = uuid4();
-    const created_at = new Date().toISOString();
+    if (!profile || !guide) return;
     const { sol, notes, ...values } = v;
-    const entry: LocalCheckin = {
-      client_id,
-      astronaut_id: astronaut,
-      created_at,
-      payload: { astronaut_id: astronaut, sol, ...values, notes, client_id, measured_at: created_at },
-      sync: 'pending',
-      attempts: 0,
-      next_attempt_at: null,
-      last_error: null,
+    // Payload = seat crew id + anonymized code; the profile's name is never copied into it (see checkin.ts).
+    const entry: LocalCheckin = makeLocalCheckin(profile, {
+      sol,
+      notes,
+      values: values as Record<Field, number>,
+      client_id: uuid4(),
+      created_at: new Date().toISOString(),
       provisional: provisionalCheck(guide.value, values as Record<Field, number>),
-      server: null,
-    };
+    });
+    const client_id = entry.client_id;
     await saveCheckin(entry); // IndexedDB first, always
     await refreshLocal(); // before remounting the form, so the suggested Sol moves on to the next one
     setLastSubmitted(client_id);
@@ -214,25 +203,25 @@ export default function App() {
   const justSubmitted = entries.find((e) => e.client_id === lastSubmitted);
 
   if (!loaded) {
-    return <div className="min-h-screen grid place-items-center text-slate-400">Loading…</div>;
+    return <div className="min-h-screen grid place-items-center text-lg text-slate-300">Loading…</div>;
   }
 
   return (
-    <div className="min-h-screen bg-mars-dark text-slate-100 max-w-xl mx-auto flex flex-col">
-      <Header online={online} pending={pending} syncing={syncing} syncMsg={syncMsg} astronaut={astronaut}
-        onSync={() => void doSync(true).then(refreshServerHistory)} onChangeCrew={() => setPickingCrew(true)} />
+    <div className="min-h-screen text-slate-100 max-w-xl mx-auto flex flex-col">
+      <Header online={online} pending={pending} syncing={syncing} syncMsg={syncMsg} profile={profile}
+        onSync={() => void doSync(true).then(refreshServerHistory)} onChangeProfile={() => setEditingProfile(true)} />
 
       <main className="flex-1 pb-24">
-        {!astronaut || pickingCrew ? (
-          <CrewSelect crew={crew?.value ?? []} crewFetchedAt={crew?.fetched_at ?? null} current={astronaut} online={online}
-            onPick={pickCrew} onCancel={astronaut ? () => setPickingCrew(false) : undefined} />
+        {!profile || editingProfile ? (
+          <Onboarding current={profile} onSave={saveProfile}
+            onCancel={profile ? () => setEditingProfile(false) : undefined} />
         ) : tab === 'checkin' ? (
           <>
             {justSubmitted && (
               <div className="px-4 pt-4 space-y-2">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-white font-bold">Saved</h2>
-                  <button onClick={() => setLastSubmitted(null)} className="min-h-10 px-3 text-sm text-slate-400">Hide</button>
+                  <h2 className="text-xl text-white font-semibold">Saved</h2>
+                  <button onClick={() => setLastSubmitted(null)} className="min-h-11 px-3 text-base text-slate-300">Hide</button>
                 </div>
                 <LocalEntryCard e={justSubmitted} onDiscard={discard} />
               </div>
@@ -241,7 +230,7 @@ export default function App() {
               <CheckinForm key={`${astronaut}-${formKey}`} guide={guide.value} guideFetchedAt={guide.fetched_at}
                 defaultSol={defaultSol} takenSols={new Set(sols)} last={lastValues} onSubmit={submit} />
             ) : (
-              <p className="m-4 p-3 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-200 text-sm">
+              <p className="m-4 p-4 rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-200 text-base">
                 The check-in guide (indicators and ranges) has not been downloaded yet. Connect to the backend once;
                 after that the form works fully offline.
               </p>
@@ -251,15 +240,15 @@ export default function App() {
           <History local={entries} server={server?.value ?? null} serverFetchedAt={server?.fetched_at ?? null}
             online={online} onDiscard={discard} />
         )}
-        {guide && <p className="px-4 pb-4 text-[11px] text-slate-500 text-center">{guide.value.disclaimer}</p>}
+        {guide && <p className="px-4 pb-4 text-sm text-slate-400 text-center">{guide.value.disclaimer}</p>}
       </main>
 
-      {astronaut && !pickingCrew && (
-        <nav className="fixed bottom-0 inset-x-0 bg-mars-card/95 backdrop-blur border-t border-mars-border pb-[env(safe-area-inset-bottom)]">
+      {profile && !editingProfile && (
+        <nav className="fixed bottom-0 inset-x-0 bg-slate-950/70 backdrop-blur-md border-t border-white/10 pb-[env(safe-area-inset-bottom)]">
           <div className="max-w-xl mx-auto grid grid-cols-2">
             {(['checkin', 'history'] as const).map((t) => (
               <button key={t} onClick={() => setTab(t)} aria-current={tab === t ? 'page' : undefined}
-                className={`min-h-16 text-base font-semibold ${tab === t ? 'text-white border-t-2 border-mars-accent' : 'text-slate-400'}`}>
+                className={`min-h-16 text-lg font-semibold ${tab === t ? 'text-white border-t-2 border-indigo-400' : 'text-slate-300'}`}>
                 {t === 'checkin' ? 'Check-in' : 'History'}
               </button>
             ))}

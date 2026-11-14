@@ -62,6 +62,8 @@ export interface CheckinPayload {
   notes?: string | null;
   client_id: string;
   measured_at: string;
+  /** Anonymized code made on this device from the name (see pseudonym.ts). The name itself is never sent. */
+  pseudonym?: string;
 }
 
 /** One stored check-in as returned by GET /api/v1/health/checkins (and as `record` in the POST response). */
@@ -78,6 +80,7 @@ export interface ServerCheckin {
   notes?: string | null;
   client_id?: string;
   measured_at?: string;
+  pseudonym?: string;
   recorded_at: string;
   overall_status: ServerStatus;
   colors: Record<string, Color>;
@@ -123,4 +126,12 @@ export interface LocalCheckin {
   last_error: string | null;
   provisional: Provisional | null;
   server: ServerOutcome | null;
+}
+
+/** Who uses this device. Stored ONLY in this device's IndexedDB; `name` is never sent to the backend. */
+export interface Profile {
+  name: string;
+  seat: number;      // 1..4 -> crew id C00k (config.ts)
+  pseudonym: string; // "CREW-XXXXXX", the only identity the backend and dashboard see
+  created_at: string;
 }

@@ -16,12 +16,6 @@ export const fetchGuide = () => getJson<Guide>('/checkin/guide');
 export const fetchHistory = (astronautId: string) =>
   getJson<ServerHistory>(`/checkins?astronaut_id=${encodeURIComponent(astronautId)}`);
 
-/** Crew IDs of the simulated mission, from the Crew Health snapshot. */
-export async function fetchCrewIds(): Promise<string[]> {
-  const d = await getJson<{ crew: Array<{ astronaut_id: string }> }>('/crew');
-  return d.crew.map((c) => c.astronaut_id);
-}
-
 /** FastAPI error body -> one readable line. */
 export function errorMessage(body: unknown, fallback: string): string {
   const detail = (body as { detail?: unknown } | null)?.detail;

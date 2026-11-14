@@ -3,17 +3,20 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
-      // Same palette as frontend/ so both apps look like one product
+      // Same glass/indigo look as frontend/ so both apps look like one product
       colors: {
         mars: {
-          dark: '#080c14',
-          card: '#0e1626',
-          border: '#1f2e4d',
-          accent: '#e65c00',
+          dark: '#020617',                         // inputs / wells
+          card: 'rgb(15 23 42 / <alpha-value>)',    // section cards (used as bg-mars-card/55 + blur)
+          border: 'rgba(96, 165, 250, 0.25)',       // section card border
+          accent: '#4f46e5',                        // indigo (single accent)
           cyan: '#06b6d4',
           green: '#10b981',
           gold: '#f59e0b',
         },
+      },
+      fontFamily: {
+        sans: ['Inter', '"Segoe UI"', 'system-ui', '-apple-system', 'Roboto', 'sans-serif'],
       },
     },
   },

@@ -8,6 +8,9 @@ export const COLOR_CLS: Record<Color, { text: string; bg: string; border: string
 };
 export const STATUS_COLOR: Record<ServerStatus, Color> = { NOMINAL: 'green', WATCH: 'amber', ACT: 'red' };
 const COLOR_WORD: Record<Color, string> = { green: 'Green', amber: 'Amber', red: 'Red' };
+/** Plain words for people; backend values stay NOMINAL / WATCH / ACT. */
+export const STATUS_WORD: Record<ServerStatus, string> = { NOMINAL: 'All good', WATCH: 'Take care', ACT: 'Call doctor' };
+const STATUS_ICON: Record<ServerStatus, string> = { NOMINAL: '✓', WATCH: '!', ACT: '✚' };
 
 export function formatTime(iso: string | undefined | null): string {
   if (!iso) return '';
@@ -22,16 +25,16 @@ export function SyncBadge({ state }: { state: SyncState }) {
     failed: 'bg-red-500/15 text-red-300 border-red-500/50',
   }[state];
   const label = { pending: 'Pending', synced: 'Synced', failed: 'Failed' }[state];
-  return <span className={`px-2 py-0.5 rounded-full border text-xs font-semibold ${cls}`}>{label}</span>;
+  return <span className={`px-2 py-0.5 rounded-full border text-sm font-semibold ${cls}`}>{label}</span>;
 }
 
 /** Final status from the server (personal baseline included). */
 export function StatusPill({ status }: { status: ServerStatus }) {
   const c = COLOR_CLS[STATUS_COLOR[status]];
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border font-mono text-sm font-bold ${c.bg} ${c.border} ${c.text}`}>
-      <span className={`w-2.5 h-2.5 rounded-full ${c.dot}`} />
-      {status}
+    <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-base font-semibold ${c.bg} ${c.border} ${c.text}`}>
+      <span className={`grid place-items-center w-5 h-5 rounded-full text-sm text-slate-950 ${c.dot}`} aria-hidden>{STATUS_ICON[status]}</span>
+      {STATUS_WORD[status]}
     </span>
   );
 }
@@ -45,9 +48,9 @@ export function ProvisionalBlock({ p, compact = false }: { p: Provisional; compa
         <span className={`w-3 h-3 rounded-full ${c.dot} opacity-80`} />
         <span className={`text-sm font-semibold ${c.text}`}>{COLOR_WORD[p.overall]} (provisional)</span>
       </div>
-      <p className="text-xs text-slate-300 italic">{PROVISIONAL_LABEL}</p>
+      <p className="text-sm text-slate-300 italic">{PROVISIONAL_LABEL}</p>
       {!compact && (
-        <ul className="grid grid-cols-2 gap-1 text-xs text-slate-300">
+        <ul className="grid grid-cols-2 gap-1 text-sm text-slate-300">
           {p.indicators.map((i) => (
             <li key={i.key} className="flex items-center gap-1.5">
               <span className={`w-2 h-2 rounded-full ${COLOR_CLS[i.color].dot} opacity-80`} />
@@ -73,28 +76,28 @@ export function LocalEntryCard({ e, onDiscard, replaced }: {
   e: LocalCheckin; onDiscard?: (id: string) => void; replaced?: boolean;
 }) {
   return (
-    <div className="rounded-xl border border-mars-border bg-mars-card p-3 space-y-2">
+    <div className="rounded-xl border border-mars-border bg-mars-card/55 backdrop-blur-md p-3 space-y-2">
       <div className="flex items-center justify-between gap-2">
         <div>
           <div className="text-white font-semibold">Sol {e.payload.sol}</div>
-          <div className="text-xs text-slate-400">Measured {formatTime(e.payload.measured_at)}</div>
+          <div className="text-sm text-slate-400">Measured {formatTime(e.payload.measured_at)}</div>
         </div>
         <SyncBadge state={e.sync} />
       </div>
-      <div className="text-xs text-slate-400 font-mono">{valuesLine(e.payload)}</div>
+      <div className="text-sm text-slate-400 font-mono">{valuesLine(e.payload)}</div>
 
       {e.sync === 'synced' && e.server && (
         <div className="space-y-1">
           <div className="flex items-center gap-2 flex-wrap">
             <StatusPill status={e.server.status} />
-            <span className="text-xs text-slate-400">server status</span>
+            <span className="text-sm text-slate-400">server status</span>
           </div>
           {e.server.headline && <p className="text-sm text-slate-200">{e.server.headline}</p>}
           {e.server.contact_flight_surgeon && (
             <p className="text-sm text-red-300 font-semibold">Contact the flight surgeon today.</p>
           )}
           {replaced && (
-            <p className="text-xs text-amber-300">
+            <p className="text-sm text-amber-300">
               The server now holds a later check-in for this Sol (it keeps one per Sol), so this one was replaced.
             </p>
           )}
@@ -104,7 +107,7 @@ export function LocalEntryCard({ e, onDiscard, replaced }: {
       {e.sync !== 'synced' && e.provisional && <ProvisionalBlock p={e.provisional} compact={e.sync === 'failed'} />}
 
       {e.sync === 'pending' && e.last_error && (
-        <p className="text-xs text-sky-300">
+        <p className="text-sm text-sky-300">
           Not sent yet ({e.last_error}). {e.next_attempt_at ? `Next automatic try after ${new Date(e.next_attempt_at).toLocaleTimeString()}.` : ''}
         </p>
       )}

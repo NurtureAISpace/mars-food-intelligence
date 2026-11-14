@@ -36,25 +36,25 @@ export function History({ local, server, serverFetchedAt, online, onDiscard }: {
     <section className="px-4 py-4 space-y-3">
       <div className="flex items-baseline justify-between">
         <h2 className="text-lg font-bold text-white">History</h2>
-        <span className="text-xs text-slate-500">
+        <span className="text-sm text-slate-400">
           {serverFetchedAt ? `server data ${online ? 'as of' : 'cached'} ${formatTime(serverFetchedAt)}` : 'no server data yet'}
         </span>
       </div>
-      {server && <p className="text-xs text-slate-400">Streak: {server.streak.current_sols} Sol(s) · {server.count} on the server</p>}
+      {server && <p className="text-sm text-slate-400">Streak: {server.streak.current_sols} Sol(s) · {server.count} on the server</p>}
       {rows.length === 0 && <p className="text-slate-400 text-sm">No check-ins yet.</p>}
       {rows.map((r) =>
         r.kind === 'local' ? (
           <LocalEntryCard key={r.e.client_id} e={r.e} replaced={r.replaced} onDiscard={onDiscard} />
         ) : (
-          <div key={`s-${r.s.sol}-${r.s.recorded_at}`} className="rounded-xl border border-mars-border bg-mars-card p-3 space-y-2">
+          <div key={`s-${r.s.sol}-${r.s.recorded_at}`} className="rounded-xl border border-mars-border bg-mars-card/55 backdrop-blur-md p-3 space-y-2">
             <div className="flex items-center justify-between gap-2">
               <div>
                 <div className="text-white font-semibold">Sol {r.s.sol}</div>
-                <div className="text-xs text-slate-400">Recorded {formatTime(r.t)} · from server</div>
+                <div className="text-sm text-slate-400">Recorded {formatTime(r.t)} · from server</div>
               </div>
               <SyncBadge state="synced" />
             </div>
-            <div className="text-xs text-slate-400 font-mono">{valuesLine(r.s)}</div>
+            <div className="text-sm text-slate-400 font-mono">{valuesLine(r.s)}</div>
             <StatusPill status={r.s.overall_status} />
           </div>
         ),

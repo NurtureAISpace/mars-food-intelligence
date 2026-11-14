@@ -1,3 +1,12 @@
+/* Inter, self-hosted (public/fonts) so the app works offline. */
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/inter-latin-var.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -6,13 +15,64 @@
   color-scheme: dark;
 }
 
-html,
+html {
+  background: #000;
+}
+
 body {
-  background: #080c14;
+  font-family: Inter, 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+  font-size: 16px;
+  color: #f8fafc;
+  /* Fallback when the photo is missing: dark radial gradient */
+  background: radial-gradient(ellipse at 50% 30%, #0b1020 0%, #000 75%) fixed;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior-y: none;
 }
 
+/* Same space photo + dark overlay as the dashboard (fixed layer; background-attachment: fixed breaks on iOS) */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(2, 6, 23, 0.55), rgba(2, 6, 23, 0.55)),
+    url('/bg/space.jpg') center / cover no-repeat;
+}
+
 button {
   touch-action: manipulation;
+}
+
+:focus-visible {
+  outline: 3px solid #a5b4fc;
+  outline-offset: 2px;
+}
+
+@layer components {
+  /* Glass panel */
+  .glass {
+    @apply rounded-3xl border backdrop-blur-md;
+    background: rgba(10, 14, 28, 0.55);
+    border-color: rgba(148, 163, 184, 0.18);
+  }
+  .btn-primary {
+    @apply inline-flex min-h-[56px] items-center justify-center gap-2 rounded-xl px-8 text-lg font-semibold text-white
+           disabled:opacity-50 active:brightness-110;
+    background: #4f46e5;
+    box-shadow: 0 0 28px -6px rgba(99, 102, 241, 0.7);
+  }
+  .btn-secondary {
+    @apply inline-flex min-h-[52px] items-center justify-center gap-2 rounded-xl border border-slate-400/50 px-8 text-lg
+           font-semibold text-white active:bg-white/10;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }

@@ -1,7 +1,8 @@
-// IndexedDB (via `idb`): every check-in is written here first; the guide, crew list and server history are cached
-// here so the app works fully offline after one online start.
+// IndexedDB (via `idb`): every check-in is written here first; the guide and server history are cached here so the
+// app works fully offline after one online start. The profile (name, seat, crew code) lives here too: the name
+// never leaves this device.
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
-import type { Guide, LocalCheckin, ServerHistory } from './types';
+import type { Guide, LocalCheckin, Profile, ServerHistory } from './types';
 
 interface CachedValue<T> {
   value: T;
@@ -69,10 +70,8 @@ async function putCached<T>(key: string, value: T): Promise<void> {
 export const cache = {
   getGuide: () => getCached<Guide>('guide'),
   putGuide: (g: Guide) => putCached('guide', g),
-  getCrew: () => getCached<string[]>('crew'),
-  putCrew: (c: string[]) => putCached('crew', c),
   getHistory: (id: string) => getCached<ServerHistory>(`history:${id}`),
   putHistory: (id: string, h: ServerHistory) => putCached(`history:${id}`, h),
-  getLastCrew: async () => (await getCached<string>('last_crew'))?.value ?? null,
-  putLastCrew: (id: string) => putCached('last_crew', id),
+  getProfile: async () => (await getCached<Profile>('profile'))?.value ?? null,
+  putProfile: (p: Profile) => putCached('profile', p),
 };

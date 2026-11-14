@@ -8,13 +8,20 @@ same repo as the main dashboard (`frontend/`) but is a separate Vite app.
 
 ## What it does
 
-- **Crew select**: crew IDs come from the backend (`GET /api/v1/health/crew`), cached on the device. The last
-  choice is remembered. You can also type another crew ID.
+- **Onboarding (name -> pseudonym)**: the astronaut types their full name (first + last) and picks seat 1-4.
+  Seat k checks in as Inspiration4 subject `C00k` (links the demo to the real NASA blood data). On the device the
+  name is normalized (trim, lowercase, collapse spaces) and hashed: `SHA-256(name + ":" + APP_SALT)`
+  (`src/config.ts`), code = `CREW-` + first 6 hex chars, uppercase. WebCrypto is used when available; on plain
+  http (e.g. a phone on the LAN) a tested plain-JS SHA-256 gives the same result.
+  The name is stored **only** in this device's IndexedDB (for "Hi, <first name>"); it is never sent. Check-ins
+  carry only the seat's crew id and the anonymized code (`pseudonym`), and the dashboard shows only that code.
+  It is only a pseudonym (anonymized code): the salt ships with the app, so anyone who already knows a name could
+  recompute its code.
 - **Check-in form**: the 6 indicators, units and ranges from `GET /api/v1/health/checkin/guide` (heart rate, blood
   pressure, blood sugar, body temperature, sleep, mood), with big +/- steppers and a mood picker. The guide is
   cached in IndexedDB, so the form works fully offline after one online start.
 - **History**: the latest check-ins for the selected crew member, each with a sync badge (**Pending / Synced /
-  Failed**) and, once synced, the server status (**NOMINAL / WATCH / ACT**). Check-ins made elsewhere (e.g. in the
+  Failed**) and, once synced, the server status in plain words (**All good / Take care / Call doctor** for NOMINAL / WATCH / ACT). Check-ins made elsewhere (e.g. in the
   main dashboard) are shown too, labelled "from server".
 - **Header**: Online/Offline indicator, "N pending", and a manual **Sync now** button.
 
@@ -78,16 +85,16 @@ npm run build
 npm run preview      # http://localhost:3001
 ```
 
-1. With the backend running, open http://localhost:3001 in Chrome or Edge, pick a crew member (e.g. `CDR-01`).
-   This first online visit downloads the guide and crew list and installs the service worker.
+1. With the backend running, open http://localhost:3001 in Chrome or Edge, enter your full name and pick a seat (e.g. Seat 1 = `C001`).
+   This first online visit downloads the check-in guide and installs the service worker.
 2. DevTools (F12) -> **Network** -> throttling dropdown -> **Offline**. The header switches to **Offline**.
    Reload the page: the app still loads (from the service worker) and the form still works.
 3. Fill in a check-in and **Submit**. It shows **Pending** with the labelled provisional colour, and the header
    shows **1 pending**. Submit a second one (the Sol moves on by itself). "Sync now" keeps them pending.
 4. Set throttling back to **No throttling**. The `online` event triggers a sync: both entries turn **Synced**
-   with the server status (NOMINAL / WATCH / ACT), and the header shows **0 pending**.
-5. Optional: check `http://127.0.0.1:8001/api/v1/health/checkins?astronaut_id=CDR-01`: one record per check-in,
-   each with its `client_id` and `measured_at`.
+   with the server status (All good / Take care / Call doctor), and the header shows **0 pending**.
+5. Optional: check `http://127.0.0.1:8001/api/v1/health/checkins?astronaut_id=C001`: one record per check-in,
+   each with its `client_id`, `measured_at` and `pseudonym` (no name).
 
 On a phone: open `http://<your-PC-IP>:3001`. Note that browsers only enable service workers on `https` or
 `localhost`, so over plain http on the LAN the app works online but is not installable/offline-capable (see
@@ -95,8 +102,8 @@ limitations).
 
 ## Known limitations
 
-- **Offline needs one online start** to download the guide and crew list. Before that, the form shows a message
-  instead of the indicators (crew IDs can still be typed in).
+- **Offline needs one online start** to download the check-in guide. Before that, the form shows a message
+  instead of the indicators.
 - **Service worker only on https or localhost.** On a phone over plain http (LAN IP) there is no app-shell
   caching; IndexedDB storage and the sync queue still work while the page stays open. A real deployment needs
   https.
