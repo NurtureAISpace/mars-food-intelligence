@@ -16,7 +16,7 @@ We checked `https://www.spaceappschallenge.org/resources/project-submission-guid
 | **High-Level Summary** | Required; concise overview (no hard char limit in guide; portal text box typically ≤ 1,000–1,500 chars / ~150–250 words) | 120–200 words (≤ 1,200 chars) | **164 words** (1,089 characters) |
 | **Project Demo** | Required; **1 public, password-free URL** to **≤ 7 slides** (in English, incl. team name, members, challenge) OR **≤ 30 s video** (with English subtitles). Exceeding 7 slides or 30 s disqualifies from global judging. | Single public URL | Placeholder `[PROJECT_DEMO_LINK]` |
 | **Final Project** | Required; **public, password-free URL** to live app or code repository | Single public URL | Placeholder `[FINAL_PROJECT_LINK]` |
-| **Detailed Description** | Required; rich-text main body (no hard word limit in guide; typically 400–800 words / ≤ 5,000 chars) | 450–700 words | **618 words** (4,092 characters) |
+| **Detailed Description** | Required; rich-text main body (no hard word limit in guide; typically 400–1,000 words / ≤ 7,000 chars) | 500–1,000 words | **979 words** (6,553 characters) |
 | **NASA Data** | **Mandatory for Global Judging**; list specific NASA datasets/documents and how they are used | Clear bullet list with URLs | **286 words** (2,045 characters) |
 | **Partner & Other Data** | Required; list external literature, code/data sources, and synthetic data disclosures | Clear bullet list with DOIs | **178 words** (1,218 characters) |
 | **Use of AI** | Required; disclose in-app ML and AI coding/research tools; **no NASA logo**; AI-generated images/video must have a visible watermark | Clear disclosure | **148 words** (1,012 characters) |
@@ -71,20 +71,21 @@ Long-duration missions (450 Sols, or 462 Earth days, in our Mars scenario) carry
 NurtureAISpace follows that chain step by step:
 `Food storage -> Vitamin loss -> Body vitamin levels -> Personal-baseline warning -> What to eat`
 
-1. **Crew Health Monitor (Synthetic 4-Person Crew):**
+1. **Crew Health Monitor & Interactive 3D Digital Twin (Synthetic 4-Person Crew):**
    - Computes daily vitamin C and thiamine B1 losses in stored rations using first-order kinetics anchored to Cooper 2017 and Goulette 2020 endpoints, then updates each astronaut's body vitamin pool (`~2,000 mg` max vitamin C pool with risk below `~300 mg`; `~30 mg` thiamine B1 store with `9–18` day half-life and an assumed `10 mg` risk threshold, from NASA JSC 2005).
    - Tracks serum vitamin D (`25(OH)D`) using the in-flight decline measured on 11 ISS astronauts (`63 ± 16` to `48 ± 20 nmol/L` over `128–195` days; Rice, Zwart & Smith, NTRS 20080026180), with a risk threshold at `25 nmol/L`.
    - Compares each astronaut's indicators against their own Sol 0–20 personal baseline (z-scores, `|z| >= 2.0`, plus scikit-learn `IsolationForest`) and forecasts how many Sols remain before a vitamin threshold is crossed.
    - Raises explainable **NOMINAL / WATCH / ACT** alerts (`WATCH` at `<= 120` Sols to risk or vital `|z| >= 2.0`; `ACT` at `<= 45` Sols to risk). In the default cooling-failure scenario (Sol 150, 45 Sols at 29.5 °C), it raises `ACT` alerts for thiamine B1 at Sols 212 and 244 and for vitamin D 45 Sols before crossing the risk line. Every alert gives a clear food or supplement recommendation and indicates when `ACT` status warrants flight-surgeon review.
-   - *In progress (being added):* a 6-indicator daily self-assessment check-in (heart rate, blood pressure, fasting blood sugar, body temperature, daily sleep hours, and mood) with simplified navigation.
+   - Includes an **interactive 3D Mars Habitat Digital Twin** linking food bays, greenhouse trays, and the crew med-bay, a draggable **Mission Sol Timeline Scrubber**, a **Days-to-Risk Countdown**, a **live What-If countermeasure simulator** (`BIO-002` microgreens, `TH-002` stew), and a 6-indicator daily self-assessment check-in (heart rate, blood pressure, fasting blood sugar, body temperature, daily sleep hours, mood) with low-cognitive-load guidance for stressed crew members.
 
 2. **Real NASA Data Screen (Inspiration4 Blood Panels):**
    - Built into the app (`RealDataView.tsx` / `GET /api/v1/real-data/i4`), this screen analyzes unmodified clinical blood tests from the 4 civilian astronauts (`C001–C004`) on the 3-day Inspiration4 mission (NASA OSDR OSD-569 CBC and OSD-575 CMP across 3 pre-flight draws `L-92, L-44, L-3` and 4 post-flight draws `R+1, R+45, R+82, R+194`).
-   - Comparing each astronaut to their own 3 pre-flight tests (`|z| > 2`, with a minimum spread floor of 5% of the lab reference-range width) shows one consistent whole-crew shift at `R+1` (1 day after landing): **MCV (average red blood cell size) was lower than all 3 of their own pre-flight values in all 4 crew members** (on average 3.9% lower), while all 4 values stayed inside the standard 80–100 fL lab range.
+   - Comparing each astronaut to their own 3 pre-flight tests (`|z| > 2`, with a minimum spread floor of 5% of the lab reference-range width) shows one consistent whole-crew shift at `R+1` (1 day after landing): **MCV (average red blood cell size) was lower than all 3 of their own pre-flight values in all 4 crew members** (on average 3.9% lower), while all 4 values stayed inside the standard 80–100 fL lab range. Key slogan: *Standard lab ranges hide early spaceflight changes; personal baselines reveal them.*
 
-3. **Supporting Scenario Modules (Labeled Synthetic):**
+3. **Supporting Scenario Modules & Space-to-Earth Impact:**
    - **Food & Vitamins / Data Lab / Diet Optimizer / Mission Simulator:** models Arrhenius shelf-life curves, runs a SciPy HiGHS linear programming solver (`>= 90 mg` vitamin C and `>= 1.2 mg` B1 from NASA JSC 2005; `2,800 kcal` and `85 g` protein assumed), and checks catalog kinetics against published endpoints (7 of 12 series currently agree, RMSE ~27 percentage points).
    - **Life Support Sim:** models OGS water electrolysis and Sabatier CO2 reduction using NASA BVAD crew rates (`0.816 kg` O2, `1.04 kg` CO2, `2.50 kg` potable water, `7.32 kg` hygiene water per crewmember-day) alongside a synthetic 3-bed soil-moisture threshold controller (`VWC <= 38%` open, `>= 50%` close).
+   - **Space-to-Earth Applications:** (1) *Disaster relief warehouses:* predicts shelf-life vitamin degradation in emergency ration packs stored in warm relief tents. (2) *Remote healthcare:* provides isolated clinics and polar stations without daily blood labs with a 30-second check-in and doctor-referral protocol. (3) *Controlled-environment agriculture:* couples shelf-life decay with fresh microgreen tray scheduling.
 
 ### Tools & Technologies
 Python, FastAPI, NumPy, Pandas, SciPy (`linprog` HiGHS), scikit-learn (`IsolationForest`), Pytest (49 passing tests + 3 `xfail` documenting model limits), React 18, TypeScript, Tailwind CSS.
