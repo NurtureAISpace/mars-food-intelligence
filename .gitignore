@@ -31,3 +31,6 @@ dist/
 .DS_Store
 *.local
 .env
+
+# Runtime data (daily check-ins etc.)
+backend/data/runtime/

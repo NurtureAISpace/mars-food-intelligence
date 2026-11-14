@@ -8,6 +8,7 @@ from app.api.routes_optimization import router as optimization_router
 from app.api.routes_simulator import router as simulator_router
 from app.api.routes_health import router as health_router
 from app.api.routes_life_support import router as life_support_router
+from app.api.routes_real_data import router as real_data_router
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -35,6 +36,7 @@ app.include_router(optimization_router, prefix=api_prefix)
 app.include_router(simulator_router, prefix=api_prefix)
 app.include_router(health_router, prefix=api_prefix)
 app.include_router(life_support_router, prefix=api_prefix)
+app.include_router(real_data_router, prefix=api_prefix)
 
 
 @app.get("/")
@@ -57,9 +59,13 @@ def root():
             f"{api_prefix}/health/crew",
             f"{api_prefix}/health/astronaut/{{astronaut_id}}/timeline",
             f"{api_prefix}/health/alerts",
+            f"{api_prefix}/health/checkin",
+            f"{api_prefix}/health/checkins?astronaut_id=",
+            f"{api_prefix}/health/checkin/guide",
             f"{api_prefix}/life-support/telemetry",
             f"{api_prefix}/life-support/regolith-sensors",
-            f"{api_prefix}/life-support/simulate"
+            f"{api_prefix}/life-support/simulate",
+            f"{api_prefix}/real-data/i4"
         ]
     }
 

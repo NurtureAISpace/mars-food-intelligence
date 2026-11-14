@@ -72,13 +72,47 @@ def test_act_raised_before_any_threshold_crossing(default_analysis):
             assert res.first_status["ACT"] < min(crossings)
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    "Model finding after the steady-state calibration: the default Sol-150 cooling failure brings thiamine to "
-    "10.04 mg (MS-03) and 10.10 mg (PLT-02) vs the 10 mg ASSUMED threshold, but no vitamin C / B1 pool crosses. "
-    "ACT is still raised on the B1 forecast. Scenario not re-tuned to force a crossing; see handoff report."))
-def test_cooling_failure_drives_a_cooling_nutrient_below_threshold(default_analysis):
+@pytest.fixture(scope="module")
+def severe_analysis():
+    return service.get_analysis(service.preset_scenario("severe_cooling_failure"))
+
+
+def test_cooling_failure_drives_a_cooling_nutrient_below_threshold(severe_analysis):
+    """Severe preset (60 Sols, 30 °C peak): mildest searched failure where a C/B1 pool really crosses.
+    The default (mild) Sol-150 failure brings B1 to ~10.04 mg vs the 10 mg threshold without crossing."""
     assert any(res.threshold_crossing_sol[n] is not None
-               for res in default_analysis.astronauts.values() for n in COOLING_NUTRIENTS)
+               for res in severe_analysis.astronauts.values() for n in COOLING_NUTRIENTS)
+
+
+def test_severe_preset_act_precedes_crossing(severe_analysis):
+    for res in severe_analysis.astronauts.values():
+        crossings = [res.threshold_crossing_sol[n] for n in COOLING_NUTRIENTS if res.threshold_crossing_sol[n] is not None]
+        if crossings:
+            assert res.first_status["ACT"] < min(crossings)
+
+
+def test_scenario_presets_endpoint_and_param():
+    r = client.get("/api/v1/health/scenarios")
+    assert r.status_code == 200
+    body = r.json()
+    ids = [p["id"] for p in body["scenarios"]]
+    assert ids == ["nominal", "mild_cooling_failure", "severe_cooling_failure"]
+    for p in body["scenarios"]:
+        assert p["scenario_type"] == "hypothetical stress test" and p["description"] and p["label"]
+    assert service.preset_scenario("mild_cooling_failure") == CrewScenario()
+    assert service.preset_scenario("nominal") == CrewScenario(failure_enabled=False).normalized()
+
+    r = client.get("/api/v1/health/alerts", params={"scenario": "nominal"})
+    assert r.status_code == 200
+    assert r.json()["scenario"]["failure_enabled"] is False
+    assert r.json()["scenario_preset"]["id"] == "nominal"
+    r = client.get("/api/v1/health/crew", params={"scenario": "severe_cooling_failure", "sol": 200})
+    assert r.status_code == 200
+    assert r.json()["scenario"]["failure_duration_sols"] == 60
+    assert r.json()["scenario_preset"]["scenario_type"] == "hypothetical stress test"
+    assert client.get("/api/v1/health/astronaut/MS-03/timeline",
+                      params={"scenario": "mild_cooling_failure"}).json()["scenario_preset"]["id"] == "mild_cooling_failure"
+    assert client.get("/api/v1/health/crew", params={"scenario": "bogus"}).status_code == 422
 
 
 def test_baseline_window_zscores_are_near_zero(default_analysis):

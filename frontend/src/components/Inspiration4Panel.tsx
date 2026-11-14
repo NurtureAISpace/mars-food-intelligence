@@ -82,7 +82,7 @@ export const Inspiration4Panel: React.FC = () => {
             <span>Personal-Baseline Z-Score Validation on Real Astronaut Blood Data</span>
           </h3>
           <p className="text-xs text-slate-300 font-sans mt-1">
-            Testing our mathematical anomaly detection framework against empirical orbital spaceflight clinical panels (4 crew, 3 pre-flight & 4 post-flight timepoints).
+            Testing our mathematical anomaly detection framework against published orbital spaceflight clinical panels (4 crew, 3 pre-flight & 4 post-flight timepoints).
           </p>
         </div>
 

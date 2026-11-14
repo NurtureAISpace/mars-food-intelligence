@@ -242,8 +242,22 @@ export interface CrewMemberStatus {
   assessment: CrewAlert | null;
 }
 
+export interface CrewScenarioPreset {
+  id: string;
+  label: string;
+  description: string;
+  scenario_type: string;
+  parameters?: CrewHealthScenario & Record<string, unknown>;
+}
+
+export interface CrewScenarioPresets {
+  default: string;
+  scenarios: CrewScenarioPreset[];
+}
+
 export interface CrewHealthSnapshot {
   data_provenance: string;
+  scenario_preset: CrewScenarioPreset | null;
   scenario: Record<string, unknown> & { mission_sols: number; calibration_sols: number; failure_enabled: boolean };
   events: CrewEvents;
   sol: number;
@@ -383,4 +397,255 @@ export interface LifeSupportSimulationResult {
   }>;
   alerts: string[];
   author: string;
+}
+
+// ---------------------------------------------------------------------------
+// Real NASA data: Inspiration4 blood panels (NASA OSDR OSD-569 CBC, OSD-575 CMP)
+// ---------------------------------------------------------------------------
+export type RefStatus = 'in' | 'LOW' | 'HIGH' | 'n/a';
+
+export interface RealDataPoint {
+  timepoint: string;
+  value: number | null;
+  ref_low: number | null;
+  ref_high: number | null;
+  ref_status: RefStatus;
+  z: number | null;
+  flagged: boolean;
+}
+
+export interface RealDataSeries {
+  astronaut: string;
+  analyte: string;
+  unit: string;
+  panel: string;
+  baseline: {
+    timepoints: string[];
+    n: number;
+    mean: number | null;
+    sd: number | null;
+    sd_source: 'personal' | 'floor' | 'none';
+    band_low: number | null;
+    band_high: number | null;
+  };
+  points: RealDataPoint[];
+}
+
+export interface RealDataSharedFinding {
+  analyte: string;
+  label: string;
+  unit: string;
+  timepoint: string;
+  direction: 'up' | 'down';
+  n_crew_flagged: number;
+  n_crew: number;
+  mean_pct_change: number | null;
+  n_beyond_all_preflight_values: number;
+  n_inside_reference_range: number;
+  per_astronaut: Array<{
+    astronaut: string;
+    value: number | null;
+    baseline_mean: number | null;
+    z: number | null;
+    flagged: boolean;
+    pct_change: number | null;
+    beyond_all_preflight_values: boolean;
+    ref_status: RefStatus;
+  }>;
+  sensitivity: { sd_floor_fraction_of_range: number; n_crew_flagged: number; plain_text: string };
+  other_all_crew_analytes: string[];
+  plain_text: string;
+}
+
+export interface RealDataNoiseControl {
+  control_timepoint: string;
+  control_baseline: string[];
+  control_flagged: number;
+  control_tests: number;
+  control_pct: number | null;
+  flight_timepoint: string;
+  flight_flagged: number;
+  flight_tests: number;
+  flight_pct: number | null;
+  single_flags_mostly_noise: boolean;
+  n_analytes: number;
+  expected_all_crew_by_chance: number | null;
+  chance_note: string;
+  plain_text: string;
+}
+
+export interface RealDataI4 {
+  source: {
+    name: string;
+    mission: string;
+    osd_ids: string[];
+    panels: Record<string, string>;
+    urls: Array<{ label: string; url: string }>;
+    license: string;
+    citation: string;
+    mission_days: number;
+  };
+  crew: Array<{ id: string; sex: string | null }>;
+  timepoints: Array<{ id: string; phase: 'pre' | 'post'; day: number; label: string; is_baseline: boolean }>;
+  baseline_timepoints: string[];
+  post_flight_timepoints: string[];
+  analytes: Array<{
+    name: string;
+    label: string;
+    unit: string;
+    panel: string;
+    reference_range: { low: number | null; high: number | null };
+  }>;
+  default_analyte: string | null;
+  series: RealDataSeries[];
+  method: { flag_z: number; sd_floor_fraction_of_range: number; plain_text: string };
+  summary: {
+    flag_z: number;
+    flags_per_timepoint: Array<{ timepoint: string; flagged: number; tests: number; pct: number | null }>;
+    shared_finding: RealDataSharedFinding | null;
+    crew_consistent_shifts: Array<{ analyte: string; label: string; direction: 'up' | 'down'; astronauts: string[]; z: Array<number | null> }>;
+    noise_control: RealDataNoiseControl;
+  };
+  limitations: Array<{ key: string; title: string; text: string }>;
+}
+
+// Daily Check-in (astronaut self-assessment; decision-support prototype, not a medical device)
+export type CheckinColor = 'green' | 'amber' | 'red';
+export type CheckinOverallStatus = 'NOMINAL' | 'WATCH' | 'ACT';
+export type CheckinIndicatorKey = 'heart_rate' | 'blood_pressure' | 'blood_glucose' | 'body_temperature' | 'sleep' | 'mood';
+export type CheckinField =
+  | 'heart_rate_bpm' | 'systolic_mmHg' | 'diastolic_mmHg' | 'blood_glucose_mg_dl' | 'body_temp_c' | 'sleep_hours' | 'mood_1_5';
+
+export interface CheckinInput {
+  astronaut_id: string;
+  sol: number;
+  heart_rate_bpm: number;
+  systolic_mmHg: number;
+  diastolic_mmHg: number;
+  blood_glucose_mg_dl: number;
+  body_temp_c: number;
+  sleep_hours: number;
+  mood_1_5: number;
+  notes?: string | null;
+}
+
+export interface CheckinThreshold {
+  field: CheckinField;
+  color: 'amber' | 'red';
+  direction: 'below' | 'above';
+  value: number;
+  inclusive: boolean;
+  status: 'literature' | 'assumed';
+  source: string;
+  where_in_source: string | null;
+}
+
+export interface CheckinSource { id: string; citation: string; doi_or_url: string | null; access: string }
+
+export interface CheckinBaselineField {
+  field: CheckinField;
+  status: 'building' | 'ready';
+  flag: boolean;
+  mean: number | null;
+  sd: number | null;
+  z: number | null;
+  prior_entries: number;
+  own_checkins: number;
+  synthetic_entries: number;
+  needed: number;
+}
+
+export interface CheckinIndicatorResult {
+  key: CheckinIndicatorKey;
+  label: string;
+  unit: string;
+  value: number | Record<string, number>;
+  display_value: string;
+  status_color: CheckinColor;
+  status: CheckinOverallStatus;
+  band: string;
+  meaning: string;
+  reference: { range_text: string; thresholds: CheckinThreshold[]; sources: CheckinSource[] };
+  guidance: {
+    how_to_measure: string;
+    why_it_matters_in_space: string;
+    hazard: string;
+    what_to_do: string;
+    escalate_to_flight_surgeon: { required: boolean; reason: string };
+  };
+  personal_baseline: { status: 'building' | 'ready'; flag: boolean; message: string; fields: Record<string, CheckinBaselineField> };
+}
+
+export interface CheckinStreak { current_sols: number; last_sol: number | null; total_checkins: number }
+
+export interface CheckinNutritionLink {
+  active: boolean;
+  nutrient: string | null;
+  nutrient_label?: string;
+  sols_to_risk?: number | null;
+  food?: string | null;
+  servings_per_sol?: number | null;
+  message: string;
+  scenario_sol: number;
+  forecast_status: string;
+  source: string;
+}
+
+export interface CheckinResult {
+  disclaimer: string;
+  astronaut_id: string;
+  sol: number;
+  recorded_at: string;
+  notes: string | null;
+  overall: {
+    status: CheckinOverallStatus;
+    color: CheckinColor;
+    contact_flight_surgeon: boolean;
+    headline: string;
+    what_to_do: string;
+    reasons: string[];
+  };
+  indicators: CheckinIndicatorResult[];
+  nutrition_link: CheckinNutritionLink | null;
+  streak: CheckinStreak;
+  baseline_history: { synthetic_entries: Record<string, number>; synthetic_note: string | null };
+  status_rules: Record<string, string>;
+  next_checkin: string;
+}
+
+export interface CheckinHistoryEntry extends CheckinInput {
+  recorded_at: string;
+  overall_status: CheckinOverallStatus;
+  colors: Record<CheckinIndicatorKey, CheckinColor>;
+  baseline_flags: CheckinIndicatorKey[];
+}
+
+export interface CheckinHistory {
+  disclaimer: string;
+  astronaut_id: string;
+  count: number;
+  streak: CheckinStreak;
+  checkins: CheckinHistoryEntry[];
+}
+
+export interface CheckinGuideIndicator {
+  key: CheckinIndicatorKey;
+  label: string;
+  unit: string;
+  fields: CheckinField[];
+  range_text: string;
+  how_to_measure: string;
+  why_it_matters_in_space: string;
+  hazard: string;
+  thresholds: CheckinThreshold[];
+  sources: CheckinSource[];
+}
+
+export interface CheckinGuide {
+  disclaimer: string;
+  routine: { when: string; order: string[]; why: string };
+  baseline: { min_prior_entries: number; flag_abs_z: number };
+  status_rules: Record<string, string>;
+  input_limits: Record<CheckinField, { min: number; max: number }>;
+  indicators: CheckinGuideIndicator[];
 }

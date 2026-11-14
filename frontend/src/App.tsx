@@ -7,6 +7,7 @@ import { OptimizationView } from './components/OptimizationView';
 import { SimulatorView } from './components/SimulatorView';
 import { CrewHealthView } from './components/CrewHealthView';
 import { LifeSupportView } from './components/LifeSupportView';
+import { RealDataView } from './components/RealDataView';
 
 export function App() {
   // Demo-First Navigation: Crew Health is the primary Challenge Hero Screen
@@ -15,7 +16,7 @@ export function App() {
 
   return (
     <div className="min-h-screen deep-space-bg text-slate-100 flex flex-col selection:bg-orange-500 selection:text-white relative">
-      {/* Top Atmospheric Gradient Lighting (Inspired by Image 2 NOVA & Image 3 Mars Orbit) */}
+      {/* Top Atmospheric Gradient Lighting (NOVA Deep Space Glassmorphism) */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-96 bg-gradient-to-b from-orange-500/10 via-cyan-500/5 to-transparent pointer-events-none blur-3xl -z-10" />
 
       {/* Top Floating Glass Navigation */}
@@ -30,6 +31,7 @@ export function App() {
             onNavigate={(tab) => setActiveTab(tab)}
           />
         )}
+        {activeTab === 'realdata' && <RealDataView />}
         {activeTab === 'dashboard' && (
           <DashboardView
             onNavigate={(tab) => setActiveTab(tab)}

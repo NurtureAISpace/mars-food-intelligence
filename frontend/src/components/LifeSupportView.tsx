@@ -137,7 +137,7 @@ export const LifeSupportView: React.FC = () => {
               <div>
                 <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider block">Water Loop Closure</span>
                 <span className="text-sm font-bold font-mono text-cyan-300">
-                  {telemetry?.reserves.water_loop_closure_pct ?? 96.8}%
+                  {telemetry?.reserves.water_loop_closure_pct ?? 94.0}%
                 </span>
               </div>
             </div>

@@ -7,12 +7,18 @@ import {
   OptimizationResponse,
   SimulationResult,
   CrewHealthScenario,
+  CrewScenarioPresets,
   CrewHealthSnapshot,
   AstronautTimeline,
   CrewAlertsResponse,
   LifeSupportTelemetryData,
   RegolithSensorNodeData,
-  LifeSupportSimulationResult
+  LifeSupportSimulationResult,
+  RealDataI4,
+  CheckinInput,
+  CheckinResult,
+  CheckinHistory,
+  CheckinGuide
 } from './types';
 
 const API_BASE = '/api/v1';
@@ -103,6 +109,12 @@ function crewScenarioQuery(s: CrewHealthScenario): string {
   }).toString();
 }
 
+export async function fetchCrewScenarios(): Promise<CrewScenarioPresets> {
+  const res = await fetch(`${API_BASE}/health/scenarios`);
+  if (!res.ok) throw new Error(`Scenario presets fetch failed: ${res.statusText}`);
+  return res.json();
+}
+
 export async function fetchCrewHealth(sol: number, scenario: CrewHealthScenario): Promise<CrewHealthSnapshot> {
   const res = await fetch(`${API_BASE}/health/crew?sol=${sol}&${crewScenarioQuery(scenario)}`);
   if (!res.ok) throw new Error(`Crew health fetch failed: ${res.statusText}`);
@@ -165,5 +177,48 @@ export async function runLifeSupportSimulation(params: {
     body: JSON.stringify(params),
   });
   if (!res.ok) throw new Error(`Life support simulation failed: ${res.statusText}`);
+  return res.json();
+}
+
+export async function fetchRealDataI4(): Promise<RealDataI4> {
+  const res = await fetch(`${API_BASE}/real-data/i4`);
+  if (!res.ok) throw new Error(`Real data fetch failed: ${res.statusText}`);
+  return res.json();
+}
+
+async function errorDetail(res: Response, fallback: string): Promise<string> {
+  try {
+    const body = await res.json();
+    if (Array.isArray(body?.detail)) {
+      return body.detail
+        .map((d: { loc?: Array<string | number>; msg?: string }) => `${(d.loc ?? []).slice(1).join('.') || 'input'}: ${d.msg ?? ''}`)
+        .join('; ');
+    }
+    if (typeof body?.detail === 'string') return body.detail;
+  } catch {
+    /* not JSON */
+  }
+  return `${fallback}: ${res.statusText}`;
+}
+
+export async function submitCheckin(payload: CheckinInput): Promise<CheckinResult> {
+  const res = await fetch(`${API_BASE}/health/checkin`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error(await errorDetail(res, 'Check-in failed'));
+  return res.json();
+}
+
+export async function fetchCheckins(astronautId: string): Promise<CheckinHistory> {
+  const res = await fetch(`${API_BASE}/health/checkins?astronaut_id=${encodeURIComponent(astronautId)}`);
+  if (!res.ok) throw new Error(await errorDetail(res, 'Check-in history fetch failed'));
+  return res.json();
+}
+
+export async function fetchCheckinGuide(): Promise<CheckinGuide> {
+  const res = await fetch(`${API_BASE}/health/checkin/guide`);
+  if (!res.ok) throw new Error(await errorDetail(res, 'Check-in guide fetch failed'));
   return res.json();
 }

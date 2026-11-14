@@ -100,7 +100,7 @@ export const DataLabView: React.FC = () => {
               <span className="text-xl font-bold text-orange-400">{benchmarks?.aggregate_rmse}%</span>
             </div>
             <div className="border-l border-white/10 pl-4">
-              <span className="text-slate-400 text-[10px] block font-bold uppercase">Empirical Series</span>
+              <span className="text-slate-400 text-[10px] block font-bold uppercase">Literature Endpoints</span>
               <span className="text-xl font-bold text-cyan-400">{benchmarks?.total_benchmark_series} Datasets</span>
             </div>
           </div>

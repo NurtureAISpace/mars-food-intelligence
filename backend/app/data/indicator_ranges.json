@@ -1,0 +1,318 @@
+{
+  "meta": {
+    "description": "Reference ranges, colour thresholds and plain-English guidance for the astronaut Daily Check-in (app.services.checkin_service). Every threshold carries its own source and status. Loaded at runtime; do not hardcode these values elsewhere.",
+    "status_definitions": {
+      "literature": "threshold stated in the cited source",
+      "assumed": "no source found for this exact cut-off; project assumption, disclosed in the API response"
+    },
+    "threshold_semantics": "Each threshold is {color, direction, value, inclusive}. direction 'below': flagged when value < threshold (<= if inclusive). direction 'above': flagged when value > threshold (>= if inclusive). Red thresholds are checked before amber; otherwise green.",
+    "disclaimer": "Decision-support prototype, not a medical device.",
+    "last_reviewed": "2026-11-14"
+  },
+  "sources": {
+    "AHA_ACC_BP_2025": {
+      "citation": "American Heart Association / American College of Cardiology. 2025 AHA/ACC/multisociety Guideline for the Prevention, Detection, Evaluation and Management of High Blood Pressure in Adults. Blood pressure categories unchanged from the 2017 guideline (Whelton PK et al., Hypertension 2018;71:e13-e115, doi:10.1161/HYP.0000000000000065): Normal <120 and <80; Elevated 120-129 and <80; Stage 1 130-139 or 80-89; Stage 2 >=140 or >=90 mmHg.",
+      "doi_or_url": "https://www.heart.org/en/health-topics/high-blood-pressure/understanding-blood-pressure-readings",
+      "access": "category cut-offs confirmed via guideline summaries (AHA professional 'Top things to know', Harvard Health); heart.org page not reachable from our build environment"
+    },
+    "MEDLINEPLUS_LOW_BP": {
+      "citation": "MedlinePlus (US National Library of Medicine). Low Blood Pressure: 'If your blood pressure reading is 90/60 or lower, you have low blood pressure.' Low readings matter mainly when they cause symptoms.",
+      "doi_or_url": "https://medlineplus.gov/lowbloodpressure.html",
+      "access": "search-result excerpt of the page"
+    },
+    "AHA_HEART_RATE": {
+      "citation": "American Heart Association. All About Heart Rate (Pulse): a resting heart rate of 60 to 100 beats per minute is normal for most adults; well-trained athletes can be lower.",
+      "doi_or_url": "https://www.heart.org/en/health-topics/high-blood-pressure/the-facts-about-high-blood-pressure/all-about-heart-rate-pulse",
+      "access": "via secondary sources quoting the AHA page (AARP, Fortune); heart.org not reachable from our build environment"
+    },
+    "ACC_AHA_HRS_BRADY_2018": {
+      "citation": "Kusumoto FM et al. 2018 ACC/AHA/HRS Guideline on the Evaluation and Management of Patients With Bradycardia and Cardiac Conduction Delay. Heart Rhythm 2019;16(9):e128-e226 (also Circulation 2019;140:e382-e482). Sinus bradycardia: sinus rate <50 bpm; normal 50-100 bpm (ACC press release).",
+      "doi_or_url": "https://doi.org/10.1016/j.hrthm.2018.10.037 (summary: https://www.acc.org/about-acc/press-releases/2018/11/06/13/31/societies-publish-new-guidance-for-the-treatment-of-slow-irregular-heartbeats)",
+      "access": "ACC 'Guidelines Made Simple' table and ACC press release; full guideline text not read"
+    },
+    "ADA_SOC_2026_DIAGNOSIS": {
+      "citation": "American Diabetes Association Professional Practice Committee. 2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes-2026. Diabetes Care 49(Suppl 1). Fasting plasma glucose 100-125 mg/dL = prediabetes; >=126 mg/dL = diabetes range (fasting = no caloric intake for >=8 h; diagnosis needs confirmation).",
+      "doi_or_url": "https://diabetesjournals.org/care/issue/49/Supplement_1",
+      "access": "thresholds confirmed via 2026 Standards summaries (PMC, Guideline Central); full section not read"
+    },
+    "ADA_HYPOGLYCEMIA_LEVELS": {
+      "citation": "International Hypoglycaemia Study Group. Glucose concentrations of less than 3.0 mmol/L (54 mg/dL) should be reported in clinical trials: a joint position statement of the ADA and EASD. Diabetes Care 2017;40(1):155-157. Adopted in ADA Standards of Care Section 6 (Glycemic Goals and Hypoglycemia): Level 1 <70 mg/dL, Level 2 <54 mg/dL.",
+      "doi_or_url": "https://doi.org/10.2337/dc16-2215 (Standards 2026 Section 6: https://doi.org/10.2337/dc26-S006)",
+      "access": "long-standing ADA classification; 2026 Section 6 text not re-read for this release"
+    },
+    "CDC_FEVER": {
+      "citation": "US Centers for Disease Control and Prevention. Definitions of Signs, Symptoms, and Conditions of Ill Travelers: fever = measured temperature of 100.4 F (38 C) or greater.",
+      "doi_or_url": "https://www.cdc.gov/port-health/php/definitions-symptoms-reportable-illness",
+      "access": "search-result excerpt of the page"
+    },
+    "STATPEARLS_HYPOTHERMIA": {
+      "citation": "Hypothermia. StatPearls (NCBI Bookshelf NBK545239): hypothermia = core body temperature below 35 C (95 F); mild 32-35 C.",
+      "doi_or_url": "https://www.ncbi.nlm.nih.gov/books/NBK545239/",
+      "access": "search-result excerpt"
+    },
+    "STAHN_2017": {
+      "citation": "Stahn AC et al. Increased core body temperature in astronauts during long-duration space missions. Scientific Reports 7:16180 (2017). Resting core body temperature rose by about 1 C on the ISS, developing over ~2.5 months.",
+      "doi_or_url": "https://doi.org/10.1038/s41598-017-15560-w",
+      "access": "abstract and open-access summaries"
+    },
+    "NSF_SLEEP_2015": {
+      "citation": "Hirshkowitz M et al. National Sleep Foundation's sleep time duration recommendations: methodology and results summary. Sleep Health 1(1):40-43 (2015). Adults 26-64: recommended 7-9 h; may be appropriate 6 h and 10 h; not recommended <6 h or >10 h.",
+      "doi_or_url": "https://doi.org/10.1016/j.sleh.2014.12.010",
+      "access": "abstract and press summaries (EurekAlert)"
+    },
+    "NASA_HRP_HAZARDS": {
+      "citation": "NASA Human Research Program. The Five Hazards of Human Spaceflight: space radiation, isolation and confinement, distance from Earth, gravity fields, hostile/closed environments.",
+      "doi_or_url": "https://www.nasa.gov/hrp/hazards",
+      "access": "search-result excerpts of the NASA page"
+    },
+    "MODEL_ASSUMPTION": {
+      "citation": "Assumption of this project (no source found for this exact cut-off).",
+      "doi_or_url": null,
+      "access": "n/a"
+    }
+  },
+  "routine": {
+    "when": "Every Sol, right after waking: before breakfast, coffee or exercise.",
+    "order": ["sleep_hours", "mood_1_5", "body_temp_c", "heart_rate_bpm", "blood_pressure", "blood_glucose_mg_dl"],
+    "why": "Same time and conditions every Sol make today's numbers comparable with your own normal."
+  },
+  "baseline": {
+    "min_prior_entries": 5,
+    "min_prior_entries_status": "assumed",
+    "flag_abs_z": 2.0,
+    "flag_abs_z_note": "Same |z| >= 2 rule (WATCH_Z) as the Crew Health vitals channel (app.ml.anomaly).",
+    "sd_floor": {
+      "heart_rate_bpm": 2.0,
+      "systolic_mmHg": 4.0,
+      "diastolic_mmHg": 3.0,
+      "blood_glucose_mg_dl": 5.0,
+      "body_temp_c": 0.15,
+      "sleep_hours": 0.3,
+      "mood_1_5": 0.5
+    },
+    "sd_floor_status": "assumed",
+    "sd_floor_note": "Measurement-noise floors so a very steady history does not turn tiny changes into flags. heart_rate_bpm and sleep_hours match VITAL_SD_FLOOR in app.ml.physiology; the others are assumptions."
+  },
+  "indicators": {
+    "heart_rate": {
+      "label": "Resting heart rate",
+      "unit": "bpm",
+      "fields": ["heart_rate_bpm"],
+      "range_text": "Green 50-100 bpm · Amber 40-49 or 101-120 · Red <40 or >120",
+      "thresholds": {
+        "heart_rate_bpm": [
+          {"color": "red", "direction": "below", "value": 40, "inclusive": false, "source": "MODEL_ASSUMPTION", "status": "assumed", "where_in_source": null},
+          {"color": "amber", "direction": "below", "value": 50, "inclusive": false, "source": "ACC_AHA_HRS_BRADY_2018", "status": "literature", "where_in_source": "Sinus bradycardia defined as sinus rate <50 bpm"},
+          {"color": "amber", "direction": "above", "value": 100, "inclusive": false, "source": "AHA_HEART_RATE", "status": "literature", "where_in_source": "Normal resting heart rate 60-100 bpm"},
+          {"color": "red", "direction": "above", "value": 120, "inclusive": false, "source": "MODEL_ASSUMPTION", "status": "assumed", "where_in_source": null}
+        ]
+      },
+      "guidance": {
+        "how_to_measure": "Sit still for 5 minutes after waking. Use the pulse sensor, or count beats at your wrist for 30 seconds and multiply by 2.",
+        "why_it_matters_in_space": "Weightlessness (gravity hazard) de-conditions the heart and blood vessels; a resting pulse that drifts tells you early.",
+        "hazard": "gravity",
+        "meaning": {
+          "green": "Your heart is beating at a normal resting pace.",
+          "amber_low": "Your pulse is slower than usual for most adults. In fit people this can be normal, but watch for dizziness.",
+          "red_low": "Your pulse is very slow. This can make you dizzy or faint.",
+          "amber_high": "Your pulse is faster than normal for rest. Stress, poor sleep, caffeine, heat or dehydration can cause this.",
+          "red_high": "Your resting pulse is very fast. Your body may be under strain (illness, dehydration, heart rhythm problem)."
+        },
+        "what_to_do": {
+          "green": "Nothing to do. Keep your exercise routine.",
+          "amber_low": "Re-measure after 10 minutes of rest. If you feel dizzy or weak, stop exercise and tell a crewmate.",
+          "red_low": "Sit or lie down, don't exercise, re-measure in 10 minutes and contact the flight surgeon.",
+          "amber_high": "Drink water, rest 10 minutes, avoid caffeine and re-measure.",
+          "red_high": "Stop all activity, sit down, drink water, re-measure in 10 minutes and contact the flight surgeon."
+        },
+        "escalate_reason": {
+          "red_low": "Very slow resting heart rate: the flight surgeon should check heart rhythm.",
+          "red_high": "Very fast resting heart rate: the flight surgeon should check for illness, dehydration or rhythm problems."
+        }
+      }
+    },
+    "blood_pressure": {
+      "label": "Blood pressure",
+      "unit": "mmHg",
+      "fields": ["systolic_mmHg", "diastolic_mmHg"],
+      "range_text": "Green 91-119 / 61-79 · Amber 120-139 or 80-89 (high), <=90 / <=60 (low) · Red >=140 or >=90, or systolic <80",
+      "thresholds": {
+        "systolic_mmHg": [
+          {"color": "red", "direction": "below", "value": 80, "inclusive": false, "source": "MODEL_ASSUMPTION", "status": "assumed", "where_in_source": null},
+          {"color": "amber", "direction": "below", "value": 90, "inclusive": true, "source": "MEDLINEPLUS_LOW_BP", "status": "literature", "where_in_source": "'90/60 or lower' = low blood pressure"},
+          {"color": "amber", "direction": "above", "value": 120, "inclusive": true, "source": "AHA_ACC_BP_2025", "status": "literature", "where_in_source": "Elevated: systolic 120-129"},
+          {"color": "red", "direction": "above", "value": 140, "inclusive": true, "source": "AHA_ACC_BP_2025", "status": "literature", "where_in_source": "Stage 2 hypertension: systolic >=140"}
+        ],
+        "diastolic_mmHg": [
+          {"color": "amber", "direction": "below", "value": 60, "inclusive": true, "source": "MEDLINEPLUS_LOW_BP", "status": "literature", "where_in_source": "'90/60 or lower' = low blood pressure"},
+          {"color": "amber", "direction": "above", "value": 80, "inclusive": true, "source": "AHA_ACC_BP_2025", "status": "literature", "where_in_source": "Stage 1 hypertension: diastolic 80-89"},
+          {"color": "red", "direction": "above", "value": 90, "inclusive": true, "source": "AHA_ACC_BP_2025", "status": "literature", "where_in_source": "Stage 2 hypertension: diastolic >=90"}
+        ]
+      },
+      "guidance": {
+        "how_to_measure": "Sit 5 minutes, feet flat, cuff on bare upper arm at heart level. Don't talk. Take 2 readings 1 minute apart and enter the second.",
+        "why_it_matters_in_space": "Without gravity (gravity hazard) body fluids shift to the head; blood pressure control changes and can fail when standing up again on Mars.",
+        "hazard": "gravity",
+        "meaning": {
+          "green": "Your blood pressure is in the normal range.",
+          "amber_low": "Your blood pressure is on the low side. Fine if you feel well; it can cause light-headedness when you stand up.",
+          "red_low": "Your blood pressure is very low. You may faint, especially when moving or standing.",
+          "amber_high": "Your blood pressure is above normal (elevated / stage 1). Stress, salt, poor sleep or fluid shifts can raise it.",
+          "red_high": "Your blood pressure is high (stage 2 range). Over time this strains your heart and blood vessels."
+        },
+        "what_to_do": {
+          "green": "Nothing to do.",
+          "amber_low": "Drink water, stand up slowly, and re-measure. Tell a crewmate if you feel dizzy.",
+          "red_low": "Lie down with legs raised, drink fluids, don't exercise, and contact the flight surgeon.",
+          "amber_high": "Rest 5 minutes and re-measure. Cut salty snacks today and take a short relaxation break.",
+          "red_high": "Rest 5 minutes and re-measure. If it is still this high, contact the flight surgeon."
+        },
+        "escalate_reason": {
+          "red_low": "Very low blood pressure risks fainting: the flight surgeon should assess fluids and symptoms.",
+          "red_high": "Blood pressure in the stage 2 range: the flight surgeon should confirm and decide on treatment."
+        }
+      }
+    },
+    "blood_glucose": {
+      "label": "Blood sugar (fasting)",
+      "unit": "mg/dL",
+      "fields": ["blood_glucose_mg_dl"],
+      "range_text": "Green 70-99 · Amber 54-69 (low) or 100-125 (high) · Red <54 or >=126",
+      "thresholds": {
+        "blood_glucose_mg_dl": [
+          {"color": "red", "direction": "below", "value": 54, "inclusive": false, "source": "ADA_HYPOGLYCEMIA_LEVELS", "status": "literature", "where_in_source": "Level 2 hypoglycemia: <54 mg/dL"},
+          {"color": "amber", "direction": "below", "value": 70, "inclusive": false, "source": "ADA_HYPOGLYCEMIA_LEVELS", "status": "literature", "where_in_source": "Level 1 hypoglycemia: <70 mg/dL"},
+          {"color": "amber", "direction": "above", "value": 100, "inclusive": true, "source": "ADA_SOC_2026_DIAGNOSIS", "status": "literature", "where_in_source": "Prediabetes: fasting plasma glucose 100-125 mg/dL"},
+          {"color": "red", "direction": "above", "value": 126, "inclusive": true, "source": "ADA_SOC_2026_DIAGNOSIS", "status": "literature", "where_in_source": "Diabetes range: fasting plasma glucose >=126 mg/dL (needs confirmation)"}
+        ]
+      },
+      "guidance": {
+        "how_to_measure": "Before eating or drinking anything but water (8 h fast). Wash and dry your fingertip, prick the side, use the second drop on the meter strip.",
+        "why_it_matters_in_space": "Inactivity, stress hormones and an altered diet in a closed habitat (closed-environment hazard) can disturb how your body handles sugar.",
+        "hazard": "closed environment",
+        "meaning": {
+          "green": "Your fasting blood sugar is normal.",
+          "amber_low": "Your blood sugar is low. You may feel shaky, sweaty or unfocused.",
+          "red_low": "Your blood sugar is dangerously low. This can quickly affect your thinking and safety.",
+          "amber_high": "Your fasting blood sugar is above normal. Check that you really fasted; stress and poor sleep can also raise it.",
+          "red_high": "Your fasting blood sugar is in the diabetes range. One reading is not a diagnosis, but it must be checked."
+        },
+        "what_to_do": {
+          "green": "Nothing to do. Eat your planned breakfast.",
+          "amber_low": "Eat or drink 15 g of fast sugar (juice, glucose tab), wait 15 minutes, re-measure.",
+          "red_low": "Take 15 g of fast sugar now, tell a crewmate, re-measure in 15 minutes and contact the flight surgeon.",
+          "amber_high": "Make sure you fasted 8 h, re-measure tomorrow, and keep to planned meals and exercise.",
+          "red_high": "Re-measure fasting tomorrow and contact the flight surgeon with both readings."
+        },
+        "escalate_reason": {
+          "red_low": "Level 2 hypoglycemia (<54 mg/dL) is a safety risk: the flight surgeon must be informed.",
+          "red_high": "Fasting glucose in the diabetes range: the flight surgeon should confirm and investigate."
+        }
+      }
+    },
+    "body_temperature": {
+      "label": "Body temperature",
+      "unit": "°C",
+      "fields": ["body_temp_c"],
+      "range_text": "Green 36.0-37.5 °C · Amber 35.0-35.9 or 37.6-37.9 · Red <35.0 or >=38.0",
+      "thresholds": {
+        "body_temp_c": [
+          {"color": "red", "direction": "below", "value": 35.0, "inclusive": false, "source": "STATPEARLS_HYPOTHERMIA", "status": "literature", "where_in_source": "Hypothermia: core temperature below 35 C"},
+          {"color": "amber", "direction": "below", "value": 36.0, "inclusive": false, "source": "MODEL_ASSUMPTION", "status": "assumed", "where_in_source": null},
+          {"color": "amber", "direction": "above", "value": 37.5, "inclusive": false, "source": "MODEL_ASSUMPTION", "status": "assumed", "where_in_source": "Upper green edge set with STAHN_2017 in mind: resting core temperature runs ~1 C higher on long missions, so a slightly raised reading alone is not red."},
+          {"color": "red", "direction": "above", "value": 38.0, "inclusive": true, "source": "CDC_FEVER", "status": "literature", "where_in_source": "Fever: measured temperature >=100.4 F (38 C)"}
+        ]
+      },
+      "guidance": {
+        "how_to_measure": "Thermometer under the tongue, mouth closed, for the full beep. No hot or cold drinks for 15 minutes before.",
+        "why_it_matters_in_space": "In a closed habitat (closed-environment hazard) infections spread easily and spaceflight weakens immunity; resting body temperature also runs ~1 °C higher on long missions.",
+        "hazard": "closed environment",
+        "meaning": {
+          "green": "Your temperature is normal.",
+          "amber_low": "Your temperature is a bit low. Check the measurement; the habitat may be cold.",
+          "red_low": "Your temperature is dangerously low (hypothermia range).",
+          "amber_high": "Your temperature is slightly raised. Possible start of an infection, or heat after exercise.",
+          "red_high": "You have a fever. Your body is likely fighting an infection, which can spread to the crew."
+        },
+        "what_to_do": {
+          "green": "Nothing to do.",
+          "amber_low": "Put on warm layers, have a warm drink, re-measure in 30 minutes.",
+          "red_low": "Warm up now (layers, sleeping bag, warm drink), tell a crewmate and contact the flight surgeon.",
+          "amber_high": "Rest, drink water and re-measure in 2 hours. Wash hands often.",
+          "red_high": "Rest, drink water, limit close contact with the crew and contact the flight surgeon."
+        },
+        "escalate_reason": {
+          "red_low": "Temperature in the hypothermia range: the flight surgeon must be informed.",
+          "red_high": "Fever (>=38.0 °C): the flight surgeon should assess infection risk for you and the crew."
+        }
+      }
+    },
+    "sleep": {
+      "label": "Sleep last night",
+      "unit": "h",
+      "fields": ["sleep_hours"],
+      "range_text": "Green 7-9 h · Amber 6-6.9 or 9.1-10 h · Red <6 or >10 h",
+      "thresholds": {
+        "sleep_hours": [
+          {"color": "red", "direction": "below", "value": 6, "inclusive": false, "source": "NSF_SLEEP_2015", "status": "literature", "where_in_source": "Adults 26-64: <6 h not recommended"},
+          {"color": "amber", "direction": "below", "value": 7, "inclusive": false, "source": "NSF_SLEEP_2015", "status": "literature", "where_in_source": "Adults 26-64: recommended 7-9 h; 6 h may be appropriate"},
+          {"color": "amber", "direction": "above", "value": 9, "inclusive": false, "source": "NSF_SLEEP_2015", "status": "literature", "where_in_source": "Adults 26-64: recommended 7-9 h; 10 h may be appropriate"},
+          {"color": "red", "direction": "above", "value": 10, "inclusive": false, "source": "NSF_SLEEP_2015", "status": "literature", "where_in_source": "Adults 26-64: >10 h not recommended"}
+        ]
+      },
+      "guidance": {
+        "how_to_measure": "Count hours actually asleep (not time in the sleep bag). Use your sleep tracker if you wear one.",
+        "why_it_matters_in_space": "No natural day/night, noise and confinement (isolation hazard) disrupt sleep; tired crew make more mistakes during critical tasks.",
+        "hazard": "isolation and confinement",
+        "meaning": {
+          "green": "You slept a healthy amount.",
+          "amber_low": "You slept a bit less than recommended. Focus and mood can suffer today.",
+          "red_low": "You slept far too little. Reaction time and judgement are clearly reduced.",
+          "amber_high": "You slept longer than usual. Fine after a hard day, but a pattern can signal illness or low mood.",
+          "red_high": "You slept a very long time. This can be a sign of illness, exhaustion or low mood."
+        },
+        "what_to_do": {
+          "green": "Nothing to do. Keep the same sleep schedule.",
+          "amber_low": "Avoid caffeine after midday, dim screens 1 h before sleep, keep the same bedtime tonight.",
+          "red_low": "Avoid safety-critical tasks without a double-check today, plan a 20-minute nap and contact the flight surgeon if this repeats.",
+          "amber_high": "Notice how you feel; get some light and exercise early in the day.",
+          "red_high": "Check for fever or feeling unwell and contact the flight surgeon."
+        },
+        "escalate_reason": {
+          "red_low": "Less than 6 h sleep impairs performance: the flight surgeon can adjust the schedule or lighting.",
+          "red_high": "More than 10 h sleep can signal illness or depression: the flight surgeon should check in."
+        }
+      }
+    },
+    "mood": {
+      "label": "Mood",
+      "unit": "1-5",
+      "fields": ["mood_1_5"],
+      "range_text": "Green 3-5 · Amber 2 · Red 1",
+      "thresholds": {
+        "mood_1_5": [
+          {"color": "red", "direction": "below", "value": 2, "inclusive": false, "source": "MODEL_ASSUMPTION", "status": "assumed", "where_in_source": null},
+          {"color": "amber", "direction": "below", "value": 3, "inclusive": false, "source": "MODEL_ASSUMPTION", "status": "assumed", "where_in_source": null}
+        ]
+      },
+      "guidance": {
+        "how_to_measure": "Pick the face that best matches how you have felt since waking: 1 = very low, 3 = okay, 5 = great.",
+        "why_it_matters_in_space": "Months of isolation and confinement far from Earth (isolation and distance hazards) wear down mood and team cohesion.",
+        "hazard": "isolation and confinement",
+        "meaning": {
+          "green": "Your mood is okay or good.",
+          "amber_low": "You are feeling low today.",
+          "red_low": "You are feeling very low."
+        },
+        "what_to_do": {
+          "green": "Nothing to do.",
+          "amber_low": "Do something you enjoy, talk to a crewmate, schedule a private call home.",
+          "red_low": "Talk to a crewmate you trust and contact the flight surgeon or behavioral-health support today."
+        },
+        "escalate_reason": {
+          "red_low": "Very low mood: the flight surgeon / behavioral-health team should check in confidentially."
+        }
+      }
+    }
+  }
+}

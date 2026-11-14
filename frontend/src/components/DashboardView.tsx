@@ -55,7 +55,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNavigate, missio
           <div>
             <h3 className="font-bold font-sans text-sm sm:text-base">NASA Space Apps Challenge 2026 Core Solution: Crew Health</h3>
             <p className="text-xs text-slate-300 font-sans mt-0.5">
-              Follow food degradation kinetics all the way into the astronaut's body. Early warning alerts fire ~50 Sols before risk threshold.
+              Follow food degradation kinetics all the way into the astronaut's body. Early warning alerts fire before crossing the risk threshold.
             </p>
           </div>
         </div>
