@@ -12,7 +12,7 @@ Method (same idea as app/ml/anomaly.py, adapted to very few samples):
                 width of the lab reference range (or a fraction of the mean if no range)
     z         = (post-flight value - baseline mean) / sd_used, flagged if |z| > FLAG_Z
 
-Not wired into the app. Run from the backend directory:
+Shared logic: app/ml/i4_baseline.py (also served by GET /api/v1/real-data/i4). Run from the backend directory:
     python scripts/i4_baseline_demo.py                 # full table + summary
     python scripts/i4_baseline_demo.py --flagged-only  # only |z| > 2 rows in the table
 """
@@ -23,76 +23,14 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-DATA_DIR = Path(__file__).resolve().parents[1] / "data" / "real" / "i4"
-PANEL_FILES = {
-    "CBC": DATA_DIR / "LSDS-7_Complete_Blood_Count_CBC.upload_SUBMITTED.csv",
-    "CMP": DATA_DIR / "LSDS-8_Comprehensive_Metabolic_Panel_CMP.upload_SUBMITTED.csv",
-}
-PRE_FLIGHT = ["L-92", "L-44", "L-3"]
-POST_FLIGHT = ["R+1", "R+45", "R+82", "R+194"]
-
-FLAG_Z = 2.0
-SD_FLOOR_FRACTION_OF_RANGE = 0.05   # heuristic, NOT validated: ~0.2 population SD if range = mean +/- 2 SD
-SD_FLOOR_FRACTION_OF_MEAN = 0.02    # used only when the file gives no usable reference range
-SENSITIVITY_FLOOR_FRACTION = 0.10   # re-run with a stricter floor to show how sensitive the flags are
-MIN_BASELINE_POINTS = 2             # below this, no z-score (one pre-flight value is not a baseline)
-SMALL_N = 3                         # n <= SMALL_N baseline points -> explicit small-n warning
-# Derived duplicate of eGFR NON-AFR. AMERICAN (same creatinine, race coefficient); excluded to avoid double counting.
-EXCLUDED_ANALYTES = {"eGFR AFRICAN AMERICAN"}
-
-
-def baseline_stats(values, ref_width=None, floor_fraction=SD_FLOOR_FRACTION_OF_RANGE):
-    """
-    Personal baseline from a handful of pre-flight values.
-
-    Returns (mean, sd_used, sd_source, n). sd_source is "personal" when the sample SD is
-    used and "floor" when the floor is larger (or the sample SD is undefined, n < 2).
-    """
-    v = np.asarray([x for x in values if x is not None and np.isfinite(x)], dtype=float)
-    n = int(v.size)
-    if n == 0:
-        return float("nan"), float("nan"), "none", 0
-    mean = float(v.mean())
-    sd_personal = float(v.std(ddof=1)) if n >= 2 else float("nan")
-    if ref_width is not None and np.isfinite(ref_width) and ref_width > 0:
-        floor = floor_fraction * float(ref_width)
-    else:
-        floor = SD_FLOOR_FRACTION_OF_MEAN * abs(mean)
-    if np.isfinite(sd_personal) and sd_personal >= floor:
-        return mean, sd_personal, "personal", n
-    return mean, float(floor), "floor", n
-
-
-def zscore(value, mean, sd):
-    """z of one value vs a baseline; NaN when undefined (missing value or non-positive SD)."""
-    if not (np.isfinite(value) and np.isfinite(mean) and np.isfinite(sd)) or sd <= 0:
-        return float("nan")
-    return (float(value) - float(mean)) / float(sd)
-
-
-def reference_status(value, lo, hi):
-    if not np.isfinite(value):
-        return "n/a"
-    if np.isfinite(lo) and value < lo:
-        return "LOW"
-    if np.isfinite(hi) and value > hi:
-        return "HIGH"
-    if not np.isfinite(lo) and not np.isfinite(hi):
-        return "n/a"
-    return "in"
-
-
-def load_panel(path, panel):
-    df = pd.read_csv(path, encoding="utf-8-sig")
-    tcol = "TEST_DATE" if "TEST_DATE" in df.columns else "timepoint"
-    df = df.rename(columns={tcol: "TIMEPOINT"})
-    df["ANALYTE_RAW"] = df["ANALYTE"]
-    # C003 at R+1 is reported under "... (FEMALE)" names; same measurement, keep the series continuous
-    df["ANALYTE"] = df["ANALYTE"].str.replace(r"\s*\(FEMALE\)$", "", regex=True)
-    for c in ("VALUE", "RANGE_MIN", "RANGE_MAX"):
-        df[c] = pd.to_numeric(df[c], errors="coerce")
-    df["PANEL"] = panel
-    return df
+# Shared logic lives in the app so the API (/api/v1/real-data/i4) and this script compute the same numbers.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from app.ml.i4_baseline import (  # noqa: E402,F401  (re-exported for tests/test_i4_baseline.py)
+    DATA_DIR, PANEL_FILES, PRE_FLIGHT, POST_FLIGHT, FLAG_Z, SD_FLOOR_FRACTION_OF_RANGE,
+    SD_FLOOR_FRACTION_OF_MEAN, SENSITIVITY_FLOOR_FRACTION, MIN_BASELINE_POINTS, SMALL_N, EXCLUDED_ANALYTES,
+    CONTROL_BASELINE, CONTROL_TIMEPOINT, baseline_stats, zscore, reference_status, load_panel, analyze,
+    recovery_label, crew_consistent_shifts,
+)
 
 
 def describe_panel(df, panel, path):
@@ -211,20 +149,13 @@ def print_summary(res, res_sens, res_ctrl, top_k=5):
             print(f"    {r.analyte:<26} R+1 {r.value:g} {r.unit} vs baseline {r.base_mean:.3g} "
                   f"(z {r.z:+.1f}{', ' + r.ref + ' ref' if r.ref in ('LOW', 'HIGH') else ''}) | z: {traj_txt} | {label}")
 
-    r1 = res[(res.timepoint == "R+1") & res.flag]
     print(f"\nAnalytes flagged at R+1 in >= 2 of 4 astronauts in the same direction (crew-consistent shifts):")
-    consistent = []
-    for analyte, g in r1.groupby("analyte"):
-        for sign, name in ((1, "up"), (-1, "down")):
-            who = sorted(g[np.sign(g.z) == sign].astronaut)
-            if len(who) >= 2:
-                consistent.append((analyte, name, who, g[np.sign(g.z) == sign].z.round(1).tolist()))
+    consistent = crew_consistent_shifts(res, "R+1", min_crew=2)
     if consistent:
-        for analyte, name, who, zs in sorted(consistent, key=lambda x: -len(x[2])):
-            print(f"    {analyte:<26} {name:<4} {who} z={zs}")
+        for analyte, name, who, zs in consistent:
+            print(f"    {analyte:<26} {name:<4} {who} z={[round(z, 1) for z in zs]}")
     else:
         print("    none")
-
 
 def main(argv):
     flagged_only = "--flagged-only" in argv
@@ -253,7 +184,7 @@ def main(argv):
 
     res, skipped = analyze(df)
     res_sens, _ = analyze(df, floor_fraction=SENSITIVITY_FLOOR_FRACTION)
-    res_ctrl, _ = analyze(df, baseline_tps=["L-92", "L-44"], score_tps=["L-3"])
+    res_ctrl, _ = analyze(df, baseline_tps=CONTROL_BASELINE, score_tps=[CONTROL_TIMEPOINT])
     if skipped:
         by_analyte = {}
         for s, a, n in skipped:
