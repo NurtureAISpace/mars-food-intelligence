@@ -16,12 +16,12 @@ export const PRIMARY_TABS: Tab[] = [
   { id: 'prediction', label: 'Food & Vitamins' },
 ];
 
-const Wordmark: React.FC<{ onClick: () => void }> = ({ onClick }) => (
-  <button onClick={onClick} className="flex items-center gap-2.5" aria-label="NurtureAISpace — go to Crew">
-    <span className="h-3 w-3 rounded-full bg-indigo-400 shadow-[0_0_14px_rgba(129,140,248,0.9)]" aria-hidden />
-    <span className="text-[1.1111rem] font-bold tracking-wide text-white">
-      NURTURE<span className="text-indigo-300">AI</span>SPACE
-    </span>
+// Logo only (no wordmark). 52px tall, 44px under 768px; it may overhang the 4rem bar without changing its height.
+const Logo: React.FC<{ onClick: () => void }> = ({ onClick }) => (
+  <button onClick={onClick} aria-label="NurtureAI Space — home"
+    className="flex shrink-0 items-center rounded-full transition-transform duration-200 hover:scale-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400">
+    <img src={`${import.meta.env.BASE_URL}logo/logo.png`} alt="NurtureAI Space logo"
+      className="h-11 w-11 rounded-full object-cover drop-shadow-[0_0_12px_rgba(99,102,241,0.45)] md:h-[52px] md:w-[52px]" />
   </button>
 );
 
@@ -48,7 +48,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
   return (
     <header ref={ref} className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/60 px-4 backdrop-blur-md sm:px-6">
       <div className="mx-auto flex h-[4rem] max-w-7xl items-center justify-between gap-4">
-        <Wordmark onClick={() => go('crewhealth')} />
+        <Logo onClick={() => go('crewhealth')} />
 
         <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">
           {PRIMARY_TABS.map((t) => (

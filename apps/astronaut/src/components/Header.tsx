@@ -29,7 +29,7 @@ export function Header({ profile, sync, onChangeProfile }: {
   return (
     <header className="sticky top-0 z-10 bg-slate-950/60 backdrop-blur-md border-b border-white/10 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3">
       <div className="flex items-center gap-3 min-w-0">
-        <img src="/icon.svg" alt="" className="w-10 h-10 rounded-lg shrink-0" />
+        <img src={`${import.meta.env.BASE_URL}logo/logo.png`} alt="NurtureAI Space logo" className="w-10 h-10 rounded-full object-cover shrink-0" />
         {profile ? (
           <div className="min-w-0">
             {/* The name is shown only here, on this device. */}

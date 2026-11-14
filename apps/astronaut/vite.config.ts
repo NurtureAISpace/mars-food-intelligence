@@ -34,7 +34,7 @@ export default defineConfig(({ command }) => ({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icon.svg', 'apple-touch-icon.png', 'bg/space.jpg', 'fonts/inter-latin-var.woff2'],
+      includeAssets: ['favicon.ico', 'logo/logo.png', 'logo/logo-192.png', 'apple-touch-icon.png', 'bg/space.jpg', 'fonts/inter-latin-var.woff2'],
       manifest: {
         name: 'NurtureAI Astronaut',
         short_name: 'Astronaut',
@@ -46,10 +46,8 @@ export default defineConfig(({ command }) => ({
         background_color: '#020617',
         theme_color: '#020617',
         icons: [
-          { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
-          { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
-          { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
-          { src: 'icon.svg', sizes: 'any', type: 'image/svg+xml' },
+          { src: 'logo/logo-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: 'logo/logo.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
         ],
       },
       workbox: {
