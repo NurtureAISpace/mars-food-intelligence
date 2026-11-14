@@ -16,26 +16,91 @@ code, pre, .font-mono {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #080c14;
+  background: #050811;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1f2e4d;
+  background: #1e2d4a;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #f97316;
+  background: #ff6b18;
 }
 
-/* Glassmorphism panel helper */
+/* Glassmorphism panel helpers */
 .glass-panel {
-  background: rgba(14, 22, 38, 0.75);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(31, 46, 77, 0.7);
+  background: rgba(12, 19, 34, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
 }
 
 .glass-panel-glow {
-  background: rgba(14, 22, 38, 0.85);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(249, 115, 22, 0.35);
-  box-shadow: 0 0 20px rgba(249, 115, 22, 0.1);
+  background: rgba(12, 19, 34, 0.9);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 107, 24, 0.45);
+  box-shadow: 0 0 25px rgba(255, 107, 24, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* NOVA Glassmorphism Suite (Images 1-4 Synthesis) */
+.nova-panel {
+  background: rgba(11, 18, 32, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 40px -8px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.nova-panel-elevated {
+  background: linear-gradient(135deg, rgba(16, 26, 46, 0.9) 0%, rgba(10, 16, 28, 0.85) 100%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.7), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+}
+
+.nova-panel-orange {
+  background: linear-gradient(135deg, rgba(35, 20, 15, 0.85) 0%, rgba(12, 19, 34, 0.9) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 107, 24, 0.4);
+  box-shadow: 0 0 30px rgba(255, 107, 24, 0.12);
+}
+
+.nova-panel-emerald {
+  background: linear-gradient(135deg, rgba(10, 32, 25, 0.85) 0%, rgba(12, 19, 34, 0.9) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  box-shadow: 0 0 30px rgba(52, 211, 153, 0.12);
+}
+
+/* Atmospheric Glow & Space Backdrop */
+.deep-space-bg {
+  background-color: #050811;
+  background-image: 
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(255, 107, 24, 0.15), transparent 70%),
+    radial-gradient(ellipse 60% 40% at 80% 20%, rgba(34, 211, 238, 0.08), transparent 60%),
+    radial-gradient(ellipse 50% 50% at 20% 80%, rgba(167, 139, 250, 0.06), transparent 70%);
+}
+
+.stars-overlay {
+  background-image: radial-gradient(1px 1px at 20px 30px, #ffffff, rgba(0,0,0,0)),
+                    radial-gradient(1px 1px at 40px 70px, rgba(255,255,255,0.7), rgba(0,0,0,0)),
+                    radial-gradient(1.5px 1.5px at 90px 40px, #ffffff, rgba(0,0,0,0)),
+                    radial-gradient(1px 1px at 160px 120px, rgba(255,255,255,0.6), rgba(0,0,0,0));
+  background-repeat: repeat;
+  background-size: 200px 200px;
+}
+
+/* Radar pulse animation for alerts */
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 0.3; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
