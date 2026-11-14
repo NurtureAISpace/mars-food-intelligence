@@ -195,7 +195,7 @@
           "amber_low": "Your blood sugar is low. You may feel shaky, sweaty or unfocused.",
           "red_low": "Your blood sugar is dangerously low. This can quickly affect your thinking and safety.",
           "amber_high": "Your fasting blood sugar is above normal. Check that you really fasted; stress and poor sleep can also raise it.",
-          "red_high": "Your fasting blood sugar is in the diabetes range. One reading is not a diagnosis, but it must be checked."
+          "red_high": "Your fasting blood sugar is above the reference range; this may indicate a blood-sugar problem. One reading proves nothing on its own: check with the flight surgeon."
         },
         "what_to_do": {
           "green": "Nothing to do. Eat your planned breakfast.",

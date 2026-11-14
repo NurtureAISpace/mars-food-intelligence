@@ -114,12 +114,12 @@ function risks(snap: CrewHealthSnapshot, h: CrewHorizon, u: ReturnType<typeof un
   }
   const fw = h.first_warning;
   if (fw) {
-    out.push(`${fw.astronaut_id}: ${vit(fw.nutrient)} may run low around ${u.at(fw.problem)}. The warning comes ${u.lead(fw)} earlier. Action: ${actionOf(fw.recommendation, fw.nutrient)}.`);
+    out.push(`${fw.astronaut_id}: ${vit(fw.nutrient)} may run low around ${u.at(fw.problem)}. Action: ${actionOf(fw.recommendation, fw.nutrient)}.`);
   }
   for (const p of h.per_astronaut) {
     for (const [n, v] of Object.entries(p.vitamins)) {
       if (!v.runs_low || (fw && p.astronaut_id === fw.astronaut_id && n === fw.nutrient)) continue;
-      out.push(`${p.astronaut_id}: ${vit(n)} may run low around ${u.at(v.runs_low)}. Check with the flight surgeon and adjust the menu.`);
+      out.push(`${p.astronaut_id}: ${vit(n)} may run low around ${u.at(v.runs_low)}. Check with the flight surgeon.`);
     }
   }
   const lowIds = new Set(h.per_astronaut.filter((p) => Object.values(p.vitamins).some((v) => v.runs_low)).map((p) => p.astronaut_id));
@@ -132,7 +132,7 @@ function risks(snap: CrewHealthSnapshot, h: CrewHorizon, u: ReturnType<typeof un
   }
   if (trend.length) {
     const what = Array.from(new Set(trend.map((m) => vit(m.driver_signal ?? m.worst_nutrient))));
-    out.push(`${trend.map((m) => m.astronaut_id).join(', ')}: ${what.join(' / ')} trending down, but the forecast stays above the safe level until the mission ends. Keep watching.`);
+    out.push(`${trend.map((m) => m.astronaut_id).join(', ')}: ${what.join(' / ')} trending down, but above the safe level until the mission ends.`);
   }
   if (!fw && !lowIds.size) {
     out.push(`No vitamin falls below the safe level within ${u.length(h)}. Keep the daily check-ins so the forecast stays up to date.`);
@@ -201,7 +201,7 @@ export const PredictionView: React.FC<{ onBack?: () => void; onNavigate?: (tab: 
   return (
     <GlassPanel
       title="Food & Vitamins"
-      subtitle="Stored food slowly loses vitamins. Pick where the crew is going and what happens to the food; we show when a vitamin could run low and how much warning the crew gets."
+      subtitle="Stored food slowly loses vitamins. Pick a destination and a food scenario: we show if a vitamin could run low, and how much warning the crew gets."
       onBack={onBack}
       tags={sim}
     >
@@ -213,7 +213,7 @@ export const PredictionView: React.FC<{ onBack?: () => void; onNavigate?: (tab: 
 
       <Section icon={Globe} title="1. Where is the crew going?" right={sim}>
         {!destinations.length && !error && <Loading />}
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+        <div className="grid grid-cols-1 items-start gap-5 md:grid-cols-3">
           {destinations.map((d) => (
             <SelectCard key={d.id} selected={d.id === destId} onClick={() => setDestId(d.id)} icon={DEST_ICON[d.id] ?? Globe}
               title={d.label} subtitle={DEST_META[d.id] ?? durationText(d)}
@@ -234,7 +234,7 @@ export const PredictionView: React.FC<{ onBack?: () => void; onNavigate?: (tab: 
       </Section>
 
       <Section icon={Snowflake} title="2. What happens to the food?" right={sim}>
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+        <div className="grid grid-cols-1 items-start gap-5 md:grid-cols-2">
           <SelectCard selected={selected === NORMAL_ID} onClick={() => setSelected(NORMAL_ID)} icon={Snowflake}
             title="Normal mission" subtitle="Food stays cold the whole time"
             chips={[

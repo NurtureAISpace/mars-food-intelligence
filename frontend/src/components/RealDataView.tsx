@@ -12,7 +12,7 @@ const PersonCard: React.FC<{ data: RealDataI4; p: RealDataSharedFinding['per_ast
   const lower = f.direction === 'down';
   const Trend = lower ? TrendingDown : TrendingUp;
   const series = data.series.find((s) => s.astronaut === p.astronaut && s.analyte === f.analyte);
-  const label = (id: string) => data.timepoints.find((t) => t.id === id)?.label ?? id;
+  const label = (id: string) => (data.timepoints.find((t) => t.id === id)?.label ?? id).replace(/ (launch|return)$/, '');
   const value = (id: string) => series?.points.find((pt) => pt.timepoint === id)?.value ?? null;
   const pre = series?.baseline.timepoints ?? data.baseline_timepoints;
   return (
@@ -22,19 +22,19 @@ const PersonCard: React.FC<{ data: RealDataI4; p: RealDataSharedFinding['per_ast
         <span className="text-[16px] text-slate-300">{f.unit}</span>
       </div>
       <KVList>
-        {pre.map((id) => <KVRow key={id} label={`Before: ${label(id)}`} value={num(value(id))} />)}
-        <KVRow label={`After: ${label(f.timepoint)}`} value={num(p.value)} valueClass="text-watch" />
+        {pre.map((id) => <KVRow key={id} label={label(id)} value={num(value(id))} />)}
+        <KVRow label={label(f.timepoint)} value={num(p.value)} valueClass="text-watch" />
       </KVList>
       <div className="flex flex-col items-start gap-2">
         {p.beyond_all_preflight_values ? (
-          <Chip tone="amber" icon={Trend}>{lower ? 'Lower' : 'Higher'} than all {pre.length} own pre-flight tests</Chip>
+          <Chip tone="amber" icon={Trend}>{lower ? 'Below' : 'Above'} all {pre.length} pre-flight tests</Chip>
         ) : (
-          <Chip tone="neutral">Within their own pre-flight tests</Chip>
+          <Chip tone="neutral">Within own pre-flight tests</Chip>
         )}
         {p.ref_status === 'in' ? (
-          <Chip tone="green" icon={CheckCircle2}>Still in the normal lab range</Chip>
+          <Chip tone="green" icon={CheckCircle2}>In normal lab range</Chip>
         ) : p.ref_status !== 'n/a' ? (
-          <Chip tone="red">Outside the normal lab range</Chip>
+          <Chip tone="red">Outside normal lab range</Chip>
         ) : null}
       </div>
     </div>
@@ -89,7 +89,7 @@ export const RealDataView: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
         <>
           <Section icon={Users} title={f.label} right={real}>
             <p className="-mt-2 mb-5 text-[18px] text-slate-300">
-              Each card shows the person's {nPre} tests before flight and the test {tp(f.timepoint)}.
+              {nPre} tests before launch, then the test {tp(f.timepoint)}.
               {range?.low != null && range?.high != null ? ` Normal lab range: ${range.low}–${range.high} ${f.unit}.` : ''}
             </p>
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2 2xl:grid-cols-4">
