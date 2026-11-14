@@ -41,6 +41,9 @@
 }
 
 @layer base {
+  /* 18px root: every rem-based size scales with it. The 3 screens use px sizes from src/ui/glass.tsx (min 16px). */
+  html { font-size: 112.5%; }
+
   /* html, body and #root must stay TRANSPARENT. An opaque body background is painted above the z-index:-1 photo
      layer (in the root stacking context, negative-z layers paint before in-flow block backgrounds), which hid the
      photo. The dark fallback colour lives inside the photo layer itself. */
@@ -79,7 +82,7 @@
 @layer components {
   /* ONE large glass panel per screen */
   .glass-panel {
-    @apply mx-auto w-full max-w-6xl rounded-3xl border backdrop-blur-md p-6 sm:p-8 lg:p-10;
+    @apply mx-auto w-full max-w-7xl rounded-3xl border backdrop-blur-md p-6 sm:p-8 lg:p-[48px];
     background: var(--panel);
     border-color: var(--panel-border);
     box-shadow: 0 30px 80px -40px rgba(0, 0, 0, 0.9);
@@ -87,31 +90,37 @@
 
   /* Section card inside the panel */
   .section-card {
-    @apply rounded-2xl border p-5 sm:p-6;
+    @apply rounded-2xl border p-5 sm:p-7;
     background: var(--section);
     border-color: var(--section-border);
   }
 
-  /* 40px rounded icon tile in section headers */
+  /* Card inside a section */
+  .inner-card {
+    @apply rounded-2xl border border-white/10 p-5 sm:p-6;
+    background: rgba(2, 6, 23, 0.30);
+  }
+
+  /* 44px rounded icon tile in section headers */
   .icon-tile {
-    @apply grid h-10 w-10 shrink-0 place-items-center rounded-xl text-indigo-300;
+    @apply grid h-[44px] w-[44px] shrink-0 place-items-center rounded-xl text-indigo-300;
     background: rgba(99, 102, 241, 0.18);
   }
 
   /* Selectable card: slate border; selected = indigo border + glow (+ check badge in markup) */
   .select-card {
-    @apply relative rounded-2xl border border-slate-700 p-5 text-left transition sm:p-6;
+    @apply relative rounded-2xl border border-slate-700 p-6 text-left transition;
     background: var(--section);
   }
   .select-card:hover { @apply border-slate-500; }
-  .select-card[aria-pressed='true'] {
+  .select-card[data-selected='true'] {
     border-color: #6366F1;
-    box-shadow: 0 0 24px rgba(99, 102, 241, 0.35);
+    box-shadow: 0 0 28px rgba(99, 102, 241, 0.40);
   }
 
-  /* Buttons: min 52px tall, large text */
+  /* Buttons: h-14+ (63px at the 18px root), 20px text */
   .btn {
-    @apply inline-flex min-h-[52px] items-center justify-center gap-2 rounded-xl px-8 text-lg font-semibold transition
+    @apply inline-flex min-h-14 items-center justify-center gap-2 rounded-xl px-8 text-[20px] font-semibold transition
            disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-primary {
@@ -128,7 +137,7 @@
 
   /* Small fact chip: tinted background + coloured text */
   .chip {
-    @apply inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-medium leading-snug;
+    @apply inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[16px] font-medium leading-snug;
   }
 
   /* ---- Legacy classes still used by the hidden "More" screens (re-themed, not deleted) ---- */

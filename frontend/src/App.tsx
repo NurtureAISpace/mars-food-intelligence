@@ -25,7 +25,7 @@ export function App() {
         crewSol={crew.currentSol}
       />
 
-      <main key={activeTab} className="relative z-10 mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-10">
+      <main key={activeTab} className="relative z-10 mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6 sm:py-14">
         {/* The 3 screens in navigation */}
         {activeTab === 'crewhealth' && <CrewHealthView crew={crew} onNavigate={setActiveTab} />}
         {activeTab === 'realdata' && <RealDataView onBack={goHome} />}
@@ -41,7 +41,7 @@ export function App() {
         {activeTab === 'lifesupport' && <LifeSupportView />}
       </main>
 
-      <footer className="relative z-10 px-4 pb-8 text-center text-base text-slate-300">
+      <footer className="relative z-10 px-4 pb-10 text-center text-[18px] text-slate-300">
         NurtureAISpace · decision-support prototype, not a medical device.
       </footer>
     </div>

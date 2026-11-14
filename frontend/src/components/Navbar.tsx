@@ -27,7 +27,7 @@ const PILL_ICON: Record<StatusKey, React.ComponentType<{ className?: string }>> 
 const Wordmark: React.FC<{ onClick: () => void }> = ({ onClick }) => (
   <button onClick={onClick} className="flex items-center gap-2.5" aria-label="NurtureAISpace — go to Crew">
     <span className="h-3 w-3 rounded-full bg-indigo-400 shadow-[0_0_14px_rgba(129,140,248,0.9)]" aria-hidden />
-    <span className="text-lg font-bold tracking-wide text-white">
+    <span className="text-[20px] font-bold tracking-wide text-white">
       NURTURE<span className="text-indigo-300">AI</span>SPACE
     </span>
   </button>
@@ -38,7 +38,7 @@ const CrewStatusPill: React.FC<{ status: CheckinOverallStatus | null; sol: numbe
   const I = PILL_ICON[key];
   return (
     <button onClick={onClick} title="Worst status of the latest crew check-ins"
-      className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-white/15 bg-slate-950/50 px-4 text-sm font-semibold uppercase tracking-wider text-slate-200 backdrop-blur-md hover:bg-white/10">
+      className="inline-flex min-h-[48px] items-center gap-2 rounded-full border border-white/15 bg-slate-950/50 px-5 text-[16px] font-semibold uppercase tracking-wider text-slate-200 backdrop-blur-md hover:bg-white/10">
       <span>Crew</span>
       <span className="text-slate-500" aria-hidden>·</span>
       <span className={`inline-flex items-center gap-1.5 normal-case tracking-normal ${statusText(key)}`}>
@@ -65,13 +65,13 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, crewSta
   const go = (id: string) => { setActiveTab(id); setMobileOpen(false); window.scrollTo({ top: 0 }); };
 
   const item = (active: boolean) =>
-    `min-h-[48px] rounded-xl px-5 text-lg font-semibold transition whitespace-nowrap ${
+    `min-h-[52px] rounded-xl px-6 text-[18px] font-semibold transition whitespace-nowrap ${
       active ? 'bg-indigo-600 text-white shadow-[0_0_24px_-6px_rgba(99,102,241,0.8)]' : 'text-slate-200 hover:bg-white/10 hover:text-white'
     }`;
 
   return (
     <header ref={ref} className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/60 px-4 backdrop-blur-md sm:px-6">
-      <div className="mx-auto flex min-h-[72px] max-w-6xl items-center justify-between gap-4">
+      <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between gap-4">
         <Wordmark onClick={() => go('crewhealth')} />
 
         <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">
@@ -98,7 +98,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, crewSta
       </div>
 
       {mobileOpen && (
-        <nav id="mobile-nav" aria-label="Mobile" className="mx-auto max-w-6xl space-y-1 pb-4 lg:hidden">
+        <nav id="mobile-nav" aria-label="Mobile" className="mx-auto max-w-7xl space-y-1 pb-4 lg:hidden">
           <div className="pb-2 sm:hidden">
             <CrewStatusPill status={crewStatus} sol={crewSol} onClick={() => go('crewhealth')} />
           </div>
