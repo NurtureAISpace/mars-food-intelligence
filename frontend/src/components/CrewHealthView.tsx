@@ -1,11 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { fetchCrewHealth, fetchAstronautTimeline, fetchCrewScenarios } from '../api';
+import { fetchAstronautTimeline } from '../api';
+import { CrewHealthState } from '../hooks/useCrewHealth';
 import {
   AstronautTimeline,
   CrewAlert,
   CrewEvents,
-  CrewHealthScenario,
-  CrewScenarioPreset,
   CrewHealthSnapshot,
   CrewMemberStatus,
   CrewStatus,
@@ -276,57 +275,20 @@ const AlertCard: React.FC<{ alert: CrewAlert }> = ({ alert }) => (
 // ---------------------------------------------------------------------------
 // Main view
 // ---------------------------------------------------------------------------
-export const CrewHealthView: React.FC = () => {
-  const [sol, setSol] = useState<number>(200);
-  const [scenario, setScenario] = useState<CrewHealthScenario>({
-    failure_enabled: true,
-    cooling_failure_sol: 150,
-    failure_duration_sols: 45,
-    failure_peak_temp_c: 29.5,
-  });
+export const CrewHealthView: React.FC<{ crew: CrewHealthState }> = ({ crew }) => {
+  const { sol, setSol, dSol, scenario, setScenario, dScenario, presets, applyPreset, snapshot, loading } = crew;
   const [selected, setSelected] = useState<string>('MS-03');
   const [vital, setVital] = useState<VitalKey>('fatigue_score');
-  const [snapshot, setSnapshot] = useState<CrewHealthSnapshot | null>(null);
   const [timeline, setTimeline] = useState<AstronautTimeline | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [presets, setPresets] = useState<CrewScenarioPreset[]>([]);
-
-  useEffect(() => {
-    fetchCrewScenarios().then((d) => setPresets(d.scenarios)).catch((e) => setError(String(e)));
-  }, []);
-
-  const applyPreset = (p: CrewScenarioPreset) => {
-    if (!p.parameters) return;
-    const q = p.parameters;
-    setScenario({
-      failure_enabled: q.failure_enabled,
-      // nominal: failure fields are null; keep the slider defaults
-      cooling_failure_sol: q.cooling_failure_sol ?? 150,
-      failure_duration_sols: q.failure_duration_sols ?? 45,
-      failure_peak_temp_c: q.failure_peak_temp_c ?? 29.5,
-    });
-  };
+  const [timelineError, setTimelineError] = useState<string | null>(null);
+  const error = crew.error ?? timelineError;
   const activePreset = snapshot?.scenario_preset ?? null;
-
-  const dSol = useDebounced(sol, 120);
-  const dScenario = useDebounced(scenario, 350);
-
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    fetchCrewHealth(dSol, dScenario)
-      .then((d) => { if (!cancelled) { setSnapshot(d); setError(null); } })
-      .catch((e) => { if (!cancelled) setError(String(e)); })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
-  }, [dSol, dScenario]);
 
   useEffect(() => {
     let cancelled = false;
     fetchAstronautTimeline(selected, dScenario)
-      .then((d) => { if (!cancelled) setTimeline(d); })
-      .catch((e) => { if (!cancelled) setError(String(e)); });
+      .then((d) => { if (!cancelled) { setTimeline(d); setTimelineError(null); } })
+      .catch((e) => { if (!cancelled) setTimelineError(String(e)); });
     return () => { cancelled = true; };
   }, [selected, dScenario]);
 
