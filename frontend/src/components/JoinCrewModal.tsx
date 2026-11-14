@@ -1,15 +1,19 @@
-// "Judge, be our astronaut": QR code to the Astronaut App on the LAN. Generated locally (qrcode lib, SVG), no CDN.
+// "Judge, be our astronaut": QR code to the Astronaut App. Generated locally (qrcode lib, SVG), no CDN.
+// The "App link" field is the shared link (src/appLink.ts): editing it updates this QR and the "Open Astronaut App"
+// button at once, and it is remembered in this browser. For any network, paste the Cloudflare tunnel URL
+// (apps/astronaut/README.md, "Live demo with judges").
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import QRCode from 'qrcode';
-import { Smartphone, X } from 'lucide-react';
-
-import { useAppUrl } from '../appLink';
+import { AlertTriangle, RotateCcw, Smartphone, X } from 'lucide-react';
+import { defaultAppUrl, getAppUrl, isLocalOnlyUrl, setAppUrl, useAppUrl } from '../appLink';
 
 export const JoinCrewModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const url = useAppUrl(); // same link as the "Open Astronaut App" button
+  const [draft, setDraft] = useState(getAppUrl);
   const [svg, setSvg] = useState<string | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const localOnly = isLocalOnlyUrl(url);
 
   useEffect(() => {
     QRCode.toString(url, { type: 'svg', margin: 1, errorCorrectionLevel: 'M', color: { dark: '#020617', light: '#ffffff' } })
@@ -23,6 +27,9 @@ export const JoinCrewModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
+
+  const change = (v: string) => { setDraft(v); setAppUrl(v); };
+  const reset = () => { setAppUrl(''); setDraft(defaultAppUrl()); };
 
   // Portal to <body>: the glass panels use backdrop-filter, which would trap `position: fixed`.
   return createPortal(
@@ -43,7 +50,30 @@ export const JoinCrewModal: React.FC<{ onClose: () => void }> = ({ onClose }) =>
             : <div className="grid aspect-square place-items-center text-slate-500">QR code…</div>}
         </div>
         <p className="mt-5 break-all font-mono text-[1.3333rem] font-semibold text-white">{url}</p>
-        <p className="mt-2 text-[0.8889rem] text-slate-400">Same Wi-Fi as this laptop. Pick “Guest” in the app.</p>
+
+        <div className="mt-6 text-left">
+          <label htmlFor="app-link" className="block text-[1rem] font-semibold text-slate-200">App link</label>
+          <div className="mt-2 flex gap-2">
+            <input id="app-link" type="url" inputMode="url" spellCheck={false} value={draft} onChange={(e) => change(e.target.value)}
+              placeholder={defaultAppUrl()}
+              className="min-h-[2.6667rem] min-w-0 flex-1 rounded-xl border border-white/20 bg-slate-950/70 px-4 font-mono text-[1rem] text-white placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none" />
+            <button type="button" onClick={reset} title="Back to the default link" aria-label="Back to the default link"
+              className="grid min-h-[2.6667rem] w-[2.6667rem] shrink-0 place-items-center rounded-xl border border-white/20 text-slate-200 hover:bg-white/10">
+              <RotateCcw className="h-5 w-5" aria-hidden />
+            </button>
+          </div>
+          {localOnly ? (
+            <p role="alert" className="mt-3 flex items-start gap-2 rounded-xl border border-watch/50 bg-watch/10 px-4 py-3 text-[0.8889rem] text-amber-100">
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-watch" aria-hidden />
+              This link points to “localhost”: a phone would open itself, not this laptop. Paste the tunnel link
+              (https://….trycloudflare.com) or this laptop’s Wi-Fi address.
+            </p>
+          ) : (
+            <p className="mt-2 text-[0.8889rem] text-slate-400">
+              Used by this QR code and the “Open Astronaut App” button. A https://….trycloudflare.com link works on any network.
+            </p>
+          )}
+        </div>
       </div>
     </div>,
     document.body,

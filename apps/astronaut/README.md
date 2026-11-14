@@ -108,9 +108,8 @@ npm run preview      # http://localhost:4173
 5. Optional: check `http://127.0.0.1:8001/api/v1/health/checkins?astronaut_id=GUEST-1`: one record per check-in,
    each with its `client_id`, `measured_at` and `pseudonym` (no name).
 
-On a phone: open `http://<your-PC-IP>:4173` (see "Live demo with judges"). Note that browsers only enable service workers on `https` or
-`localhost`, so over plain http on the LAN the app works online but is not installable/offline-capable (see
-limitations).
+On a phone: use the QR link (see "Live demo with judges"). Browsers only enable service workers on `https` or
+`localhost`: over the https tunnel the app is offline-capable; over plain http on the LAN it works online only.
 
 ### Demo seed for the Crew screen
 
@@ -131,54 +130,74 @@ cd backend; .venv\Scripts\python scripts\seed_demo_checkins.py
 
 ## Live demo with judges
 
-A judge scans a QR code on the dashboard, picks **Guest** in this app and checks in from their own phone. Guests
-check in as `GUEST-1`…`GUEST-4` (first free one, else the one with the oldest check-in is reused); the 4 crew seats
-are not touched. The dashboard Crew screen shows them in a separate "Guests" row (newest first). The name stays
-on the phone; the dashboard sees only the `CREW-XXXXXX` code.
+A judge scans the QR code on the dashboard (Crew -> **Join the crew**), types their name and checks in from their
+own phone. Everyone is a guest (`GUEST-1`…`GUEST-4`, first free one, else the one with the oldest check-in); the
+dashboard shows them in the **Guests** row right under the crew cards (newest first). The name stays on the phone;
+the dashboard sees only the `CREW-XXXXXX` code.
 
-1. Find the laptop's Wi-Fi IPv4 address:
+The QR code and the **Open Astronaut App** button use one shared link. Set it in the QR window's **App link** field
+(saved in that browser); default: `VITE_ASTRONAUT_PUBLIC_URL`, else `http://<host of the dashboard page>:4173`.
+
+### Why same-Wi-Fi phones failed (diagnosis, 2026-11-15)
+
+- **Most likely: the QR pointed to `localhost`.** With the dashboard opened as `http://localhost:3000` and no
+  `VITE_ASTRONAUT_PUBLIC_URL`, the default link was `http://localhost:4173`, which on a phone opens the phone itself.
+  The QR window now warns when the link contains `localhost` / `127.0.0.1`.
+- **Windows Firewall:** on the demo laptop, `node.exe` is allowed inbound only for the **Public** profile. On a
+  network Windows marks as **Private** (default inbound = block), phones cannot reach port 4173.
+- **Client isolation:** venue Wi-Fi and some hotspots block phone-to-laptop traffic; no laptop setting fixes that.
+- Not the cause: binding (`host: true` = all interfaces) and Vite's host check (IP addresses are always allowed).
+  The host check matters only for the tunnel name, so `preview.allowedHosts` lists `.trycloudflare.com`.
+
+### Recommended: Cloudflare quick tunnel (works on any network, no account)
+
+Install once (then open a new terminal so `cloudflared` is on the PATH):
+
+```powershell
+winget install --id Cloudflare.cloudflared
+```
+
+Four terminals:
+
+```powershell
+# 1. Backend (stays on 127.0.0.1; the app reaches it through the Vite /api proxy)
+cd backend; .\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8001
+
+# 2. Astronaut App, demo build
+cd apps\astronaut; npm run build; npm run preview          # http://localhost:4173
+
+# 3. Tunnel: prints https://<random-words>.trycloudflare.com -> copy it
+cloudflared tunnel --url http://localhost:4173
+
+# 4. Dashboard
+cd frontend; npm run dev                                   # open http://localhost:3000
+```
+
+Then Crew -> **Join the crew** -> paste the `https://….trycloudflare.com` link into **App link**. The QR code and
+the **Open Astronaut App** button change at once. Quick check from any device: `<tunnel>/api/v1/health/checkin/guide`
+returns JSON.
+
+- The tunnel URL changes every time `cloudflared` starts: paste the new one.
+- Over https the service worker works, so the app is installable and offline-capable on the phone.
+- The laptop needs internet. Quick tunnels are meant for testing (no uptime guarantee). Traffic passes through
+  Cloudflare: only guest ids, anonymized codes and readings, never names.
+
+### LAN-only fallback (same Wi-Fi, no internet needed)
+
+1. `ipconfig` -> "Wireless LAN adapter Wi-Fi" -> IPv4 Address, e.g. `192.168.1.23`.
+2. Allow port 4173 once (PowerShell **as Administrator**):
 
    ```powershell
-   ipconfig   # "Wireless LAN adapter Wi-Fi" -> IPv4 Address, e.g. 192.168.1.23
+   New-NetFirewallRule -DisplayName "NurtureAI 4173" -Direction Inbound -LocalPort 4173 -Protocol TCP -Action Allow -Profile Private,Public
    ```
 
-2. Backend (terminal 1, stays on 127.0.0.1; phones reach it through the Vite proxies):
-
-   ```powershell
-   cd backend
-   .\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8001
-   ```
-
-3. Astronaut App, production build on the LAN (terminal 2, `host: true`, port 4173):
-
-   ```powershell
-   cd appsstronaut
-   npm run build
-   npm run preview      # Network: http://192.168.1.23:4173
-   ```
-
-4. Dashboard with the QR URL (terminal 3):
-
-   ```powershell
-   cd frontend
-   $env:VITE_ASTRONAUT_PUBLIC_URL = "http://192.168.1.23:4173"
-   npm run dev          # open http://localhost:3000 -> Crew -> "Join the crew"
-   ```
-
-   Without the variable the QR points to `http://<host of the dashboard page>:4173`, which is only right if you
-   opened the dashboard via the LAN IP (`http://192.168.1.23:3000`), not via `localhost`.
-
-5. **Windows Firewall**: the first time Node listens on the LAN, Windows asks; allow **Private networks**. If you
-   missed the prompt: Windows Security -> Firewall & network protection -> Allow an app through firewall -> Node.js
-   -> tick **Private**. Make sure the venue Wi-Fi is set to a **Private** network profile (Settings -> Network ->
-   Wi-Fi -> network properties), otherwise the rule does not apply.
-
-6. **Fallback**: venue Wi-Fi often blocks phone-to-laptop traffic (client isolation). Turn on a phone hotspot,
-   connect the laptop to it, re-run `ipconfig`, update `VITE_ASTRONAUT_PUBLIC_URL`, restart `npm run dev`. Judges
-   join the hotspot (or use the hotspot phone itself).
+3. Terminals 1, 2 and 4 as above (no tunnel). In **App link** enter `http://192.168.1.23:4173`
+   (or start the dashboard with `$env:VITE_ASTRONAUT_PUBLIC_URL = "http://192.168.1.23:4173"`).
+4. Still nothing on the phone: the network isolates clients. Use the tunnel, or a phone hotspot for the laptop
+   and the judges.
 
 Over plain http the app works online but has no service worker (no offline app shell); that is expected for the
-demo.
+LAN fallback.
 
 ## Known limitations
 

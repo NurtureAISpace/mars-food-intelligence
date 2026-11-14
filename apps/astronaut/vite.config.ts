@@ -67,10 +67,13 @@ export default defineConfig(({ command }) => ({
     proxy,
   },
   preview: {
-    port: 4173, // LAN demo: phones open http://<PC-IP>:4173 (QR on the dashboard Crew screen)
+    port: 4173, // the demo build: phones open the QR link (Cloudflare tunnel or http://<PC-IP>:4173)
     strictPort: true,
-    host: true,
-    proxy,
+    host: true, // listen on 0.0.0.0 (LAN), not only on localhost
+    // Vite's host check: IP addresses and localhost are always allowed; the Cloudflare quick tunnel sends
+    // Host: <random>.trycloudflare.com, which needs to be listed (leading dot = any subdomain).
+    allowedHosts: ['.trycloudflare.com', 'localhost', '.local'],
+    proxy, // /api -> 127.0.0.1:8001; the app only calls relative /api paths, so the tunnel needs no backend URL
   },
   test: {
     environment: 'node',

@@ -3,12 +3,12 @@ import { fetchCheckins } from '../api';
 import type { CheckinColor, CheckinHistoryEntry, CheckinIndicatorKey, CheckinOverallStatus } from '../types';
 
 /**
- * Astronaut App seats 1-4. Seat k checks in as Inspiration4 subject C00k (links the demo to the real
- * NASA blood data). Configuration shared with apps/astronaut/src/config.ts, not data.
+ * Crew cards C001-C004: the Inspiration4 subject ids, filled by the seeded demo check-ins. Reserved: the
+ * Astronaut App never sends them (apps/astronaut/src/config.ts); live check-ins arrive as guests.
  */
 export const CREW_SEATS = ['C001', 'C002', 'C003', 'C004'] as const;
 
-/** Guest seats for live demos (a judge checks in from their own phone; apps/astronaut/src/config.ts). */
+/** Guest ids: every Astronaut App user (a judge checks in from their own phone; apps/astronaut/src/config.ts). */
 export const GUEST_IDS = ['GUEST-1', 'GUEST-2', 'GUEST-3', 'GUEST-4'] as const;
 
 const POLL_MS = 15_000; // new check-ins from the Astronaut App appear without a reload
