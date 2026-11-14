@@ -8,11 +8,15 @@ import type { CheckinColor, CheckinHistoryEntry, CheckinIndicatorKey, CheckinOve
  */
 export const CREW_SEATS = ['C001', 'C002', 'C003', 'C004'] as const;
 
+/** Guest seats for live demos (a judge checks in from their own phone; apps/astronaut/src/config.ts). */
+export const GUEST_IDS = ['GUEST-1', 'GUEST-2', 'GUEST-3', 'GUEST-4'] as const;
+
 const POLL_MS = 15_000; // new check-ins from the Astronaut App appear without a reload
 
 export interface SeatState {
-  seat: number;               // 1..4
-  astronautId: string;        // C001..C004
+  seat: number;               // 1..4 (guests: 1..4 of GUEST-k)
+  astronautId: string;        // C001..C004 or GUEST-1..4
+  guest?: boolean;
   pseudonym: string | null;   // anonymized code from the device; the name never reaches the server
   latest: CheckinHistoryEntry | null;
 }
@@ -30,6 +34,7 @@ function latestOf(entries: CheckinHistoryEntry[]): CheckinHistoryEntry | null {
 /** Latest Astronaut App check-in per seat, plus crew-level numbers for the stat tiles and the navbar pill. */
 export function useCrewCheckins() {
   const [seats, setSeats] = useState<SeatState[] | null>(null);
+  const [guests, setGuests] = useState<SeatState[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -40,6 +45,15 @@ export function useCrewCheckins() {
         return { seat: i + 1, astronautId: CREW_SEATS[i], pseudonym: h.pseudonym ?? latest?.pseudonym ?? null, latest };
       }));
       setError(null);
+      // Guests: only those with a check-in, newest first. A failed guest fetch never hides the crew seats.
+      const gh = await Promise.all(GUEST_IDS.map((id) => fetchCheckins(id).catch(() => null)));
+      setGuests(gh
+        .map((h, i) => {
+          const latest = h ? latestOf(h.checkins) : null;
+          return { seat: i + 1, astronautId: GUEST_IDS[i], guest: true, pseudonym: h?.pseudonym ?? latest?.pseudonym ?? null, latest };
+        })
+        .filter((g) => g.latest)
+        .sort((a, b) => (b.latest!.recorded_at ?? '').localeCompare(a.latest!.recorded_at ?? '')));
     } catch (e) {
       setError(String(e instanceof Error ? e.message : e));
     }
@@ -58,7 +72,7 @@ export function useCrewCheckins() {
   const allGood = withData.filter((s) => s.latest!.overall_status === 'NOMINAL').length;
   const needAttention = withData.length - allGood;
 
-  return { seats, error, reload: load, worst, currentSol, allGood, needAttention };
+  return { seats, guests, error, reload: load, worst, currentSol, allGood, needAttention };
 }
 
 export type CrewCheckinsState = ReturnType<typeof useCrewCheckins>;

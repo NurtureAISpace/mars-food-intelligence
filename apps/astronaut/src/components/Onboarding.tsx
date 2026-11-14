@@ -1,7 +1,8 @@
 // Onboarding: full name + seat. The name is turned into an anonymized crew code on this device and stored only
 // here (IndexedDB). The backend and the dashboard only ever see the seat's crew id and the code.
 import { useEffect, useState } from 'react';
-import { SEATS, seatToCrewId } from '../config';
+import { GUEST_SEAT_BASE, GUEST_SLOTS, SEATS, guestCrewId, isGuestSeat, seatLabel, seatToCrewId } from '../config';
+import { fetchHistory } from '../api';
 import { isFullName, pseudonymFor } from '../pseudonym';
 import type { Profile } from '../types';
 
@@ -15,6 +16,26 @@ const Lock = () => (
     <path d="M8 11V7a4 4 0 018 0v4" fill="none" stroke="currentColor" strokeWidth="2" />
   </svg>
 );
+
+/**
+ * Guest slot for a live demo: the first GUEST-k with no check-in yet, else the one whose latest check-in is oldest.
+ * Offline (history unreachable) -> GUEST-1.
+ */
+async function pickGuestSeat(): Promise<number> {
+  try {
+    const last = await Promise.all(GUEST_SLOTS.map(async (k) => {
+      const h = await fetchHistory(guestCrewId(k));
+      const times = h.checkins.map((c) => c.recorded_at ?? c.measured_at ?? '');
+      times.sort();
+      return { k, latest: times.length ? times[times.length - 1] : null };
+    }));
+    const free = last.find((x) => x.latest === null);
+    const pick = free ?? last.reduce((a, b) => (b.latest! < a.latest! ? b : a));
+    return GUEST_SEAT_BASE + pick.k;
+  } catch {
+    return GUEST_SEAT_BASE + 1;
+  }
+}
 
 /** 3 dots joined by a thin line; a dot turns green with a check when its step is done. */
 function Steps({ done, labels }: { done: boolean[]; labels: string[] }) {
@@ -45,6 +66,7 @@ export function Onboarding({ current, onSave, onCancel }: {
   const [code, setCode] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [guestBusy, setGuestBusy] = useState(false);
   const nameOk = isFullName(name);
 
   useEffect(() => {
@@ -55,6 +77,17 @@ export function Onboarding({ current, onSave, onCancel }: {
   }, [name, nameOk]);
 
   const ready = nameOk && seat !== null && code !== null;
+  const guest = seat !== null && isGuestSeat(seat);
+
+  const chooseGuest = async () => {
+    if (guest) return;
+    setGuestBusy(true);
+    try {
+      setSeat(await pickGuestSeat());
+    } finally {
+      setGuestBusy(false);
+    }
+  };
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,7 +102,7 @@ export function Onboarding({ current, onSave, onCancel }: {
   };
 
   return (
-    <form onSubmit={save} className="px-4 py-6 space-y-5" noValidate>
+    <form onSubmit={save} className="px-4 py-6 space-y-5 min-w-0" noValidate>
       <div className="glass p-5 space-y-5">
         <div>
           <h1 className="text-3xl font-light text-white">Welcome aboard</h1>
@@ -98,6 +131,15 @@ export function Onboarding({ current, onSave, onCancel }: {
               <span className="block text-sm text-slate-400 font-mono">{seatToCrewId(s)}</span>
             </button>
           ))}
+          <button type="button" role="radio" aria-checked={guest} onClick={() => void chooseGuest()} disabled={guestBusy}
+            className={`relative col-span-2 min-h-16 rounded-2xl border text-left px-4 transition ${
+              guest ? 'border-indigo-500 bg-indigo-500/15 shadow-[0_0_24px_rgba(99,102,241,0.35)]' : 'border-slate-700 bg-slate-900/50'}`}>
+            {guest && <span className="absolute top-2 right-2 grid place-items-center w-6 h-6 rounded-full bg-indigo-500 text-white"><Check /></span>}
+            <span className="block text-xl font-semibold text-white">{guest ? seatLabel(seat!) : 'Guest'}</span>
+            <span className="block text-sm text-slate-400 font-mono">
+              {guestBusy ? 'Finding a free guest seat…' : guest ? seatToCrewId(seat!) : 'Visitor / judge: GUEST-1…4'}
+            </span>
+          </button>
         </div>
       </div>
 

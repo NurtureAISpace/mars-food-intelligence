@@ -77,15 +77,15 @@ npm test
 
 ## How to demo offline
 
-The service worker only runs in a production build, so use `preview` (same port and `/api` proxy as dev):
+The service worker only runs in a production build, so use `preview` (port 4173, same `/api` proxy as dev):
 
 ```powershell
 cd apps\astronaut
 npm run build
-npm run preview      # http://localhost:3001
+npm run preview      # http://localhost:4173
 ```
 
-1. With the backend running, open http://localhost:3001 in Chrome or Edge, enter your full name and pick a seat (e.g. Seat 1 = `C001`).
+1. With the backend running, open http://localhost:4173 in Chrome or Edge, enter your full name and pick a seat (e.g. Seat 1 = `C001`).
    This first online visit downloads the check-in guide and installs the service worker.
 2. DevTools (F12) -> **Network** -> throttling dropdown -> **Offline**. The header switches to **Offline**.
    Reload the page: the app still loads (from the service worker) and the form still works.
@@ -96,7 +96,7 @@ npm run preview      # http://localhost:3001
 5. Optional: check `http://127.0.0.1:8001/api/v1/health/checkins?astronaut_id=C001`: one record per check-in,
    each with its `client_id`, `measured_at` and `pseudonym` (no name).
 
-On a phone: open `http://<your-PC-IP>:3001`. Note that browsers only enable service workers on `https` or
+On a phone: open `http://<your-PC-IP>:4173` (see "Live demo with judges"). Note that browsers only enable service workers on `https` or
 `localhost`, so over plain http on the LAN the app works online but is not installable/offline-capable (see
 limitations).
 
@@ -116,6 +116,57 @@ cd backend; .venv\Scripts\python scripts\seed_demo_checkins.py
   C003 has sleep in the amber band, so its card shows "Take care".
 - Safe to re-run: fixed `client_id`s (`demo-seed-C00k-sol1`) mean the server returns the stored record instead of
   adding a duplicate.
+
+## Live demo with judges
+
+A judge scans a QR code on the dashboard, picks **Guest** in this app and checks in from their own phone. Guests
+check in as `GUEST-1`…`GUEST-4` (first free one, else the one with the oldest check-in is reused); the 4 crew seats
+are not touched. The dashboard Crew screen shows them in a separate "Guests" row (newest first). The name stays
+on the phone; the dashboard sees only the `CREW-XXXXXX` code.
+
+1. Find the laptop's Wi-Fi IPv4 address:
+
+   ```powershell
+   ipconfig   # "Wireless LAN adapter Wi-Fi" -> IPv4 Address, e.g. 192.168.1.23
+   ```
+
+2. Backend (terminal 1, stays on 127.0.0.1; phones reach it through the Vite proxies):
+
+   ```powershell
+   cd backend
+   .\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8001
+   ```
+
+3. Astronaut App, production build on the LAN (terminal 2, `host: true`, port 4173):
+
+   ```powershell
+   cd appsstronaut
+   npm run build
+   npm run preview      # Network: http://192.168.1.23:4173
+   ```
+
+4. Dashboard with the QR URL (terminal 3):
+
+   ```powershell
+   cd frontend
+   $env:VITE_ASTRONAUT_PUBLIC_URL = "http://192.168.1.23:4173"
+   npm run dev          # open http://localhost:3000 -> Crew -> "Join the crew"
+   ```
+
+   Without the variable the QR points to `http://<host of the dashboard page>:4173`, which is only right if you
+   opened the dashboard via the LAN IP (`http://192.168.1.23:3000`), not via `localhost`.
+
+5. **Windows Firewall**: the first time Node listens on the LAN, Windows asks; allow **Private networks**. If you
+   missed the prompt: Windows Security -> Firewall & network protection -> Allow an app through firewall -> Node.js
+   -> tick **Private**. Make sure the venue Wi-Fi is set to a **Private** network profile (Settings -> Network ->
+   Wi-Fi -> network properties), otherwise the rule does not apply.
+
+6. **Fallback**: venue Wi-Fi often blocks phone-to-laptop traffic (client isolation). Turn on a phone hotspot,
+   connect the laptop to it, re-run `ipconfig`, update `VITE_ASTRONAUT_PUBLIC_URL`, restart `npm run dev`. Judges
+   join the hotspot (or use the hotspot phone itself).
+
+Over plain http the app works online but has no service worker (no offline app shell); that is expected for the
+demo.
 
 ## Known limitations
 

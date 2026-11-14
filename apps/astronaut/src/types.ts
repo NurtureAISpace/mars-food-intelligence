@@ -131,7 +131,7 @@ export interface LocalCheckin {
 /** Who uses this device. Stored ONLY in this device's IndexedDB; `name` is never sent to the backend. */
 export interface Profile {
   name: string;
-  seat: number;      // 1..4 -> crew id C00k (config.ts)
+  seat: number;      // 1..4 -> crew id C00k; 101..104 -> GUEST-1..4 (config.ts)
   pseudonym: string; // "CREW-XXXXXX", the only identity the backend and dashboard see
   created_at: string;
 }

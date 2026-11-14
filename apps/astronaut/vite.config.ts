@@ -3,7 +3,8 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// Same backend proxy as frontend/ (FastAPI on 127.0.0.1:8001); used by both `npm run dev` and `npm run preview`.
+// Same backend proxy as frontend/ (FastAPI on 127.0.0.1:8001); used by both `npm run dev` (3001) and `npm run preview` (4173).
+// host: true = listen on the LAN too (judges' phones); the backend itself stays on 127.0.0.1.
 const proxy = {
   '/api': {
     target: 'http://127.0.0.1:8001',
@@ -49,7 +50,7 @@ export default defineConfig({
     proxy,
   },
   preview: {
-    port: 3001,
+    port: 4173, // LAN demo: phones open http://<PC-IP>:4173 (QR on the dashboard Crew screen)
     strictPort: true,
     host: true,
     proxy,

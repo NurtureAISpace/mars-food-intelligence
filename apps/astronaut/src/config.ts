@@ -14,4 +14,18 @@ export const APP_SALT = 'nurtureai-space-pseudonym-v1';
 export const SEATS = [1, 2, 3, 4] as const;
 export type Seat = (typeof SEATS)[number];
 
-export const seatToCrewId = (seat: number): string => `C${String(seat).padStart(3, '0')}`;
+/**
+ * Guest seats for live demos (a judge checks in from their own phone). Stored as seat 100 + k and sent as
+ * GUEST-k (k = 1..4), so the 4 crew seats are never touched.
+ */
+export const GUEST_SLOTS = [1, 2, 3, 4] as const;
+export const GUEST_SEAT_BASE = 100;
+export const isGuestSeat = (seat: number) => seat > GUEST_SEAT_BASE;
+export const guestCrewId = (k: number) => `GUEST-${k}`;
+
+export const seatToCrewId = (seat: number): string =>
+  isGuestSeat(seat) ? guestCrewId(seat - GUEST_SEAT_BASE) : `C${String(seat).padStart(3, '0')}`;
+
+/** "Seat 2" or "Guest 1". */
+export const seatLabel = (seat: number): string =>
+  isGuestSeat(seat) ? `Guest ${seat - GUEST_SEAT_BASE}` : `Seat ${seat}`;

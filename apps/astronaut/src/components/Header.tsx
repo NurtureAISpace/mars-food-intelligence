@@ -1,5 +1,6 @@
 import { firstName } from '../pseudonym';
 import type { Profile } from '../types';
+import { seatLabel } from '../config';
 
 export function Header({ online, pending, syncing, syncMsg, profile, onSync, onChangeProfile }: {
   online: boolean;
@@ -20,7 +21,7 @@ export function Header({ online, pending, syncing, syncMsg, profile, onSync, onC
               {/* The name is shown only here, on this device. */}
               <span className="block text-lg font-semibold text-white truncate">Hi, {firstName(profile.name)}</span>
               <span className="block text-sm text-slate-300 font-mono truncate" title="Name stays on this device">
-                {profile.pseudonym} · Seat {profile.seat} <span className="font-sans text-indigo-300">change</span>
+                {profile.pseudonym} · {seatLabel(profile.seat)} <span className="font-sans text-indigo-300">change</span>
               </span>
             </button>
           ) : (
