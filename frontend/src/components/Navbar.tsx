@@ -18,9 +18,9 @@ export const PRIMARY_TABS: Tab[] = [
 
 const Wordmark: React.FC<{ onClick: () => void }> = ({ onClick }) => (
   <button onClick={onClick} className="flex items-center gap-2.5" aria-label="NurtureAISpace — go to Crew">
-    <span className="h-3 w-3 rounded-full bg-indigo-400 shadow-[0_0_14px_rgba(129,140,248,0.9)]" aria-hidden />
-    <span className="text-[1.1111rem] font-bold tracking-wide text-white">
-      NURTURE<span className="text-indigo-300">AI</span>SPACE
+    <img src="/logo.svg" alt="NurtureAISpace Logo" className="h-7 w-7 rounded-lg border border-orange-500/40 object-contain bg-slate-950 p-0.5" />
+    <span className="text-lg font-bold tracking-wide text-white">
+      NURTURE<span className="text-orange-400">AI</span><span className="text-cyan-400">SPACE</span>
     </span>
   </button>
 );
