@@ -113,12 +113,15 @@ export const CrewHealthView: React.FC<{ crew: CrewCheckinsState; onNavigate: (ta
       )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_1fr_1fr]">
-        <Section icon={Globe} title="Mission" right={seats ? <SeatSources seats={seats} /> : undefined}>
+        <Section icon={Globe} title="Mission">
           <KVList>
-            <KVRow label="Destination" value={destination ?? '—'} />
+            <KVRow label="Destination" value={
+              <span className="inline-flex flex-wrap items-center justify-end gap-2">{destination ?? '—'} <SourceTag kind="simulated" /></span>} />
             <KVRow label="Crew size" value={seats ? seats.length : '—'} />
             <KVRow label="Current Sol" value={currentSol ?? '—'} />
-            <KVRow label="Check-ins today" value={seats ? `${checkedInToday} / ${seats.length}` : '—'} />
+            <KVRow label="Check-ins today" value={seats ? (
+              <span className="inline-flex flex-wrap items-center justify-end gap-2">{`${checkedInToday} / ${seats.length}`} <SeatSources seats={seats} /></span>
+            ) : '—'} />
           </KVList>
         </Section>
         <StatTile label="All readings in range" value={seats ? allGood : '—'} tone="text-nominal"

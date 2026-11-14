@@ -5,13 +5,14 @@
 //   block holds every Sol/day number shown here (warning, problem, per-crew vitamins, cooling failure, mission end).
 // A destination changes only the mission length (forecast horizon); the model is the same for all three.
 import React, { useEffect, useState } from 'react';
+import type { LucideIcon } from 'lucide-react';
 import {
-  ArrowRight, Flag, Globe, Moon, Pill, Satellite, ShieldAlert, Snowflake, ThermometerSun, Users,
+  ArrowRight, Check, Flag, Globe, Moon, Pill, Satellite, ShieldAlert, Snowflake, ThermometerSun, Users,
 } from 'lucide-react';
 import { fetchCrewPresetHorizon, fetchCrewScenarios } from '../api';
 import type { CrewDestination, CrewHealthSnapshot, CrewHorizon, CrewMemberStatus, CrewScenarioPreset, SolDay } from '../types';
 import {
-  Bullets, Details, ErrorBox, GlassPanel, KVList, KVRow, Loading, Section, SelectCard, SourceTag, StatTile, StatusBadge,
+  Bullets, Chip, Details, ErrorBox, GlassPanel, KVList, KVRow, Loading, Section, SourceTag, StatTile, StatusBadge,
 } from '../ui/glass';
 
 const NORMAL_ID = 'nominal';
@@ -158,6 +159,40 @@ const VitaminCard: React.FC<{ m: CrewMemberStatus; v: CrewHorizon['per_astronaut
   </div>
 );
 
+/** Compact one-row selector (icon + title + one line). Selected = indigo border + check. */
+const OptionButton: React.FC<{ selected: boolean; onClick: () => void; icon: LucideIcon; title: string; line: string }> = ({
+  selected, onClick, icon: I, title, line,
+}) => (
+  <button type="button" onClick={onClick} aria-pressed={selected} data-selected={selected}
+    className={`flex min-h-[72px] w-full items-center gap-3 rounded-xl border px-4 py-3 text-left transition ${
+      selected ? 'border-indigo-400 bg-indigo-500/15 shadow-[0_0_18px_-4px_rgba(99,102,241,0.8)]' : 'border-white/15 bg-white/5 hover:border-white/30'}`}>
+    <I className="h-6 w-6 shrink-0 text-indigo-200" aria-hidden />
+    <span className="min-w-0 flex-1">
+      <span className="block text-[19px] font-semibold leading-tight text-white">{title}</span>
+      <span className="block text-[15px] leading-snug text-slate-300">{line}</span>
+    </span>
+    {selected && <Check className="h-5 w-5 shrink-0 text-indigo-200" aria-hidden />}
+  </button>
+);
+
+/** Headline answer: lead time, "all OK", or "the failure starts after this mission ends" (all values from the API). */
+const Headline: React.FC<{ h: CrewHorizon; u: ReturnType<typeof unitFormat>; failureSelected: boolean }> = ({ h, u, failureSelected }) => {
+  const cf = h.cooling_failure;
+  if (failureSelected && cf && cf.start.sol > h.horizon_sols) {
+    const sol = u.word === 'Sols';
+    const n = sol ? h.horizon_sols : h.horizon_days;
+    return (
+      <StatTile value="No effect" tone="text-nominal" source={<SourceTag kind="simulated" />}
+        label={`This failure would start on ${u.at(cf.start)} — after this ${n}-${sol ? 'Sol' : 'day'} mission ends, so it has no effect.`} />
+    );
+  }
+  return h.first_warning ? (
+    <StatTile value={u.lead(h.first_warning)} tone="text-watch" label="Warning before the vitamin problem starts" source={<SourceTag kind="simulated" />} />
+  ) : (
+    <StatTile value="All OK" tone="text-nominal" label="Vitamins last the whole mission" source={<SourceTag kind="simulated" />} />
+  );
+};
+
 export const PredictionView: React.FC<{ onBack?: () => void; onNavigate?: (tab: string) => void }> = ({ onBack, onNavigate }) => {
   const [presets, setPresets] = useState<CrewScenarioPreset[]>([]);
   const [destinations, setDestinations] = useState<CrewDestination[]>([]);
@@ -211,45 +246,46 @@ export const PredictionView: React.FC<{ onBack?: () => void; onNavigate?: (tab: 
         </p>
       )}
 
-      <Section icon={Globe} title="1. Where is the crew going?" right={sim}>
+      <Section icon={Globe} title="Choose the mission" right={sim}>
         {!destinations.length && !error && <Loading />}
-        <div className="grid grid-cols-1 items-start gap-5 md:grid-cols-3">
-          {destinations.map((d) => (
-            <SelectCard key={d.id} selected={d.id === destId} onClick={() => setDestId(d.id)} icon={DEST_ICON[d.id] ?? Globe}
-              title={d.label} subtitle={DEST_META[d.id] ?? durationText(d)}
-              chips={[
-                { tone: 'blue', label: 'Duration', text: durationText(d) },
-                { tone: 'violet', label: 'Gravity', text: d.gravity },
-                { tone: 'sky', label: 'Resupply', text: d.resupply },
-              ]}
-              extra={d.id === 'earth_orbit' && onNavigate ? (
-                <button type="button" onClick={() => onNavigate('realdata')}
-                  className="inline-flex min-h-[48px] items-center gap-2 text-[18px] font-semibold text-indigo-200 hover:text-white">
-                  See the real NASA data <ArrowRight className="h-5 w-5" aria-hidden />
-                </button>
-              ) : undefined}
-            />
-          ))}
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[3fr_2fr]">
+          <div>
+            <h3 className="mb-3 text-[20px] font-semibold text-slate-200">1. Where is the crew going?</h3>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              {destinations.map((d) => (
+                <OptionButton key={d.id} selected={d.id === destId} onClick={() => setDestId(d.id)}
+                  icon={DEST_ICON[d.id] ?? Globe} title={d.label} line={durationText(d)} />
+              ))}
+            </div>
+          </div>
+          <div>
+            <h3 className="mb-3 text-[20px] font-semibold text-slate-200">2. What happens to the food?</h3>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <OptionButton selected={selected === NORMAL_ID} onClick={() => setSelected(NORMAL_ID)} icon={Snowflake}
+                title="Normal mission" line={typeof normalTemp === 'number' ? `Food stays at ${normalTemp} °C` : 'Food stays cold'} />
+              <OptionButton selected={selected === FAILURE_ID} onClick={() => setSelected(FAILURE_ID)} icon={ThermometerSun}
+                title="Storage failure" line="Food cooling breaks down" />
+            </div>
+          </div>
         </div>
-      </Section>
-
-      <Section icon={Snowflake} title="2. What happens to the food?" right={sim}>
-        <div className="grid grid-cols-1 items-start gap-5 md:grid-cols-2">
-          <SelectCard selected={selected === NORMAL_ID} onClick={() => setSelected(NORMAL_ID)} icon={Snowflake}
-            title="Normal mission" subtitle="Food stays cold the whole time"
-            chips={[
-              { tone: 'blue', label: 'Storage', text: typeof normalTemp === 'number' ? `${normalTemp} °C all mission` : 'Cold all mission' },
-              { tone: 'green', label: 'Greenhouse', text: 'Online' },
-              { tone: 'neutral', label: 'Vitamin loss', text: 'Normal slow rate' },
-            ]} />
-          <SelectCard selected={selected === FAILURE_ID} onClick={() => setSelected(FAILURE_ID)} icon={ThermometerSun}
-            title="Storage failure" subtitle="Food cooling breaks down mid-mission"
-            chips={cf ? [
-              { tone: 'red', label: 'Starts', text: cf.in_mission ? u.at(cf.start) : `${u.at(cf.start)} (after this mission)` },
-              { tone: 'amber', label: 'Peak', text: `${cf.peak_temp_c} °C for ${dest?.unit === 'sol' ? `${cf.duration_sols} Sols` : `${cf.duration_days} days`}` },
-              { tone: 'neutral', label: 'Greenhouse', text: 'Offline after the failure' },
-            ] : undefined} />
-        </div>
+        {dest && (
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <Chip tone="violet">Gravity: {dest.gravity}</Chip>
+            <Chip tone="sky">Resupply: {dest.resupply}</Chip>
+            {DEST_META[dest.id] && <Chip tone="neutral">{DEST_META[dest.id]}</Chip>}
+            {selected === FAILURE_ID && cf && (
+              <Chip tone="red">
+                Failure: {u.at(cf.start)}, {cf.peak_temp_c} °C for {dest.unit === 'sol' ? `${cf.duration_sols} Sols` : `${cf.duration_days} days`}
+              </Chip>
+            )}
+            {dest.id === 'earth_orbit' && onNavigate && (
+              <button type="button" onClick={() => onNavigate('realdata')}
+                className="inline-flex min-h-[44px] items-center gap-2 px-2 text-[18px] font-semibold text-indigo-200 hover:text-white">
+                See the real NASA data <ArrowRight className="h-5 w-5" aria-hidden />
+              </button>
+            )}
+          </div>
+        )}
       </Section>
 
       {error && <ErrorBox>{error}</ErrorBox>}
@@ -258,14 +294,10 @@ export const PredictionView: React.FC<{ onBack?: () => void; onNavigate?: (tab: 
       {snap && h && dest && (
         <>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {h.first_warning ? (
-              <StatTile value={u.lead(h.first_warning)} tone="text-watch" label="Warning before the vitamin problem starts" source={sim} />
-            ) : (
-              <StatTile value="All OK" tone="text-nominal" label="Vitamins last the whole mission" source={sim} />
-            )}
-            <StatTile value={u.length(h)} label={`Mission length to ${dest.label}`} source={sim} />
+            <Headline h={h} u={u} failureSelected={selected === FAILURE_ID} />
+            <StatTile value={u.length(h)} label={`Mission length to ${dest.label}`} />
             <StatTile value={`${attention} / ${snap.crew.length}`} tone={attention ? 'text-watch' : 'text-white'}
-              label="Crew needing attention at the end" source={sim} />
+              label="Crew needing attention at the end" />
           </div>
 
           <Section icon={Flag} title="Mission timeline" right={sim}>
