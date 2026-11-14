@@ -54,7 +54,7 @@ export const DataLabView: React.FC = () => {
             <h2 className="text-xl font-bold font-mono text-white">DATA LABORATORY & SCIENTIFIC BENCHMARKING</h2>
           </div>
           <p className="text-xs text-slate-400 font-mono mt-1">
-            Verified space food inventories, automated data pipeline auditing, and empirical NASA JSC food lab validation.
+            Illustrative space food inventory (synthetic values), schema checks, and comparison with published retention endpoints.
           </p>
         </div>
 
@@ -64,7 +64,7 @@ export const DataLabView: React.FC = () => {
           <div className="font-mono">
             <span className="text-[10px] text-emerald-300 block uppercase font-semibold">Data Pipeline Audit</span>
             <span className="text-sm font-bold text-white">
-              {audit?.data_quality_score_pct}% Integrity Verified
+              {audit?.data_quality_score_pct}% Schema Checks Passed
             </span>
           </div>
         </div>
@@ -79,20 +79,20 @@ export const DataLabView: React.FC = () => {
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <h3 className="font-mono font-bold text-white text-sm">GROUND-TRUTH SCIENTIFIC MODEL VALIDATION</h3>
+                <h3 className="font-mono font-bold text-white text-sm">LITERATURE ENDPOINT CHECK</h3>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-bold">
                   {benchmarks?.validation_verdict}
                 </span>
               </div>
               <p className="text-xs text-slate-300 font-mono mt-1">
-                Calibration against NASA Johnson Space Center multi-year space food preservation telemetry (Cooper et al.).
+                Published endpoints: Goulette et al. 2020 (thiamine), Cooper et al. 2017 (vitamin C).
               </p>
             </div>
           </div>
 
           <div className="flex items-center space-x-6 font-mono text-xs">
             <div className="border-l border-mars-border pl-4">
-              <span className="text-slate-400 text-[10px] block">AGGREGATE R² SCORE</span>
+              <span className="text-slate-400 text-[10px] block">R² (n/a, endpoint data)</span>
               <span className="text-lg font-bold text-emerald-400">{benchmarks?.aggregate_r2_score}</span>
             </div>
             <div className="border-l border-mars-border pl-4">
@@ -108,17 +108,17 @@ export const DataLabView: React.FC = () => {
 
         {/* Validation Data Points Comparison Table */}
         <div className="mt-4 pt-4 border-t border-mars-border overflow-x-auto">
-          <h4 className="text-xs font-mono font-bold text-slate-300 mb-2 uppercase">Empirical vs. Predicted Retention Matrix</h4>
+          <h4 className="text-xs font-mono font-bold text-slate-300 mb-2 uppercase">Published vs. Predicted Retention Matrix</h4>
           <table className="w-full text-left font-mono text-xs">
             <thead>
               <tr className="text-slate-400 border-b border-mars-border/60">
                 <th className="pb-2">Food / Nutrient</th>
                 <th className="pb-2">Storage Temp</th>
                 <th className="pb-2">Sol Horizon</th>
-                <th className="pb-2 text-right">Measured (JSC Lab)</th>
+                <th className="pb-2 text-right">Published value</th>
                 <th className="pb-2 text-right">Arrhenius Prediction</th>
                 <th className="pb-2 text-right">Residual</th>
-                <th className="pb-2 text-right">Series R²</th>
+                <th className="pb-2 text-right">R² (n/a)</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-mars-border/40">

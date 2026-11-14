@@ -2,8 +2,8 @@
 Scientific degradation kinetics, thermodynamics, and biophysical models
 for Space Food Intelligence on Mars.
 
-Derived from NASA Technical Reports (NASA/TM-2011-216157) and
-food science kinetics literature (Labuza, Robertson, Arrhenius).
+Standard first-order / zero-order kinetics and the Arrhenius equation. The per-item constants
+(A, Ea) used with these functions come from the synthetic food catalog; see docs/DATA_SOURCES.md.
 """
 
 import math
@@ -139,7 +139,7 @@ def calculate_composite_space_food_index(
 ) -> float:
     """
     Calculates weighted Composite Food Viability Index (0 to 100)
-    Weights aligned with NASA Deep Space Mission Risk Criteria:
+    Weights are a modelling assumption of this project (no cited source):
     - Caloric stability: 30%
     - Thiamine (neurological protection): 25%
     - Vitamin C (oxidative/immune countermeasure): 20%

@@ -113,7 +113,7 @@ export const LifeSupportView: React.FC = () => {
             <div className="pt-1 flex items-center space-x-2 text-xs font-mono text-cyan-300/80">
               <span>Author: Faruk Karimli (Computer Engineering & Life Support Simulation)</span>
               <span>•</span>
-              <span className="text-emerald-400 font-semibold">NASA-STD-3001 Closed-Loop Compliant</span>
+              <span className="text-emerald-400 font-semibold">Synthetic scenario</span>
             </div>
           </div>
 
@@ -234,7 +234,7 @@ export const LifeSupportView: React.FC = () => {
               <Droplets className={`w-4 h-4 ${closedLoopEnabled ? 'text-cyan-400' : 'text-slate-500'}`} />
             </div>
             <span className="text-[11px] text-slate-400 mt-1 font-mono">
-              {closedLoopEnabled ? '96.8% Closed Loop Active' : 'Open Loop (Resupply Dependent)'}
+              {closedLoopEnabled ? 'Closed Loop Active (assumed recovery)' : 'Open Loop (Resupply Dependent)'}
             </span>
           </button>
         </div>
@@ -262,7 +262,7 @@ export const LifeSupportView: React.FC = () => {
           </div>
           <div className="text-[11px] font-mono text-emerald-400 flex items-center space-x-1.5">
             <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>NASA-STD-3001 Normobaric</span>
+            <span>Normobaric (101.3 kPa)</span>
           </div>
         </div>
 
@@ -350,7 +350,7 @@ export const LifeSupportView: React.FC = () => {
             </div>
             <p className="text-xs text-slate-400 mt-1">
               Capacitive Volumetric Water Content (VWC %) telemetry & closed-loop micro-controller irrigation valves
-              calibrated for Martian MGS-1 regolith simulant and Ganja agro-phytotrons.
+              — illustrative values, not calibrated.
             </p>
           </div>
           <div className="flex items-center space-x-2">

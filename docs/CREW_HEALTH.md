@@ -1,7 +1,10 @@
 # Crew Health Module
 
 > **Prototype — not a medical device.** All astronaut physiology in this module is **synthetic**.
-> Every API response carries `"data_provenance": "synthetic crew data; vitamin degradation from Arrhenius model"`.
+> Every API response carries a `data_provenance` field ("synthetic crew data; vitamin storage losses from first-order
+> kinetics anchored to published spaceflight-food retention data; physiology parameters from NASA/literature sources
+> where available, otherwise assumed"). Each parameter's source, page and status is in
+> `backend/app/data/literature_params.json`; all project data sources are listed in [DATA_SOURCES.md](DATA_SOURCES.md).
 
 ## Plain-language overview
 
@@ -24,8 +27,11 @@ tap back up.
 - **Sol 150:** the food storage cooling fails for 45 Sols (storage rises to 29.5 °C, so vitamins in packaged food break
   down faster). The same power event takes the **greenhouse offline for 120 Sols** (no fresh vegetables), and the crew
   moves to reduced rations.
-- **Sols ~160–195:** vitamin intake drops sharply, tanks start draining, and the alerts fire.
+- **From Sol 150:** vitamin intake drops sharply and the tanks start draining. WATCH alerts follow from Sol ~171,
+  ACT alerts from Sol 212.
 - **After ~Sol 270:** the greenhouse is back, and the tanks refill.
+- **Independently of the cooling failure**, vitamin D status slowly declines in flight (no UV, food low in vitamin D),
+  so vitamin D alerts can appear late in the mission even without the failure.
 
 **What each status means:**
 
@@ -38,22 +44,27 @@ tap back up.
 
 **How to read the charts (Crew Health tab):**
 - **Coloured line:** the astronaut's tank level (vitamin pool) up to the current Sol. Nothing after the current Sol is shown.
-- **Red dashed line:** the risk threshold, an early-warning level set *above* real deficiency.
+- **Red dashed line:** the risk threshold. Vitamin C (300 mg body pool) and vitamin D (25 nmol/L) come from NASA JSC 2005;
+  thiamine (10 mg = 1/3 of the ~30 mg store) is an assumption. Early warning comes from the forecast horizon, not from
+  raising the threshold.
 - **Orange shaded band:** the period when the cooling system was broken (the faint green band behind it is the greenhouse outage).
 - **White dashed line:** the forecast. Where the tank is heading if the astronaut keeps eating like they did in the last 7 Sols.
 - **Red dot:** the Sol on which the ACT alert fired.
 - **Vitals chart, green band:** this astronaut's own normal range (their average ± 2 standard deviations over Sols 0–20).
   A line leaving the band means "unusual for this person", even if it would be normal for someone else.
 
-**Demo walkthrough (4 steps):**
+**Demo walkthrough (4 steps, default scenario, seed 42):**
 1. **Sol 149:** all four astronauts are NOMINAL; vitals sit inside their green bands.
-2. **Sol 165:** the cooling failure at Sol 150 has knocked out the greenhouse. PLT-02 and MS-03 are on **WATCH**:
-   their thiamine intake is down about 50% since Sol 152 and their fatigue is above their personal normal.
-3. **Sol 192:** MS-03 goes to **ACT**. The forecast says vitamin C will hit the risk line around Sol 227. The alert
-   recommends about 1.9 servings/Sol of lentil stew. The real crossing happens at Sol 242, so the warning came
-   **about 50 Sols early**.
-4. **Turn the cooling failure off:** no WATCH and no ACT for anyone over the whole mission. The alerts react to the
-   real problem, not to noise.
+2. **Sol 172:** the cooling failure at Sol 150 has knocked out the greenhouse. MS-03 (Sol 171) and PLT-02 (Sol 172)
+   are on **WATCH** because their fatigue score is above their personal normal (MS-03: +72%, z +2.4). The alert says
+   no nutrient forecast explains it yet, so the action is "re-measure and review the crew log", not a diet change.
+3. **Sol 212:** PLT-02 goes to **ACT**. Thiamine intake is −63% vs baseline since Sol 150, the body pool is 11.3 mg
+   (−58%), and the forecast says it will cross the 10 mg risk line in 41 Sols. The alert recommends about
+   1.9 servings/Sol of oatmeal (the best thiamine source available while the greenhouse is offline). In this run the
+   greenhouse returns at Sol 270 and the pool never actually crosses the line.
+4. **Turn the cooling failure off:** no vitamin C or thiamine alerts for anyone over the whole mission. The remaining
+   alerts are vitamin D (for example MS-04: ACT at Sol 348, real crossing at Sol 393, i.e. **45 Sols early**),
+   which comes from the in-flight vitamin D decline, not from the food storage failure.
 
 Remember: **all crew data is synthetic**, and this is a prototype, not a medical device.
 
@@ -156,35 +167,49 @@ window** over vitals + vitamin intake. Its score is reported as supporting evide
 
 ## Default scenario (seed 42, cooling failure at Sol 150 for 45 Sols at 29.5 °C)
 
-| Astronaut | First WATCH | First ACT | Vitamin C pool crosses 400 mg |
-|---|---|---|---|
-| CDR-01 | 198 | — | never |
-| MS-03 | 165 | 192 | 242 |
-| MS-04 | 182 | — | never |
-| PLT-02 | 162 | 194 | 244 |
+Recomputed on 2026-11-14 with the current `literature_params.json` (vitamin C risk threshold 300 mg).
 
-ACT is raised about **50 Sols before** the pool actually crosses the risk threshold. With `failure_enabled=false`, no ACT is
-raised and no pool crosses a threshold.
+| Astronaut | First WATCH | First ACT (nutrient) | Risk threshold actually crossed |
+|---|---|---|---|
+| CDR-01 | 214 | — | none |
+| MS-03 | 171 | 244 (thiamine B1) | none |
+| MS-04 | 188 | 348 (vitamin D) | vitamin D at Sol 393 |
+| PLT-02 | 172 | 212 (thiamine B1) | none |
+
+- The thiamine ACT alerts forecast a crossing within 45 Sols. In this run the greenhouse returns at Sol 270 and the pools
+  recover, so the crossing does not happen (the forecast assumes the last 7 Sols of intake continue).
+- No vitamin C pool reaches 300 mg in this scenario.
+- MS-04's vitamin D ACT is raised **45 Sols before** the real crossing (Sol 393). It also happens with
+  `failure_enabled=false`, because it comes from the in-flight vitamin D decline, not from the cooling failure.
+- With `failure_enabled=false`, no vitamin C or thiamine WATCH/ACT is raised; vitamin D WATCH alerts appear late in the
+  mission (CDR-01 416, MS-03 429, MS-04 273 with ACT at 348).
 
 ## Assumptions
 
-- Physiological constants (absorption, turnover, pool capacity, risk thresholds) are **approximate literature values; verify
-  before use**. Risk thresholds are early-warning levels set above clinical deficiency. They are not diagnostic cut-offs.
+- Physiological constants (absorption, turnover, pool capacity, risk thresholds) come from `literature_params.json`, where
+  each value is marked `literature`, `derived` (formula in its note) or `assumed`. The thiamine risk threshold, the
+  vitamin D intake response, the synthetic-crew variation and the vitals mapping are assumed. Thresholds are not
+  diagnostic cut-offs.
 - The mapping from vitamin deficit to vitals (HR up, sleep down, fatigue up, mass loss) is a **demonstration-only** link
   used to generate synthetic observables.
 - One cooling-failure event also takes the greenhouse offline for 120 Sols, cuts rations to 70% and reduces appetite by 15%.
   In the default scenario the fresh-crop loss and ration cut drive most of the intake drop. The Arrhenius loss in packaged
   food adds to it and lasts after the cooling is restored.
-- A fixed daily menu is used for each astronaut, built from the existing food catalog.
+- A fixed daily menu is used for each astronaut, built from the food catalog. The vitamin C and thiamine content per
+  serving in that catalog is **synthetic** (no cited source); storage losses use the literature rate constants
+  (Goulette 2020, Cooper 2017), not the catalog's own Arrhenius constants.
 
 ## Limitations
 
-- **Synthetic data only.** No real astronaut data has been used for training or validation.
-- Only two water-soluble vitamins are modeled, each with a single-compartment first-order pool.
+- **Synthetic data only.** No real astronaut data has been used for training or validation of this module. (Real
+  Inspiration4 blood panels from NASA OSDR are analysed separately in `backend/scripts/i4_baseline_demo.py`; they are
+  not wired into this module.)
+- Vitamin C and thiamine are modeled as single-compartment first-order pools; vitamin D as a 25-OH-D status level with a
+  literature decline rate.
 - The forecast assumes the intake of the last 7 Sols continues, so it does not anticipate planned changes.
 - Synthetic body mass = personal baseline + cumulative deficit-driven loss + mean-reverting AR(1) noise (reversion 0.2/Sol),
-  so it does not drift without a deficit. With `failure_enabled=false` no WATCH or ACT is raised over the full mission
-  (seed 42). Real body-mass data would drift (e.g. bone/muscle loss), and that drift would need its own model.
+  so it does not drift without a deficit. With `failure_enabled=false` no vitamin C/thiamine or vitals-driven WATCH/ACT
+  is raised over the full mission (seed 42); only vitamin D alerts remain. Real body-mass data would drift (e.g. bone/muscle loss), and that drift would need its own model.
 - Alerts are reported at the first WATCH and the first ACT per astronaut. The snapshot endpoint gives the live status
   at any Sol.
 - The cache is in-process only (LRU, 16 scenarios). It is lost on restart and not shared between workers.

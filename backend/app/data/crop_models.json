@@ -1,58 +1,67 @@
-[
-  {
-    "crop_id": "CROP-MICROGREENS",
-    "name": "Microgreens (Radish & Brassica)",
-    "system_type": "Hydroponic Vertical Rack",
-    "growth_cycle_sols": 10,
-    "daily_yield_g_per_m2": 320.0,
-    "energy_kwh_per_m2_day": 1.8,
-    "water_recirculated_pct": 98.2,
-    "edible_biomass_ratio": 0.95,
-    "calories_per_100g": 24,
-    "vitamin_c_mg_per_100g": 65.0,
-    "thiamine_mg_per_100g": 0.15,
-    "failure_risk_pct_per_sol": 0.05
+{
+  "dataset_meta": {
+    "data_provenance": "synthetic",
+    "description": "Illustrative greenhouse crop parameters (yields, energy use, water recirculation, nutrient contents, failure risk). Synthetic values with no cited source.",
+    "used_by": [
+      "Mission Dashboard (crop harvest)"
+    ]
   },
-  {
-    "crop_id": "CROP-SPIRULINA",
-    "name": "Spirulina Algae (Arthrospira platensis)",
-    "system_type": "Closed Photobioreactor (PBR)",
-    "growth_cycle_sols": 4,
-    "daily_yield_g_per_m2": 450.0,
-    "energy_kwh_per_m2_day": 2.4,
-    "water_recirculated_pct": 99.5,
-    "edible_biomass_ratio": 1.0,
-    "calories_per_100g": 290,
-    "vitamin_c_mg_per_100g": 10.0,
-    "thiamine_mg_per_100g": 2.38,
-    "failure_risk_pct_per_sol": 0.02
-  },
-  {
-    "crop_id": "CROP-TOMATO",
-    "name": "Dwarf Cherry Tomatoes (Solanum lycopersicum)",
-    "system_type": "Aeroponic Chamber",
-    "growth_cycle_sols": 65,
-    "daily_yield_g_per_m2": 180.0,
-    "energy_kwh_per_m2_day": 3.1,
-    "water_recirculated_pct": 97.0,
-    "edible_biomass_ratio": 0.72,
-    "calories_per_100g": 22,
-    "vitamin_c_mg_per_100g": 40.0,
-    "thiamine_mg_per_100g": 0.07,
-    "failure_risk_pct_per_sol": 0.08
-  },
-  {
-    "crop_id": "CROP-SWEET-POTATO",
-    "name": "Mars Dwarf Sweet Potato",
-    "system_type": "Substrate Hydroponics",
-    "growth_cycle_sols": 90,
-    "daily_yield_g_per_m2": 260.0,
-    "energy_kwh_per_m2_day": 2.8,
-    "water_recirculated_pct": 96.5,
-    "edible_biomass_ratio": 0.85,
-    "calories_per_100g": 95,
-    "vitamin_c_mg_per_100g": 18.0,
-    "thiamine_mg_per_100g": 0.11,
-    "failure_risk_pct_per_sol": 0.04
-  }
-]
+  "items": [
+    {
+      "crop_id": "CROP-MICROGREENS",
+      "name": "Microgreens (Radish & Brassica)",
+      "system_type": "Hydroponic Vertical Rack",
+      "growth_cycle_sols": 10,
+      "daily_yield_g_per_m2": 320.0,
+      "energy_kwh_per_m2_day": 1.8,
+      "water_recirculated_pct": 98.2,
+      "edible_biomass_ratio": 0.95,
+      "calories_per_100g": 24,
+      "vitamin_c_mg_per_100g": 65.0,
+      "thiamine_mg_per_100g": 0.15,
+      "failure_risk_pct_per_sol": 0.05
+    },
+    {
+      "crop_id": "CROP-SPIRULINA",
+      "name": "Spirulina Algae (Arthrospira platensis)",
+      "system_type": "Closed Photobioreactor (PBR)",
+      "growth_cycle_sols": 4,
+      "daily_yield_g_per_m2": 450.0,
+      "energy_kwh_per_m2_day": 2.4,
+      "water_recirculated_pct": 99.5,
+      "edible_biomass_ratio": 1.0,
+      "calories_per_100g": 290,
+      "vitamin_c_mg_per_100g": 10.0,
+      "thiamine_mg_per_100g": 2.38,
+      "failure_risk_pct_per_sol": 0.02
+    },
+    {
+      "crop_id": "CROP-TOMATO",
+      "name": "Dwarf Cherry Tomatoes (Solanum lycopersicum)",
+      "system_type": "Aeroponic Chamber",
+      "growth_cycle_sols": 65,
+      "daily_yield_g_per_m2": 180.0,
+      "energy_kwh_per_m2_day": 3.1,
+      "water_recirculated_pct": 97.0,
+      "edible_biomass_ratio": 0.72,
+      "calories_per_100g": 22,
+      "vitamin_c_mg_per_100g": 40.0,
+      "thiamine_mg_per_100g": 0.07,
+      "failure_risk_pct_per_sol": 0.08
+    },
+    {
+      "crop_id": "CROP-SWEET-POTATO",
+      "name": "Dwarf Sweet Potato",
+      "system_type": "Substrate Hydroponics",
+      "growth_cycle_sols": 90,
+      "daily_yield_g_per_m2": 260.0,
+      "energy_kwh_per_m2_day": 2.8,
+      "water_recirculated_pct": 96.5,
+      "edible_biomass_ratio": 0.85,
+      "calories_per_100g": 95,
+      "vitamin_c_mg_per_100g": 18.0,
+      "thiamine_mg_per_100g": 0.11,
+      "failure_risk_pct_per_sol": 0.04
+    }
+  ]
+}

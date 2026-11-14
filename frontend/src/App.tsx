@@ -46,7 +46,7 @@ export function App() {
           <div className="flex items-center space-x-4">
             <span className="text-emerald-400">● Backend: FastAPI + SciPy</span>
             <span className="text-cyan-400">● Arrhenius First-Order Kinetics</span>
-            <span className="text-orange-400">● NASA-STD-3001 Verified</span>
+            <span className="text-orange-400">● Prototype · synthetic scenario data</span>
           </div>
         </div>
       </footer>

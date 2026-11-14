@@ -25,13 +25,25 @@ def test_prediction_service_shelf_life():
     assert len(result["retention_curve"]) > 10
 
 
-def test_prediction_model_validation_benchmark_accuracy():
+def test_literature_endpoint_comparison():
+    """Catalog kinetics are compared with published endpoints read from literature_params.json."""
     service = PredictionService()
-    val = service.validate_against_experimental_benchmarks()
-    # High statistical accuracy benchmark check: R^2 > 0.95
-    assert val["aggregate_r2_score"] >= 0.90
-    assert val["aggregate_rmse"] < 6.0
-    assert val["validation_verdict"] == "VERIFIED_ACCURATE"
+    val = service.compare_with_literature_endpoints()
+    # 6 packaged items x (thiamine, vitamin C)
+    assert val["total_benchmark_series"] == 12
+    assert val["aggregate_r2_score"] is None  # single published endpoints: no R^2
+    assert {r["id"] for r in val["references"]} == {"GOULETTE_2020", "COOPER_2017"}
+    assert "synthetic" in val["data_provenance"]
+    by_key = {(s["food_id"], s["nutrient"]): s for s in val["series"]}
+    # Published endpoints come from the literature file: meat thiamine 3% after 720 d at 20 C
+    salmon_b1 = by_key[("TH-001", "thiamine_b1")]["datapoints"][-1]
+    assert salmon_b1["days"] == 720.0
+    assert salmon_b1["measured_retention"] == 3.0
+    # Verdict reflects the actual agreement, it is not hard-coded
+    n_agree = sum(s["agrees_with_literature"] for s in val["series"])
+    assert val["series_agreeing_with_literature"] == n_agree
+    expected = "AGREES_WITH_LITERATURE" if n_agree == 12 else "DOES_NOT_MATCH_LITERATURE"
+    assert val["validation_verdict"] == expected
 
 
 def test_optimization_service_scipy_diet():
@@ -118,3 +130,30 @@ def test_api_endpoints():
     })
     assert res.status_code == 200
     assert "telemetry_timeline" in res.json()
+
+
+def test_data_provenance_is_labeled():
+    """Synthetic data is labeled in the API; unsupported compliance claims and the Ganja API are gone."""
+    dash = client.get("/api/v1/dashboard/telemetry?sol=450&crew_size=4").json()
+    assert "synthetic" in dash["data_provenance"]
+    assert "nasa_std_3001_status" not in dash
+
+    catalog = client.get("/api/v1/datalab/catalog").json()
+    assert catalog["data_provenance"] == "synthetic"
+    assert "standards_reference" not in catalog
+
+    audit = client.get("/api/v1/datalab/audit").json()
+    assert audit["data_provenance"] == "synthetic"
+    assert not any("verified against USDA" in note for note in audit["audit_notes"])
+
+    crops = client.get("/api/v1/dashboard/crop-status").json()
+    assert crops["data_provenance"] == "synthetic"
+
+    sim = client.post("/api/v1/simulator/run", json={"mission_duration_sols": 200}).json()
+    assert "synthetic" in sim["data_provenance"]
+
+    diet = client.post("/api/v1/optimization/solve-diet", json={"crew_size": 4}).json()
+    assert "synthetic" in diet["data_provenance"]
+
+    assert client.get("/api/v1/ganja/cultivars").status_code == 404
+    assert not any("ganja" in e for e in client.get("/").json()["endpoints"])

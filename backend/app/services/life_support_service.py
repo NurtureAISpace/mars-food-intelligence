@@ -11,21 +11,39 @@ from app.models.life_support_eclss import (
     RegolithSensorNode,
     HabitatAtmosphere,
     LifeSupportTelemetrySnapshot,
-    ECLSSLifeSupportEngine
+    ECLSSLifeSupportEngine,
+    LIFE_SUPPORT_DATA_PROVENANCE,
 )
-from app.models.ganja_blss import GANJA_CULTIVARS, GanjaBLSSEngine
+
+# Greenhouse gas/water exchange per crop bed: SYNTHETIC illustrative values (no source).
+# Per m2 per Sol: O2 released (g), CO2 absorbed (g), water transpired (L); bed area in m2.
+SYNTHETIC_GREENHOUSE_BEDS: Dict[str, Dict[str, float]] = {
+    "microgreens": {"area_m2": 8.0, "o2_g_m2": 48.5, "co2_g_m2": 66.8, "water_l_m2": 5.2},
+    "chickpea": {"area_m2": 10.0, "o2_g_m2": 34.2, "co2_g_m2": 45.6, "water_l_m2": 3.8},
+    "alfalfa": {"area_m2": 4.0, "o2_g_m2": 55.0, "co2_g_m2": 74.5, "water_l_m2": 6.1},
+}
+
+
+def _greenhouse_daily_exchange() -> Dict[str, float]:
+    """Total O2 (kg), CO2 (kg) and transpired water (L) per Sol of the synthetic greenhouse beds."""
+    beds = SYNTHETIC_GREENHOUSE_BEDS.values()
+    return {
+        "o2_kg": sum(b["area_m2"] * b["o2_g_m2"] for b in beds) / 1000.0,
+        "co2_kg": sum(b["area_m2"] * b["co2_g_m2"] for b in beds) / 1000.0,
+        "water_l": sum(b["area_m2"] * b["water_l_m2"] for b in beds),
+    }
 
 
 class LifeSupportService:
     """Service layer for Environmental Control & Life Support Systems (ECLSS)."""
 
     def __init__(self):
-        # Initialize default calibrated sensor nodes for Martian greenhouse modules
+        # Default greenhouse sensor nodes (synthetic illustrative readings)
         self.default_sensor_nodes: List[RegolithSensorNode] = [
             RegolithSensorNode(
-                node_id="SN-GHM-01",
+                node_id="SN-MG-01",
                 zone_name="Zone Alpha — Hydroponic Microgreen Tray",
-                target_crop="Ganja Microgreens GHM-01",
+                target_crop="Microgreens (illustrative)",
                 depth_cm=8.0,
                 volumetric_water_content_pct=44.5,
                 soil_temperature_c=20.5,
@@ -35,9 +53,9 @@ class LifeSupportService:
                 status="NOMINAL"
             ),
             RegolithSensorNode(
-                node_id="SN-GC-26-A",
+                node_id="SN-CP-01",
                 zone_name="Zone Beta — Regolith Simulant Chickpea Bed",
-                target_crop="ADAU Ganja Chickpea GC-26",
+                target_crop="Chickpea (illustrative)",
                 depth_cm=18.0,
                 volumetric_water_content_pct=41.2,
                 soil_temperature_c=20.0,
@@ -47,26 +65,14 @@ class LifeSupportService:
                 status="NOMINAL"
             ),
             RegolithSensorNode(
-                node_id="SN-GA-04",
-                zone_name="Zone Gamma — Halotolerant Alfalfa Bioreactor",
-                target_crop="Ganja Alfalfa GA-04",
+                node_id="SN-AL-01",
+                zone_name="Zone Gamma — Alfalfa Bed",
+                target_crop="Alfalfa (illustrative)",
                 depth_cm=25.0,
                 volumetric_water_content_pct=47.0,
                 soil_temperature_c=19.8,
                 electrical_conductivity_ds_m=3.10,
                 regolith_ph=6.7,
-                irrigation_valve_open=False,
-                status="NOMINAL"
-            ),
-            RegolithSensorNode(
-                node_id="SN-GP-FERM",
-                zone_name="Zone Delta — Probiotic Fermentation Matrix",
-                target_crop="Ganja Probiotics GP-FERM",
-                depth_cm=5.0,
-                volumetric_water_content_pct=52.0,
-                soil_temperature_c=22.0,
-                electrical_conductivity_ds_m=2.90,
-                regolith_ph=6.3,
                 irrigation_valve_open=False,
                 status="NOMINAL"
             ),
@@ -100,33 +106,15 @@ class LifeSupportService:
         """Returns instantaneous snapshot of ECLSS telemetry at a specified Sol."""
         demands = ECLSSLifeSupportEngine.calculate_metabolic_demands(crew_size)
 
-        # Baseline oxygen and water reserves
+        # Baseline oxygen and water reserves (synthetic scenario assumptions)
         base_o2_reserve = 350.0  # kg O2 in high-pressure tanks
         base_water_reserve = 2400.0 # L potable water
 
-        # Bio-regenerative contribution from default 24m2 greenhouse
-        biomass_res = GanjaBLSSEngine.calculate_bioregenerative_yield("GHM-01", 8.0, 1)
-        chickpea_res = GanjaBLSSEngine.calculate_bioregenerative_yield("GC-26", 10.0, 1)
-        alfalfa_res = GanjaBLSSEngine.calculate_bioregenerative_yield("GA-04", 4.0, 1)
-
-        daily_o2_from_plants_g = (
-            biomass_res["daily_o2_generated_g"] +
-            chickpea_res["daily_o2_generated_g"] +
-            alfalfa_res["daily_o2_generated_g"]
-        )
-        daily_o2_from_plants_kg = daily_o2_from_plants_g / 1000.0
-
-        daily_co2_scrubbed_by_plants_kg = (
-            biomass_res["daily_co2_absorbed_g"] +
-            chickpea_res["daily_co2_absorbed_g"] +
-            alfalfa_res["daily_co2_absorbed_g"]
-        ) / 1000.0
-
-        daily_water_transpired_l = (
-            biomass_res["daily_water_recycled_l"] +
-            chickpea_res["daily_water_recycled_l"] +
-            alfalfa_res["daily_water_recycled_l"]
-        )
+        # Bio-regenerative contribution from the synthetic greenhouse beds
+        greenhouse = _greenhouse_daily_exchange()
+        daily_o2_from_plants_kg = greenhouse["o2_kg"]
+        daily_co2_scrubbed_by_plants_kg = greenhouse["co2_kg"]
+        daily_water_transpired_l = greenhouse["water_l"]
 
         # OGS Electrolysis needed for remaining O2
         remaining_o2_needed = max(0.0, demands["o2_demand_kg_sol"] - daily_o2_from_plants_kg)
@@ -138,13 +126,15 @@ class LifeSupportService:
         sabutier_water_recovered_l = min(crew_co2_kg * ECLSSLifeSupportEngine.SABATIER_WATER_RECOVERY_RATIO, h2_produced_kg * 8.9)
 
         # Water Recovery System (WRS): graywater + urine recovery + plant transpiration
-        hygiene_and_humidity_water = crew_size * 12.5 + daily_water_transpired_l
+        hygiene_and_humidity_water = (
+            crew_size * ECLSSLifeSupportEngine.HYGIENE_WATER_NEED_L_PERSON_SOL + daily_water_transpired_l
+        )
         wrs_recovery_l = hygiene_and_humidity_water * 0.94 + sabutier_water_recovered_l
 
         net_water_delta = wrs_recovery_l - demands["total_water_demand_l_sol"] - electrolysis_water_needed_l
         recovery_efficiency_pct = min(99.2, max(85.0, (wrs_recovery_l / (demands["total_water_demand_l_sol"] + 1e-6)) * 100.0))
 
-        # Solar and power balance
+        # Solar and power balance (synthetic scenario assumptions)
         nominal_solar_kwh = 180.0
         power_generated = nominal_solar_kwh * (0.28 if dust_storm_active else 1.0)
         power_consumed = 115.0  # Life support, thermal loops, LED phytotrons
@@ -215,7 +205,8 @@ class LifeSupportService:
             ],
             "active_alerts": alerts,
             "overall_eclss_status": status,
-            "author": "Faruk Karimli (Computer Engineering & Life Support Simulation)"
+            "author": "Faruk Karimli (Computer Engineering & Life Support Simulation)",
+            "data_provenance": LIFE_SUPPORT_DATA_PROVENANCE
         }
 
     def simulate_eclss_timeline(
@@ -332,5 +323,6 @@ class LifeSupportService:
             },
             "timeline": timeline,
             "alerts": alerts_log,
-            "author": "Faruk Karimli (Computer Engineering & Life Support Simulation)"
+            "author": "Faruk Karimli (Computer Engineering & Life Support Simulation)",
+            "data_provenance": LIFE_SUPPORT_DATA_PROVENANCE
         }

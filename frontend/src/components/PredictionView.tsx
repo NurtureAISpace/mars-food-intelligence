@@ -143,7 +143,7 @@ export const PredictionView: React.FC = () => {
               className="w-full accent-orange-500 cursor-pointer"
             />
             <p className="text-[10px] text-slate-500 font-mono mt-1">
-              NASA standard minimum required nutritional efficacy limit.
+              User-selected threshold (not a NASA standard).
             </p>
           </div>
 

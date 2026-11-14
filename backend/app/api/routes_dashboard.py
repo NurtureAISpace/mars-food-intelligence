@@ -1,6 +1,5 @@
 from fastapi import APIRouter
-from app.pipeline.ingest import load_raw_catalog, load_crop_models
-from app.core.constants import NASA_STD_3001_REQUIREMENTS
+from app.pipeline.ingest import load_raw_catalog, load_crop_models, load_crop_models_meta
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
@@ -39,7 +38,8 @@ def get_mission_dashboard_telemetry(sol: int = 450, crew_size: int = 4):
         "daily_crop_harvest_biomass_g": round(daily_crop_harvest_g, 1),
         "total_active_crops": len(crops),
         "habitat_cooling_power_kw": power_draw_kw,
-        "nasa_std_3001_status": "COMPLIANT",
+        "data_provenance": ("synthetic scenario: food mass, harvest, power and advisories are illustrative "
+                            "values computed from assumed constants and the synthetic catalog/crop data"),
         "active_alerts": [
             {
                 "level": "INFO",
@@ -62,5 +62,6 @@ def get_crop_status():
     return {
         "greenhouse_total_area_m2": 18.0,
         "active_systems": ["Hydroponic Racks", "Closed Photobioreactor", "Aeroponic Chambers"],
-        "crops": crops
+        "crops": crops,
+        "data_provenance": load_crop_models_meta()["data_provenance"]
     }

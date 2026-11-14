@@ -64,7 +64,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, mission
           <div className="flex items-center space-x-3">
             <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span>NASA STD-3001 OK</span>
+              <span>PROTOTYPE</span>
             </div>
             <div className="hidden sm:block text-right font-mono text-xs text-slate-400 border-l border-mars-border pl-3">
               <span className="text-orange-400 font-bold">SOL {missionSol}</span>
