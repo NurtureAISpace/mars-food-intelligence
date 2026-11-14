@@ -1,5 +1,9 @@
+/// <reference types="vite/client" />
 import React, { useEffect, useState } from 'react';
 import { fetchCheckinGuide, fetchCheckins, submitCheckin } from '../api';
+
+// Offline-first Astronaut App (apps/astronaut). Override with VITE_ASTRONAUT_APP_URL at build time.
+const ASTRONAUT_APP_URL: string = import.meta.env.VITE_ASTRONAUT_APP_URL ?? 'http://localhost:3001';
 import {
   CheckinColor,
   CheckinField,
@@ -306,6 +310,10 @@ export const DailyCheckinPanel: React.FC = () => {
             <Flame className="w-3.5 h-3.5" />
             <span>Check-in streak: {streakN} sol{streakN === 1 ? '' : 's'}</span>
           </span>
+          <a href={ASTRONAUT_APP_URL} target="_blank" rel="noopener noreferrer"
+            className="px-2.5 py-1 rounded border border-cyan-500/40 bg-cyan-500/10 text-cyan-300 font-bold hover:bg-cyan-500/20">
+            Open Astronaut App ↗
+          </a>
         </div>
       </div>
 
