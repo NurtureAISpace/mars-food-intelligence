@@ -111,7 +111,7 @@ export const LifeSupportView: React.FC = () => {
               electrolytic OGS, and IoT capacitive regolith soil moisture micro-irrigation controller.
             </p>
             <div className="pt-1 flex items-center space-x-2 text-xs font-mono text-cyan-300/80">
-              <span>Author: Faruk (Computer Engineering & Life Support Simulation)</span>
+              <span>Author: Faruk Karimli (Computer Engineering & Life Support Simulation)</span>
               <span>•</span>
               <span className="text-emerald-400 font-semibold">NASA-STD-3001 Closed-Loop Compliant</span>
             </div>
@@ -151,7 +151,7 @@ export const LifeSupportView: React.FC = () => {
           <div className="flex items-center space-x-3">
             <Sliders className="w-5 h-5 text-orange-400" />
             <h2 className="text-sm font-mono font-bold text-white uppercase tracking-wider">
-              Contingency & Life-Support Stress Controls (Faruk Engine)
+              Contingency & Life-Support Stress Controls (Faruk Karimli Engine)
             </h2>
           </div>
           <div className="flex items-center space-x-2">
@@ -338,7 +338,7 @@ export const LifeSupportView: React.FC = () => {
         </div>
       </div>
 
-      {/* Regolith Soil Moisture Platform (Faruk's Hardware & IoT Innovation) */}
+      {/* Regolith Soil Moisture Platform (Faruk Karimli's Hardware & IoT Innovation) */}
       <div className="bg-mars-card border border-mars-border rounded-xl p-6 shadow-xl">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-mars-border gap-4">
           <div>

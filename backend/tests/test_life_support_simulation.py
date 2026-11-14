@@ -1,6 +1,6 @@
 """
 Unit & Integration Tests for ECLSS & Regolith Hydro-Management Simulation.
-Author: Faruk (Computer Engineering & Life Support Simulation)
+Author: Faruk Karimli (Computer Engineering & Life Support Simulation)
 """
 
 import pytest

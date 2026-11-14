@@ -304,7 +304,7 @@ export interface CrewAlertsResponse {
 }
 
 // ==========================================
-// ECLSS & Regolith Hydro-Management (Faruk)
+// ECLSS & Regolith Hydro-Management (Faruk Karimli)
 // ==========================================
 
 export interface RegolithSensorNodeData {

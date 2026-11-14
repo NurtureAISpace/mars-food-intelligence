@@ -1,6 +1,6 @@
 """
 NurtureAISpace — Life Support System API Routes.
-Author: Faruk (Computer Engineering & Life Support Simulation)
+Author: Faruk Karimli (Computer Engineering & Life Support Simulation)
 """
 
 from fastapi import APIRouter, Query
@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any
 from app.services.life_support_service import LifeSupportService
 
-router = APIRouter(prefix="/life-support", tags=["Life Support & ECLSS Simulation (Faruk)"])
+router = APIRouter(prefix="/life-support", tags=["Life Support & ECLSS Simulation (Faruk Karimli)"])
 service = LifeSupportService()
 
 

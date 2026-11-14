@@ -8,7 +8,7 @@
 
 > **Autonomous Space Nutrition, Shelf-Life Degradation Dynamics & Bio-Regenerative Life Support System (N-BLSS)**  
 > Developed by **NurtureAISpace**  
-> **Team:** Suleyman Hajizadeh (Lead Systems Architect), Banu Gurbanizada (Frontend & UI/UX), Yunis (AI/ML), Faruk (Computer Engineering)  
+> **Team:** Suleyman Hajizadeh (Lead Systems Architect), Banu Gurbanizada (Frontend & UI/UX), Yunis (AI/ML), Faruk Karimli (Computer Engineering)  
 > Live Platform: [https://nurtureaispace.github.io](https://nurtureaispace.github.io)  
 > Organization: [https://github.com/NurtureAISpace](https://github.com/NurtureAISpace)
 
@@ -40,7 +40,7 @@ Details, equations and limitations: [docs/CREW_HEALTH.md](docs/CREW_HEALTH.md). 
 
 ## 🌿 ECLSS & Smart Regolith Hydro-Management Simulation
 
-Engineered by **Faruk (Computer Engineering & Life Support Simulation)**:
+Engineered by **Faruk Karimli (Computer Engineering & Life Support Simulation)**:
 Closing the loop on life support consumables, this module models the complete Environmental Control and Life Support System (ECLSS) and IoT soil moisture tele-management:
 - **Oxygen Generation & Sabatier Recovery:** Water electrolysis ($2\text{H}_2\text{O} \to 2\text{H}_2 + \text{O}_2$) paired with catalytic Sabatier ${\text{CO}_2}$ reduction (${\text{CO}_2 + 4\text{H}_2 \to \text{CH}_4 + 2\text{H}_2\text{O}}$) achieving $\ge 96.8\%$ closed-loop water recovery.
 - **Smart Regolith Moisture Platform:** IoT capacitive soil sensor telemetry (Volumetric Water Content VWC %, EC salinity, root temperature) with automated micro-controller pulse irrigation valves for Martian regolith simulant (MGS-1) and ADAU Ganja agro-chambers.
@@ -116,6 +116,6 @@ $$\min_{x} c^T x \quad \text{s.t.} \quad A_{\text{ub}} x \ge b_{\text{ub}}$$
   - **Suleyman Hajizadeh** — Lead Systems Architect & Research ([`suleyman.hacizade1@gmail.com`](mailto:suleyman.hacizade1@gmail.com))
   - **Banu Gurbanizada** — Frontend Architecture & UI/UX Design ([`banugurbanzade@gmail.com`](mailto:banugurbanzade@gmail.com))
   - **Yunis** — AI/ML & Degradation Modeling ([`allahverdiyunis@gmail.com`](mailto:allahverdiyunis@gmail.com))
-  - **Faruk** — Computer Engineering & Life Support Simulation ([`fkarimli23291@ada.edu.az`](mailto:fkarimli23291@ada.edu.az))
+  - **Faruk Karimli** — Computer Engineering & Life Support Simulation ([`fkarimli23291@ada.edu.az`](mailto:fkarimli23291@ada.edu.az))
 - **Standard**: NASA-STD-3001 (Human Integration Design Handbook)
 - **Data References**: NASA Johnson Space Center Space Food Systems Laboratory & Cooper et al. (NASA/TM-2011-216157)

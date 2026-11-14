@@ -1,7 +1,7 @@
 # NurtureAISpace — Autonomous Space Nutrition & Life Support Technical Architecture
 
 > Organization: `NurtureAISpace`  
-> Author: Team NurtureAISpace (Suleyman Hajizadeh, Banu Gurbanizada, Yunis, Faruk)
+> Author: Team NurtureAISpace (Suleyman Hajizadeh, Banu Gurbanizada, Yunis, Faruk Karimli)
 
 ---
 
@@ -102,14 +102,14 @@ $$A_{\text{ub}} x \ge b_{\text{ub}} \iff -A_{\text{ub}} x \le -b_{\text{ub}}$$
 ### 3.1 Backend (`/backend`)
 - **`app/core/constants.py`**: NASA-STD-3001 dietary references, thermal regimes, physical constants.
 - **`app/core/scientific_models.py`**: Numerical integration of Arrhenius equations, Q10 acceleration factors, and composite viability scoring.
-- **`app/models/life_support_eclss.py`**: Closed-loop ECLSS mass balance, Sabatier reaction, and IoT soil moisture controller (Faruk).
+- **`app/models/life_support_eclss.py`**: Closed-loop ECLSS mass balance, Sabatier reaction, and IoT soil moisture controller (Faruk Karimli).
 - **`app/data/`**: Space food catalog with verified mass, nutritional content, and Arrhenius activation parameters; NASA JSC experimental validation benchmarks.
 - **`app/pipeline/`**: Pydantic schema validation, unit auditing, physiological bounds enforcement.
 - **`app/services/`**:
   - `prediction_service.py`: Shelf-life calculation, thermal excursion modeling, and NASA benchmark calibration.
   - `optimization_service.py`: SciPy linear programming solver.
   - `simulator_service.py`: Sol-by-Sol habitat simulation engine with failure injections.
-  - `life_support_service.py`: ECLSS telemetry, Sabatier water looping, and dynamic Sol-450 simulation (Faruk).
+  - `life_support_service.py`: ECLSS telemetry, Sabatier water looping, and dynamic Sol-450 simulation (Faruk Karimli).
 - **`app/api/`**: RESTful endpoints documented via OpenAPI/Swagger (`routes_life_support.py`).
 
 ### 3.2 Frontend (`/frontend`)
@@ -122,7 +122,7 @@ $$A_{\text{ub}} x \ge b_{\text{ub}} \iff -A_{\text{ub}} x \le -b_{\text{ub}}$$
   4. *SciPy Optimizer*: Linear programming solver for daily astronaut meal plans.
   5. *Mission Simulator*: Sol event failure injections (cooling failure, crop blight), survival verdicts, and real-time hazard logs.
   6. *Crew Health*: Personalized baseline z-scores and early-warning micronutrient risk forecasting.
-  7. *Life Support Sim (Faruk)*: Live ECLSS telemetry, IoT capacitive regolith soil moisture sensors, Sabatier water recovery, and dust storm / cabin leak stress testing.
+  7. *Life Support Sim (Faruk Karimli)*: Live ECLSS telemetry, IoT capacitive regolith soil moisture sensors, Sabatier water recovery, and dust storm / cabin leak stress testing.
 
 ---
 
