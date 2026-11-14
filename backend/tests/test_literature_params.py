@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 from app.main import app
 from app.ml.crew_data import CrewScenario, generate_crew, retention_after, load_catalog, FOOD_CLASS
 from app.ml.literature_check import run_checks, summary
-from app.ml.params import REQUIRED_FIELDS, VALID_STATUS, load_params_file, param, sources
+from app.ml.params import REQUIRED_FIELDS, VALID_STATUS, load_params_file, param, param_entry, sources
 from app.ml.physiology import NUTRIENTS, VITAMIN_D, vitamin_d_decline_rate_per_day, vitamin_d_step
 
 client = TestClient(app)
@@ -44,7 +44,7 @@ def test_derived_values_match_their_formulas():
     assert param("vitamin_c.turnover_per_day") == pytest.approx(
         max(param("vitamin_c.catabolic_turnover_mg_day")) / param("vitamin_c.pool_max_mg"), rel=1e-4)
     assert param("thiamine_b1.turnover_per_day") == pytest.approx(
-        math.log(2) / np.mean(param("thiamine_b1.half_life_days")), rel=1e-4)
+        math.log(2) / max(param("thiamine_b1.half_life_days")), rel=1e-4)
     ref = param("kinetics.thiamine_b1.reference")
     for cls, k in param("kinetics.thiamine_b1.k_ref_per_day").items():
         assert k == pytest.approx(-math.log(ref["retention"][cls]) / ref["days"], rel=1e-4), cls
@@ -54,6 +54,34 @@ def test_derived_values_match_their_formulas():
     pre, post = param("vitamin_d.preflight_25ohd_nmol_l")["mean"], param("vitamin_d.postflight_25ohd_nmol_l")["mean"]
     assert param("vitamin_d.decline_rate_per_day_iss") == pytest.approx(
         math.log(pre / post) / np.mean(param("vitamin_d.iss_mission_days")), rel=1e-4)
+
+
+def test_steady_state_calibration_reproduces_literature_body_stores():
+    """a = k * P_store / I_anchor, so the steady-state pool a * I / k equals the literature store at the anchor."""
+    c, b1 = NUTRIENTS["vitamin_c"], NUTRIENTS["thiamine_b1"]
+    i_sat = float(np.mean(param("vitamin_c.saturation_intake_mg_day")))
+    assert c["absorption"] == pytest.approx(c["turnover_per_day"] * c["pool_max_mg"] / i_sat, rel=1e-4)
+    assert c["absorption"] * i_sat / c["turnover_per_day"] == pytest.approx(2000.0, rel=1e-3)
+    assert b1["absorption"] == pytest.approx(
+        b1["turnover_per_day"] * b1["pool_max_mg"] / b1["requirement_mg_day"], rel=1e-4)
+    assert b1["absorption"] * b1["requirement_mg_day"] / b1["turnover_per_day"] == pytest.approx(30.0, rel=1e-3)
+    # physically admissible effective efficiencies; half-life inside the literature range
+    for cfg in (c, b1):
+        assert 0.0 < cfg["absorption"] <= 1.0
+    lo, hi = param("thiamine_b1.half_life_days")
+    assert lo <= math.log(2) / b1["turnover_per_day"] <= hi + 1e-6
+    # the midpoint half-life would need a > 1 (why the upper bound is used)
+    assert math.log(2) / np.mean([lo, hi]) * 30.0 / 1.2 > 1.0
+    for name in ("vitamin_c.absorption", "thiamine_b1.absorption"):
+        assert param_entry(name)["status"] == "derived"
+
+
+def test_thiamine_threshold_is_fraction_of_store_and_assumed():
+    entry = param_entry("thiamine_b1.risk_threshold_fraction_of_store")
+    assert entry["status"] == "assumed"
+    assert NUTRIENTS["thiamine_b1"]["risk_threshold_mg"] == pytest.approx(
+        entry["value"] * param("thiamine_b1.pool_max_mg"), rel=1e-6)
+    assert NUTRIENTS["thiamine_b1"]["risk_threshold_mg"] == pytest.approx(10.0, abs=1e-3)
 
 
 def test_model_uses_parameter_file_values():
