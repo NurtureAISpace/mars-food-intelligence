@@ -1,6 +1,7 @@
 import { firstName } from '../pseudonym';
 import type { Profile } from '../types';
 import { bannerText, type SyncView } from '../syncView';
+import { STATIC_DEMO } from '../api';
 
 const BANNER = {
   ok: 'border-emerald-400/50 bg-emerald-500/15 text-emerald-200',
@@ -11,6 +12,15 @@ const ICON = { ok: '✓', waiting: '⏳', error: '!' };
 
 /** Sync status, always at the top: green / amber / red. */
 export function SyncBanner({ view }: { view: SyncView }) {
+  if (STATIC_DEMO) {
+    return (
+      <div role="status" data-testid="sync-banner"
+        className="mt-3 flex items-start gap-2.5 rounded-xl border border-sky-400/50 bg-sky-500/15 px-4 py-2.5 text-lg font-semibold leading-snug text-sky-100">
+        <span aria-hidden className="shrink-0">i</span>
+        <span>Online demo: check-ins stay on this device (no server)</span>
+      </div>
+    );
+  }
   const text = bannerText(view);
   return (
     <div role="status" aria-live="polite" data-testid="sync-banner"
@@ -29,7 +39,7 @@ export function Header({ profile, sync, onChangeProfile }: {
   return (
     <header className="sticky top-0 z-10 bg-slate-950/60 backdrop-blur-md border-b border-white/10 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3">
       <div className="flex items-center gap-3 min-w-0">
-        <img src="/icon.svg" alt="" className="w-10 h-10 rounded-lg shrink-0" />
+        <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="NurtureAI Space logo" className="w-9 h-9 object-contain shrink-0" />
         {profile ? (
           <div className="min-w-0">
             {/* The name is shown only here, on this device. */}
@@ -45,7 +55,7 @@ export function Header({ profile, sync, onChangeProfile }: {
           <span className="text-xl font-semibold text-white">Astronaut</span>
         )}
       </div>
-      {sync && <SyncBanner view={sync} />}
+      {(sync || STATIC_DEMO) && <SyncBanner view={sync ?? { kind: 'ok' }} />}
     </header>
   );
 }

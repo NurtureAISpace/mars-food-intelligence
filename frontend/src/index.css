@@ -41,11 +41,16 @@
 }
 
 @layer base {
-  /* 18px root: every size is rem-based (arbitrary sizes are written as N/18 rem, e.g. text-[1rem] = 18px), so the
-     whole UI scales with this one value. Below 1600px: 18px root, smallest text 16px (0.8889rem).
-     Large screens (>= 1600px): 14.4px root = the same layout at 80 % scale. */
+  /* 18px root: every size is rem-based (arbitrary sizes are written as N/18 rem, e.g. text-[1rem] = 18px). */
   html { font-size: 112.5%; }
-  @media (min-width: 1600px) { html { font-size: 90%; } }
+
+  /* Desktop/laptop (>= 1024px): render exactly like browser zoom 80 %. Phones/tablets unchanged.
+     Inside a zoomed root, vh lengths are zoomed too (100vh would cover only 80 % of the screen), so every
+     full-height rule is divided by the zoom. The fixed photo layer (inset: 0) is sized by the viewport itself. */
+  @media (min-width: 1024px) {
+    html { zoom: 0.8; }
+    body, .min-h-screen { min-height: calc(100vh / 0.8); }
+  }
 
   /* html, body and #root must stay TRANSPARENT. An opaque body background is painted above the z-index:-1 photo
      layer (in the root stacking context, negative-z layers paint before in-flow block backgrounds), which hid the

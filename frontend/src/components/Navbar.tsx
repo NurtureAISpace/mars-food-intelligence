@@ -16,12 +16,12 @@ export const PRIMARY_TABS: Tab[] = [
   { id: 'prediction', label: 'Food & Vitamins' },
 ];
 
-const Wordmark: React.FC<{ onClick: () => void }> = ({ onClick }) => (
-  <button onClick={onClick} className="flex items-center gap-2.5" aria-label="NurtureAISpace — go to Crew">
-    <img src="/logo.svg" alt="NurtureAISpace Logo" className="h-7 w-7 rounded-lg border border-orange-500/40 object-contain bg-slate-950 p-0.5" />
-    <span className="text-lg font-bold tracking-wide text-white">
-      NURTURE<span className="text-orange-400">AI</span><span className="text-cyan-400">SPACE</span>
-    </span>
+// Official horizontal logo (from main). 56px tall from 1024px (lg), 44px below. Click → Crew.
+const Logo: React.FC<{ onClick: () => void }> = ({ onClick }) => (
+  <button onClick={onClick} aria-label="NurtureAI Space — go to Crew"
+    className="flex shrink-0 items-center rounded-lg transition-transform duration-200 hover:scale-[1.03] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400">
+    <img src={`${import.meta.env.BASE_URL}logo-horizontal.svg`} alt="NurtureAI Space"
+      className="h-[44px] w-auto lg:h-[56px]" />
   </button>
 );
 
@@ -48,7 +48,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
   return (
     <header ref={ref} className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/60 px-4 backdrop-blur-md sm:px-6">
       <div className="mx-auto flex h-[4rem] max-w-7xl items-center justify-between gap-4">
-        <Wordmark onClick={() => go('crewhealth')} />
+        <Logo onClick={() => go('crewhealth')} />
 
         <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">
           {PRIMARY_TABS.map((t) => (

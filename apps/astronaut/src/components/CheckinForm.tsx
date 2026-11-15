@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { Field, Guide, GuideIndicator, NumberField } from '../types';
 import { roundTo, stepperSeed } from '../provisional';
+import { clampSol, parseSol, stepSol } from '../sol';
 
 export type FormValues = Record<Field, number> & { sol: number; notes: string | null };
 
@@ -82,7 +83,9 @@ export function CheckinForm({ guide, guideFetchedAt, defaultSol, takenSols, last
   const [raw, setRaw] = useState<Raw>(EMPTY);
   const [mood, setMood] = useState<number | null>(null);
   const [notes, setNotes] = useState('');
-  const [sol, setSol] = useState<number>(defaultSol);
+  const [solText, setSolText] = useState<string>(String(clampSol(defaultSol)));
+  const solParsed = parseSol(solText);
+  const sol = solParsed.ok ? solParsed.sol : NaN;
   const [errors, setErrors] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
 
@@ -113,7 +116,7 @@ export function CheckinForm({ guide, guideFetchedAt, defaultSol, takenSols, last
       errs.push('Blood pressure: the lower number must be below the upper number.');
     }
     if (mood === null) errs.push('Mood: pick one.');
-    if (!Number.isInteger(sol) || sol < 0) errs.push('Sol must be a whole number ≥ 0.');
+    if (!solParsed.ok) errs.push(solParsed.error);
     setErrors(errs);
     if (errs.length) return null;
     return { ...(out as Record<NumberField, number>), mood_1_5: mood as number, sol, notes: notes.trim() || null };
@@ -145,15 +148,20 @@ export function CheckinForm({ guide, guideFetchedAt, defaultSol, takenSols, last
             : <p className="text-lg text-slate-300 mt-1">{guide.routine.when}</p>}
         </div>
         <div className="flex items-center justify-between gap-3">
-          <span className="text-xl font-semibold text-white">Sol</span>
+          <label htmlFor="sol" className="text-xl font-semibold text-white">Sol</label>
           <div className="flex items-center gap-2">
-            <button type="button" onClick={() => setSol(Math.max(0, sol - 1))} aria-label="previous Sol"
+            <button type="button" onClick={() => setSolText(stepSol(solText, -1, clampSol(defaultSol)))} aria-label="previous Sol"
               className="w-14 min-h-14 rounded-xl bg-slate-950/60 border border-slate-600 text-2xl text-white active:bg-white/10">−</button>
-            <span className="w-20 text-center text-3xl font-mono text-white">{sol}</span>
-            <button type="button" onClick={() => setSol(sol + 1)} aria-label="next Sol"
+            <input id="sol" type="text" inputMode="numeric" pattern="[0-9]*" autoComplete="off" maxLength={4}
+              value={solText} onChange={(e) => setSolText(e.target.value)}
+              aria-invalid={!solParsed.ok} aria-describedby={solParsed.ok ? undefined : 'sol-error'}
+              className={`w-24 min-h-14 rounded-xl bg-slate-950/60 border text-center text-3xl font-mono text-white focus:outline-none ${
+                solParsed.ok ? 'border-slate-600 focus:border-indigo-400' : 'border-red-400'}`} />
+            <button type="button" onClick={() => setSolText(stepSol(solText, 1, clampSol(defaultSol)))} aria-label="next Sol"
               className="w-14 min-h-14 rounded-xl bg-slate-950/60 border border-slate-600 text-2xl text-white active:bg-white/10">+</button>
           </div>
         </div>
+        {!solParsed.ok && <p id="sol-error" className="text-base text-red-300 text-right">{solParsed.error}</p>}
       </div>
 
       {ordered.map((ind) => (
@@ -192,7 +200,7 @@ export function CheckinForm({ guide, guideFetchedAt, defaultSol, takenSols, last
         </ul>
       )}
 
-      <button type="submit" disabled={busy}
+      <button type="submit" disabled={busy || !solParsed.ok}
         className="btn-primary w-full">
         {busy ? 'Saving…' : 'Submit check-in'}
       </button>

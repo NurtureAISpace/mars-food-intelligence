@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { STATIC_DEMO } from './api';
 import { Navbar } from './components/Navbar';
 import { DashboardView } from './components/DashboardView';
 import { DataLabView } from './components/DataLabView';
@@ -10,8 +11,26 @@ import { LifeSupportView } from './components/LifeSupportView';
 import { RealDataView } from './components/RealDataView';
 import { useCrewCheckins } from './hooks/useCrewCheckins';
 
+const TABS = ['crewhealth', 'realdata', 'prediction', 'dashboard', 'datalab', 'optimization', 'simulator', 'lifesupport'];
+// Deep links: the screen lives in the URL hash (#/realdata), so it works on any static host (GitHub Pages) without a server.
+const tabFromHash = () => {
+  const t = window.location.hash.replace(/^#\/?/, '');
+  return TABS.includes(t) ? t : 'crewhealth';
+};
+
 export function App() {
-  const [activeTab, setActiveTab] = useState<string>('crewhealth');
+  const [activeTab, setActiveTab] = useState<string>(tabFromHash);
+  useEffect(() => {
+    const target = activeTab === 'crewhealth' ? '' : `#/${activeTab}`;
+    if (window.location.hash !== target) {
+      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}${target}`);
+    }
+  }, [activeTab]);
+  useEffect(() => {
+    const onHash = () => setActiveTab(tabFromHash());
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
   const [missionSol, setMissionSol] = useState<number>(450); // hidden Mission Dashboard only
   const crew = useCrewCheckins(); // latest Astronaut App check-ins (Crew screen)
   const goHome = () => { setActiveTab('crewhealth'); window.scrollTo({ top: 0 }); };
@@ -19,6 +38,12 @@ export function App() {
   return (
     <div className="relative flex min-h-screen flex-col">
       <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
+      {STATIC_DEMO && (
+        <div role="note" data-testid="static-demo-banner"
+          className="relative z-10 border-b border-amber-400/30 bg-amber-500/15 px-4 py-2 text-center text-sm font-medium text-amber-100">
+          Demo snapshot — live check-ins run in our laptop demo.
+        </div>
+      )}
 
       <main key={activeTab} className="relative z-10 mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6 sm:py-14">
         {/* The 3 screens in navigation */}

@@ -34,3 +34,6 @@ dist/
 
 # Runtime data (daily check-ins etc.)
 backend/data/runtime/
+
+# Static GitHub Pages build (scripts/build_site.ps1)
+site-dist/
