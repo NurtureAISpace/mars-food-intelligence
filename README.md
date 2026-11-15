@@ -1,5 +1,17 @@
 # NurtureAISpace — Autonomous Space Nutrition & Life Support Intelligence
 
+<div align="center">
+  <img src="assets/nurtureaispace-badge.jpg" alt="NurtureAISpace Official Aerospace Emblem" width="220" style="border-radius: 50%; box-shadow: 0 10px 25px rgba(0,0,0,0.5);" />
+  <h1>NurtureAISpace</h1>
+  <p><strong>Autonomous Space Nutrition, Blood Baseline &amp; Health Early Warning</strong></p>
+  <p>NASA Space Apps Challenge 2026: <em>Create Health Monitoring Software for Astronauts on Space Missions</em></p>
+  <p>
+    <a href="https://nurtureaispace.github.io"><strong>Live Mission Platform »</strong></a> •
+    <a href="https://nurtureaispace.github.io/app/"><strong>Astronaut App »</strong></a> •
+    <a href="https://nurtureaispace.github.io/slides.html"><strong>Official 7-Slide Deck »</strong></a>
+  </p>
+</div>
+
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI%200.110-009688.svg)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/Frontend-React%2018%20%2B%20TypeScript-61DAFB.svg)](https://react.dev/)
 [![SciPy](https://img.shields.io/badge/Optimizer-SciPy%20Optimization-8CAAE6.svg)](https://scipy.org/)
