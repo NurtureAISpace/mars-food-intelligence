@@ -20,7 +20,7 @@ export const PRIMARY_TABS: Tab[] = [
 const Logo: React.FC<{ onClick: () => void }> = ({ onClick }) => (
   <button onClick={onClick} aria-label="NurtureAI Space — go to Crew"
     className="flex shrink-0 items-center rounded-lg transition-transform duration-200 hover:scale-[1.03] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400">
-    <img src={`${import.meta.env.BASE_URL}logo-horizontal.svg`} alt="NurtureAI Space"
+    <img src={`${import.meta.env.BASE_URL}logo-horizontal.svg?v=5`} alt="NurtureAI Space"
       className="h-[44px] w-auto lg:h-[56px]" />
   </button>
 );
