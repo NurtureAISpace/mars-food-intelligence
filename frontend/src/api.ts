@@ -21,11 +21,18 @@ import {
   CheckinGuide
 } from './types';
 
+import { wakeFetch } from './serverWake';
+
 const API_BASE = '/api/v1';
 
-/** Static demo build (VITE_STATIC_DEMO=1, GitHub Pages): no backend; GETs read the JSON snapshot that
- *  scripts/export_snapshot.py wrote to public/snapshot/. Without the flag every call goes to /api as before. */
-export const STATIC_DEMO = import.meta.env.VITE_STATIC_DEMO === '1';
+/** Live hosted backend (VITE_API_BASE=https://….onrender.com, set by scripts/build_site.ps1 -ApiBase): every call goes
+ *  to `${VITE_API_BASE}/api/...`, with cold-start retries (src/serverWake.ts). Not set: relative /api (Vite proxy). */
+const API_ORIGIN = (import.meta.env.VITE_API_BASE ?? '').trim().replace(/\/+$/, '');
+export const LIVE_API = API_ORIGIN !== '';
+
+/** Static demo build (VITE_STATIC_DEMO=1, GitHub Pages without a backend): GETs read the JSON snapshot that
+ *  scripts/export_snapshot.py wrote to public/snapshot/. Ignored when VITE_API_BASE is set. */
+export const STATIC_DEMO = !LIVE_API && import.meta.env.VITE_STATIC_DEMO === '1';
 
 /** '/api/v1/health/crew?scenario=x' -> 'health_crew_scenario_x.json' (same rule as scripts/export_snapshot.py). */
 export function snapshotKey(url: string): string {
@@ -33,6 +40,7 @@ export function snapshotKey(url: string): string {
 }
 
 function apiFetch(url: string, init?: RequestInit): Promise<Response> {
+  if (LIVE_API) return wakeFetch(`${API_ORIGIN}${url}`, init);
   if (!STATIC_DEMO) return fetch(url, init);
   if (init?.method && init.method !== 'GET') {
     const body = JSON.stringify({ detail: 'Not available in the online demo snapshot (no server).' });

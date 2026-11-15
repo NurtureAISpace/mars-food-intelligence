@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { STATIC_DEMO } from './api';
+import { useServerWaking } from './serverWake';
 import { Navbar } from './components/Navbar';
 import { DashboardView } from './components/DashboardView';
 import { DataLabView } from './components/DataLabView';
@@ -34,6 +35,7 @@ export function App() {
   const [missionSol, setMissionSol] = useState<number>(450); // hidden Mission Dashboard only
   const crew = useCrewCheckins(); // latest Astronaut App check-ins (Crew screen)
   const goHome = () => { setActiveTab('crewhealth'); window.scrollTo({ top: 0 }); };
+  const waking = useServerWaking(); // hosted backend cold start (live mode only)
 
   return (
     <div className="relative flex min-h-screen flex-col">
@@ -42,6 +44,12 @@ export function App() {
         <div role="note" data-testid="static-demo-banner"
           className="relative z-10 border-b border-amber-400/30 bg-amber-500/15 px-4 py-2 text-center text-sm font-medium text-amber-100">
           Demo snapshot — live check-ins run in our laptop demo.
+        </div>
+      )}
+      {waking && (
+        <div role="status" aria-live="polite" data-testid="server-waking-banner"
+          className="relative z-10 border-b border-sky-400/30 bg-sky-500/15 px-4 py-2 text-center text-sm font-medium text-sky-100">
+          Waking up the server… the free server sleeps when idle; this can take up to a minute.
         </div>
       )}
 

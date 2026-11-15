@@ -200,6 +200,10 @@ class CheckinStore:
             self._save()
             return dict(entry), False
 
+    def count(self) -> int:
+        with self._lock:
+            return len(self._entries)
+
     def by_client_id(self, client_id: str) -> Optional[Dict[str, Any]]:
         with self._lock:
             e = next((e for e in self._entries if e.get("client_id") == client_id), None)

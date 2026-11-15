@@ -337,3 +337,31 @@ def test_api_old_payload_without_pseudonym_still_works(api_svc):
     assert r.status_code == 200 and r.json()["pseudonym"] is None
     h = client.get("/api/v1/health/checkins", params={"astronaut_id": "TEST-01"}).json()
     assert h["pseudonym"] is None and "pseudonym" not in h["checkins"][0]
+
+
+# ---------------------------------------------------------------------------
+# Hosted backend: CORS for the GitHub Pages site, demo seed on an empty store
+# ---------------------------------------------------------------------------
+def test_cors_allows_github_pages_only():
+    pre = {"Access-Control-Request-Method": "POST", "Access-Control-Request-Headers": "content-type"}
+    ok = client.options("/api/v1/health/checkin", headers={"Origin": "https://nurtureaispace.github.io", **pre})
+    assert ok.status_code == 200
+    assert ok.headers["access-control-allow-origin"] == "https://nurtureaispace.github.io"
+    assert "access-control-allow-credentials" not in ok.headers
+    get = client.get("/api/v1/health/checkin/guide", headers={"Origin": "https://nurtureaispace.github.io"})
+    assert get.headers["access-control-allow-origin"] == "https://nurtureaispace.github.io"
+    bad = client.get("/api/v1/health/checkin/guide", headers={"Origin": "https://evil.example"})
+    assert "access-control-allow-origin" not in bad.headers
+
+
+def test_demo_seed_only_when_store_empty(tmp_path):
+    from app.services.demo_seed import seed_if_empty
+
+    s = CheckinService(store=CheckinStore(tmp_path / "seed.json"), crew_service=routes_health.service)
+    assert seed_if_empty(s) == 3
+    by_seat = {a: s.history(a) for a in ("C001", "C002", "C003", "C004")}
+    assert [by_seat[a]["count"] for a in ("C001", "C002", "C003", "C004")] == [1, 1, 1, 0]
+    assert all(by_seat[a]["checkins"][0]["notes"] == "demo seed" for a in ("C001", "C002", "C003"))
+    assert by_seat["C003"]["checkins"][0]["colors"]["sleep"] == "amber"
+    assert seed_if_empty(s) == 0                                       # not empty any more: nothing added
+    assert seed_if_empty(CheckinService(store=CheckinStore(tmp_path / "seed.json"))) == 0  # reloaded from the file

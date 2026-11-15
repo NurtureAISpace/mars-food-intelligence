@@ -6,4 +6,6 @@ interface ImportMetaEnv {
   readonly VITE_ASTRONAUT_PUBLIC_URL?: string;
   /** '1' = static demo build (GitHub Pages): read public/snapshot/*.json instead of /api (src/api.ts). */
   readonly VITE_STATIC_DEMO?: string;
+  /** Hosted backend origin, e.g. https://nurtureai-backend.onrender.com: API calls go there (src/api.ts). */
+  readonly VITE_API_BASE?: string;
 }
