@@ -51,7 +51,7 @@ export function Header({ profile, sync, onChangeProfile }: {
     <header className="sticky top-0 z-10 bg-slate-950/60 backdrop-blur-md border-b border-white/10 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-3">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="NurtureAI Space logo" className="w-9 h-9 object-contain shrink-0" />
+          <img src={`${import.meta.env.BASE_URL}logo.svg?v=5`} alt="NurtureAI Space logo" className="w-9 h-9 rounded-full object-contain shrink-0 shadow-md ring-1 ring-cyan-400/30" />
           {profile ? (
             <div className="min-w-0">
               {/* The name is shown only here, on this device. */}
