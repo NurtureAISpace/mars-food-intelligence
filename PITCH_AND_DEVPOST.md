@@ -1,7 +1,7 @@
 # NurtureAISpace — Autonomous Space Nutrition & Life Support Intelligence
 ## Official Executive Pitch & Project Kit
 
-**Team:** NurtureAISpace (Suleyman Hajizadeh, Banu Gurbanizada, Yunis Allahverdi, Faruk Karimli)  
+**Team:** NurtureAISpace (Suleyman Hajizadeh, Banu Gurbanzada, Yunis Allahverdi, Faruk Karimli)  
 **Live Platform:** https://nurtureaispace.github.io  
 **Organization:** https://github.com/NurtureAISpace
 

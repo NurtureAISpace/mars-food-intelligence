@@ -19,7 +19,7 @@
 > **Space nutrition and astronaut health early-warning prototype**  
 > NASA Space Apps Challenge 2026: *Create Health Monitoring Software for Astronauts on Space Missions*  
 > Developed by **NurtureAISpace**  
-> **Team:** Suleyman Hajizadeh (Lead Systems Architect), Banu Gurbanizada (Frontend & UI/UX), Yunis Allahverdi (AI/ML), Faruk Karimli (Computer Engineering)  
+> **Team:** Suleyman Hajizadeh (Lead Systems Architect), Banu Gurbanzada (Frontend & UI/UX), Yunis Allahverdi (AI/ML), Faruk Karimli (Computer Engineering)  
 > Live Platform: [https://nurtureaispace.github.io](https://nurtureaispace.github.io)  
 > Organization: [https://github.com/NurtureAISpace](https://github.com/NurtureAISpace)
 
@@ -222,7 +222,7 @@ work was committed, not when it was written.
 - **Organization**: [NurtureAISpace](https://github.com/NurtureAISpace)
 - **Team Members**:
   - **Suleyman Hajizadeh** — Lead Systems Architect & Research ([`suleyman.hacizade1@gmail.com`](mailto:suleyman.hacizade1@gmail.com))
-  - **Banu Gurbanizada** — Frontend Architecture & UI/UX Design ([`banugurbanzade@gmail.com`](mailto:banugurbanzade@gmail.com))
+  - **Banu Gurbanzada** — Frontend Architecture & UI/UX Design ([`banugurbanzade@gmail.com`](mailto:banugurbanzade@gmail.com))
   - **Yunis Allahverdi** — AI/ML & Degradation Modeling ([`allahverdiyunis@gmail.com`](mailto:allahverdiyunis@gmail.com))
   - **Faruk Karimli** — Computer Engineering & Life Support Simulation ([`fkarimli23291@ada.edu.az`](mailto:fkarimli23291@ada.edu.az))
 - **Data references**: see [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md)

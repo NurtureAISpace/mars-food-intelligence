@@ -2,7 +2,7 @@
 
 **Event:** NASA International Space Apps Challenge Ganja 2026 (Nov 14–15, 2026)  
 **Challenge:** *Create Health Monitoring Software for Astronauts on Space Missions*  
-**Team:** NurtureAISpace (Suleyman Hajizadeh, Banu Gurbanizada, Yunis Allahverdi, Faruk Karimli)
+**Team:** NurtureAISpace (Suleyman Hajizadeh, Banu Gurbanzada, Yunis Allahverdi, Faruk Karimli)
 
 ---
 
