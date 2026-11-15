@@ -1,4 +1,4 @@
-<!-- Factual corrections by Yunis on 2026-11-14 16:40 (+04:00), see commit. Sources: docs/DATA_SOURCES.md, backend/app/data/literature_params.json, git history. -->
+<!-- Factual corrections by Yunis Allahverdi on 2026-11-14 16:40 (+04:00), see commit. Sources: docs/DATA_SOURCES.md, backend/app/data/literature_params.json, git history. -->
 # NASA International Space Apps Challenge Ganja 2026 — Official Submission & Judging Guide
 **Event:** 14–15 November 2026 · Innovation Center, Azerbaijan State Agricultural University (ADAU), Ganja  
 **Team Name:** `NurtureAISpace`  
@@ -39,7 +39,7 @@ Astronauts on a long Mars surface mission (450 Sols in our scenario) cannot rely
    - Pairs degrading rations with a synthetic greenhouse crop model (microgreens, spirulina, dwarf cherry tomato, dwarf sweet potato; illustrative values).
    - Solves a multi-objective Linear Program (`scipy.optimize.linprog`, HiGHS solver) to meet daily nutrient targets while minimizing storage mass and chiller power. The targets are `>=90 mg` vitamin C and `>=1.2 mg` vitamin B1 from the NASA JSC 2005 exploration nutrition requirements, plus `2,800 kcal` and `85 g` protein, which are assumed planning targets.
    - Food-catalog nutrient values are synthetic. We compare the catalog kinetics openly with published endpoints (Cooper 2017, Goulette 2020); 7 of 12 series currently agree.
-2. **Crew Health AI & Spaceflight Hematology/Biochemistry Engine (Yunis):**
+2. **Crew Health AI & Spaceflight Hematology/Biochemistry Engine (Yunis Allahverdi):**
    - Analyzes real human spaceflight blood panels from the **NASA Open Science Data Repository (OSDR)**, specifically **OSD-569 / LSDS-7 (Inspiration4 Complete Blood Count)** and **OSD-575 / LSDS-8 (Inspiration4 Comprehensive Metabolic Panel)**. They cover pre-flight (`L-92`, `L-44`, `L-3`), return (`R+1`) and recovery (`R+45`, `R+82`, `R+194`) timepoints.
      - Each astronaut's post-flight values are compared with their own pre-flight baseline (z-scores, flag at |z| > 2).
      - This currently runs as an analysis script; the app panel is in progress.
@@ -94,10 +94,10 @@ Astronauts on a long Mars surface mission (450 Sols in our scenario) cannot rely
 1. **Sual 01: Hakaton zamanı nəyi hazırladınız? (Rule #4 Disclosure)**
    - **Hakatondan əvvəl (Pre-existing — 0 bal tələb olunur), git tarixçəsinə görə:**
      - **Süleyman (8–11 noyabr):** ilkin tətbiq, yəni FastAPI backend, Arrhenius kinetik mühərriki, SciPy LP rasion optimallaşdırıcısı, Mission Simulator, Dashboard / Data Lab / Prediction / Optimizer bölmələri və qida kataloqu. Banu-nun frontend dizaynı da bu ilkin versiyada (Süleymanın commit-i ilə) əlavə olunub. Buraya təqdimat sənədləri və brendinq də daxildir.
-     - **Yunis (13 noyabr):** Crew Health modulunun ilk versiyası (ML nüvəsi, API, Crew Health bölməsi, sənədlər).
+     - **Yunis Allahverdi (13 noyabr):** Crew Health modulunun ilk versiyası (ML nüvəsi, API, Crew Health bölməsi, sənədlər).
      - Veb portal (`nurtureaispace.github.io`) ayrıca repozitoriyadadır; onun tarixçəsi bu siyahıya daxil deyil.
    - **Hakaton zamanı (14 noyabr, 11:10-dan sonra):**
-     - **Yunis:** NASA OSDR `OSD-569 / LSDS-7` və `OSD-575 / LSDS-8` (Inspiration4) real astronavt qan analizləri üzərində fərdi baza xətti (`z-score`) analizi. Bu iş 14 noyabr səhəri, açılış mərasimi ətrafında başlanıb və saat 11:20-də commit edilib. Bundan əlavə: ədəbiyyat mənbəli parametrlər (NASA JSC 2005, Cooper 2017, Goulette 2020 və s.), D vitamini modeli, kalibrləmə və xəbərdarlıq izahları, həmçinin məlumat mənbələrinin təmizlənməsi (`docs/DATA_SOURCES.md`, sintetik dataların etiketlənməsi, NASA BVAD istinadları).
+     - **Yunis Allahverdi:** NASA OSDR `OSD-569 / LSDS-7` və `OSD-575 / LSDS-8` (Inspiration4) real astronavt qan analizləri üzərində fərdi baza xətti (`z-score`) analizi. Bu iş 14 noyabr səhəri, açılış mərasimi ətrafında başlanıb və saat 11:20-də commit edilib. Bundan əlavə: ədəbiyyat mənbəli parametrlər (NASA JSC 2005, Cooper 2017, Goulette 2020 və s.), D vitamini modeli, kalibrləmə və xəbərdarlıq izahları, həmçinin məlumat mənbələrinin təmizlənməsi (`docs/DATA_SOURCES.md`, sintetik dataların etiketlənməsi, NASA BVAD istinadları).
      - **Faruk Karimli:** Qapalı dövrəli ECLSS (OGS elektroliz + Sabatier reaktoru) qaz/su balansı simulyatoru, sintetik torpaq nəmliyi suvarma kontrolleri və Life Support bölməsi.
      - **Süleyman:** branch-ların birləşdirilməsi (merge) və bu təqdimat bələdçisi.
      - **Banu:** hakaton zamanı bu repozitoriyada ayrıca commit yoxdur.

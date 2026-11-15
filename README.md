@@ -7,7 +7,7 @@
 > **Space nutrition and astronaut health early-warning prototype**  
 > NASA Space Apps Challenge 2026: *Create Health Monitoring Software for Astronauts on Space Missions*  
 > Developed by **NurtureAISpace**  
-> **Team:** Suleyman Hajizadeh (Lead Systems Architect), Banu Gurbanizada (Frontend & UI/UX), Yunis (AI/ML), Faruk Karimli (Computer Engineering)  
+> **Team:** Suleyman Hajizadeh (Lead Systems Architect), Banu Gurbanizada (Frontend & UI/UX), Yunis Allahverdi (AI/ML), Faruk Karimli (Computer Engineering)  
 > Live Platform: [https://nurtureaispace.github.io](https://nurtureaispace.github.io)  
 > Organization: [https://github.com/NurtureAISpace](https://github.com/NurtureAISpace)
 
@@ -190,10 +190,10 @@ work was committed, not when it was written.
   - the Ganja module (now removed);
   - the pitch document, branding, team photos and the `ideas/` decks.
   - The frontend design (owned by Banu) was committed in this initial work.
-- **Yunis, Nov 13:** the first version of the Crew Health module (ML core, API, Crew Health tab, docs).
+- **Yunis Allahverdi, Nov 13:** the first version of the Crew Health module (ML core, API, Crew Health tab, docs).
 
 **During the hackathon (Nov 14, from 11:10):**
-- **Yunis:**
+- **Yunis Allahverdi:**
   - **Inspiration4 real-data spike** (`339f454`, committed 11:20). It was started on the morning of Nov 14, around the
     opening ceremony. It added the OSDR blood panels, `i4_baseline_demo.py` and its test.
   - Literature-sourced Crew Health parameters and the vitamin D model, plus the literature check and tests (`65ef178`,
@@ -211,6 +211,6 @@ work was committed, not when it was written.
 - **Team Members**:
   - **Suleyman Hajizadeh** — Lead Systems Architect & Research ([`suleyman.hacizade1@gmail.com`](mailto:suleyman.hacizade1@gmail.com))
   - **Banu Gurbanizada** — Frontend Architecture & UI/UX Design ([`banugurbanzade@gmail.com`](mailto:banugurbanzade@gmail.com))
-  - **Yunis** — AI/ML & Degradation Modeling ([`allahverdiyunis@gmail.com`](mailto:allahverdiyunis@gmail.com))
+  - **Yunis Allahverdi** — AI/ML & Degradation Modeling ([`allahverdiyunis@gmail.com`](mailto:allahverdiyunis@gmail.com))
   - **Faruk Karimli** — Computer Engineering & Life Support Simulation ([`fkarimli23291@ada.edu.az`](mailto:fkarimli23291@ada.edu.az))
 - **Data references**: see [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md)
