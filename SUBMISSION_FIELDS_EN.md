@@ -2,7 +2,7 @@
 
 **Event:** NASA International Space Apps Challenge Ganja 2026 (Nov 14–15, 2026)  
 **Challenge:** *Create Health Monitoring Software for Astronauts on Space Missions*  
-**Team:** NurtureAISpace (Suleyman Hajizadeh, Banu Gurbanizada, Yunis, Faruk Karimli)
+**Team:** NurtureAISpace (Suleyman Hajizadeh, Banu Gurbanizada, Yunis Allahverdi, Faruk Karimli)
 
 ---
 
@@ -96,8 +96,8 @@ Python, FastAPI, NumPy, Pandas, SciPy (`linprog` HiGHS), scikit-learn (`Isolatio
 - **Single-pool kinetics:** vitamin models do not include cosmic-radiation decay or multi-compartment tissue storage.
 
 ### Built Before vs. During the Hackathon (Git History Disclosure)
-- **Before the hackathon (Nov 8–13):** Suleyman (Nov 8–11) committed the initial FastAPI backend, Arrhenius/SciPy/Simulator/Data Lab modules, food catalog, and Banu's initial frontend UI design. Yunis (Nov 13) committed the first version of the synthetic Crew Health module.
-- **During the hackathon (Nov 14, from 11:10 local time):** Yunis built the NASA OSDR Inspiration4 real-data analysis and `Real NASA Data` app screen, replaced unsourced Crew Health constants with cited NASA/literature parameters (`literature_params.json`), added the vitamin D model, steady-state calibration, and `docs/DATA_SOURCES.md` provenance cleanup (plus the daily check-in and simplified navigation on branch `yunis`). Faruk Karimli built the Life Support / ECLSS & soil-moisture simulation module (backend, frontend tab, docs, and tests). Suleyman integrated branches and prepared submission materials.
+- **Before the hackathon (Nov 8–13):** Suleyman (Nov 8–11) committed the initial FastAPI backend, Arrhenius/SciPy/Simulator/Data Lab modules, food catalog, and Banu's initial frontend UI design. Yunis Allahverdi (Nov 13) committed the first version of the synthetic Crew Health module.
+- **During the hackathon (Nov 14, from 11:10 local time):** Yunis Allahverdi built the NASA OSDR Inspiration4 real-data analysis and `Real NASA Data` app screen, replaced unsourced Crew Health constants with cited NASA/literature parameters (`literature_params.json`), added the vitamin D model, steady-state calibration, and `docs/DATA_SOURCES.md` provenance cleanup (plus the daily check-in and simplified navigation on branch `yunis`). Faruk Karimli built the Life Support / ECLSS & soil-moisture simulation module (backend, frontend tab, docs, and tests). Suleyman integrated branches and prepared submission materials.
 ```
 
 ---

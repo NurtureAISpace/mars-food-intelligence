@@ -1,7 +1,7 @@
 # NurtureAISpace — Autonomous Space Nutrition & Life Support Technical Architecture
 
 > Organization: `NurtureAISpace`  
-> Author: Team NurtureAISpace (Suleyman Hajizadeh, Banu Gurbanizada, Yunis, Faruk Karimli)
+> Author: Team NurtureAISpace (Suleyman Hajizadeh, Banu Gurbanizada, Yunis Allahverdi, Faruk Karimli)
 
 ---
 

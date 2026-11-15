@@ -214,7 +214,7 @@ LAN fallback.
   open.
 - No login: whoever uses the device checks in as its guest id. Local data is per browser/device.
 - The service worker updates automatically on the next visit after a new build (`registerType: autoUpdate`).
-- Icons are simple generated shapes (`npm run icons`, `scripts/make-icons.mjs`); no agency logos are used.
+- Icons are the official NurtureAISpace logo (`public/logo/`, `favicon.ico`, `apple-touch-icon.png`, same files as the dashboard); no agency logos are used.
 - Decision-support prototype, not a medical device. All ranges and their sources come from the backend
   (`backend/app/data/indicator_ranges.json` via `/checkin/guide`); this app adds no health thresholds of its own
   (its only own numbers are UI settings: stepper sizes, retry timings, and the demo default Sol 250 used by the
