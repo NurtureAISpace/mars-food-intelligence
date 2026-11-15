@@ -53,7 +53,7 @@ export function App() {
         </div>
       )}
 
-      <main key={activeTab} className="relative z-10 mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6 sm:py-14">
+      <main key={activeTab} className="relative z-10 mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6 sm:py-14 max-lg:!px-0 max-lg:!pb-8 max-lg:!pt-0">
         {/* The 3 screens in navigation */}
         {activeTab === 'crewhealth' && <CrewHealthView crew={crew} onNavigate={setActiveTab} />}
         {activeTab === 'realdata' && <RealDataView onBack={goHome} />}

@@ -23,17 +23,17 @@ export const GlassPanel: React.FC<{
   <section className="glass-panel reveal">
     <header className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
       <div className="min-w-0">
-        <h1 className="text-[1.8889rem] font-light leading-tight text-white sm:text-[2.4444rem]">{title}</h1>
+        <h1 className="text-[1.8889rem] font-light leading-tight text-white sm:text-[2.4444rem] max-lg:!text-[1.6667rem]">{title}</h1>
         {subtitle && <p className="mt-3 max-w-4xl text-[1.1111rem] leading-relaxed text-slate-300">{subtitle}</p>}
         {tags && <div className="mt-4 flex flex-wrap gap-2">{tags}</div>}
       </div>
       {onBack && (
-        <button onClick={onBack} className="btn-secondary shrink-0 self-start">
+        <button onClick={onBack} className="btn-secondary shrink-0 self-start max-lg:w-full">
           <ArrowLeft className="h-5 w-5" aria-hidden /> Back
         </button>
       )}
     </header>
-    <div className="mt-10 space-y-8">{children}</div>
+    <div className="mt-10 space-y-8 max-lg:mt-6 max-lg:space-y-5">{children}</div>
   </section>
 );
 
@@ -75,8 +75,8 @@ export const Card: React.FC<{ title?: React.ReactNode; right?: React.ReactNode; 
 export const StatTile: React.FC<{ label: string; value: React.ReactNode; tone?: string; source?: React.ReactNode }> = ({
   label, value, tone = 'text-white', source,
 }) => (
-  <div className="section-card !p-6">
-    <div className={`text-[3.1111rem] font-bold leading-none tabular-nums ${tone}`}>{value}</div>
+  <div className="section-card !p-6 max-lg:!p-4">
+    <div className={`text-[3.1111rem] font-bold leading-none tabular-nums max-lg:text-[2.2222rem] max-lg:break-words ${tone}`}>{value}</div>
     <div className="mt-3 text-[1rem] text-slate-300">{label}</div>
     {source && <div className="mt-3">{source}</div>}
   </div>
@@ -152,14 +152,14 @@ export const KVList: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 export const KVRow: React.FC<{ label: React.ReactNode; value: React.ReactNode; dot?: Dot; valueClass?: string }> = ({
   label, value, dot, valueClass = 'text-white',
 }) => (
-  <div className="flex items-center justify-between gap-4 py-2.5 first:pt-0 last:pb-0">
+  <div className="flex items-center justify-between gap-4 py-2.5 first:pt-0 last:pb-0 max-lg:flex-wrap max-lg:gap-y-1">
     <dt className="flex items-center gap-2.5 text-[1rem] text-slate-400">
       {dot && (
         <span className={`inline-block h-3 w-3 shrink-0 rounded-full ${DOT[dot]}`} role="img" aria-label={DOT_WORD[dot]} />
       )}
       {label}
     </dt>
-    <dd className={`text-right text-[1rem] font-semibold tabular-nums ${valueClass}`}>{value}</dd>
+    <dd className={`text-right text-[1rem] font-semibold tabular-nums max-lg:ml-auto max-lg:min-w-0 max-lg:[overflow-wrap:anywhere] ${valueClass}`}>{value}</dd>
   </div>
 );
 
@@ -239,7 +239,7 @@ export const Details: React.FC<{ label?: string; items: React.ReactNode[] }> = (
 
 /** Pseudonym with a lock: the real name never leaves the astronaut's device. */
 export const PseudonymCode: React.FC<{ code: string }> = ({ code }) => (
-  <span className="inline-flex items-center gap-2 font-mono text-[1.2222rem] font-semibold tracking-wide text-white"
+  <span className="inline-flex items-center gap-2 font-mono text-[1.2222rem] font-semibold tracking-wide text-white max-lg:max-w-full max-lg:flex-wrap max-lg:break-all"
     title="Name stays on the astronaut's device">
     <Lock className="h-5 w-5 text-indigo-300" aria-hidden />
     {code}

@@ -173,7 +173,7 @@ const OptionButton: React.FC<{ selected: boolean; onClick: () => void; icon: Luc
     <I className="h-6 w-6 shrink-0 text-indigo-200" aria-hidden />
     <span className="min-w-0 flex-1">
       <span className="block text-[1.0556rem] font-semibold leading-tight text-white">{title}</span>
-      <span className="block text-[0.8333rem] leading-snug text-slate-300">{line}</span>
+      <span className="block text-[0.8333rem] leading-snug text-slate-300 max-lg:text-[0.8889rem]">{line}</span>
     </span>
     {selected && <Check className="h-5 w-5 shrink-0 text-indigo-200" aria-hidden />}
   </button>
@@ -298,7 +298,7 @@ export const PredictionView: React.FC<{ onBack?: () => void; onNavigate?: (tab: 
 
       {snap && h && dest && (
         <>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3 max-md:grid-cols-2 max-md:gap-4 max-md:[&>*:first-child]:col-span-2">
             <Headline h={h} u={u} failureSelected={selected === FAILURE_ID} />
             <StatTile value={u.length(h)} label={`Mission length to ${dest.label}`} />
             <StatTile value={`${attention} / ${snap.crew.length}`} tone={attention ? 'text-watch' : 'text-white'}

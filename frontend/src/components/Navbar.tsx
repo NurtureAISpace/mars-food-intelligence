@@ -74,7 +74,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
         <nav id="mobile-nav" aria-label="Mobile" className="mx-auto max-w-7xl space-y-1 pb-4 lg:hidden">
           {PRIMARY_TABS.map((t) => (
             <button key={t.id} onClick={() => go(t.id)} aria-current={activeTab === t.id ? 'page' : undefined}
-              className={`${item(activeTab === t.id)} w-full text-left`}>
+              className={`${item(activeTab === t.id)} w-full text-left max-lg:min-h-14 max-lg:text-[1.1111rem]`}>
               {t.label}
             </button>
           ))}

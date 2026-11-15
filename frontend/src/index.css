@@ -169,6 +169,14 @@
   .range { @apply w-full cursor-pointer accent-indigo-500; }
   .glow-act { box-shadow: 0 0 18px rgba(244, 63, 94, 0.35); }
   .reveal { @apply animate-fade-up; }
+
+  /* Phones / tablets only (< 1024px, same as Tailwind's max-lg). Desktop (>= 1024px) never matches, so it renders
+     exactly as before. Full-width panel with 16px padding; flatter nesting so content gets the width. */
+  @media not all and (min-width: 1024px) {
+    .glass-panel { padding: 16px; border-radius: 0; border-left-width: 0; border-right-width: 0; }
+    .section-card, .inner-card { padding: 16px; }
+    .select-card { padding: 16px; }
+  }
 }
 
 /* Respect reduced motion everywhere */
