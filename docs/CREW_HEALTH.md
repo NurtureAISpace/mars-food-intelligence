@@ -128,7 +128,7 @@ the greenhouse is online. The ration factor applies after the event:
 
 $$I^{\text{avail}}_n(t) = f_{\text{ration}}(t)\Big[\sum_{i\in\text{packaged}} c_{i,n}\,m_i\,R_i(t) + \mathbb{1}_{\text{greenhouse}}(t)\sum_{j\in\text{fresh}} c_{j,n}\,m_j\Big]$$
 
-Intake actually eaten = available × personal appetite × (stress factor after the event) × noise 𝒩(1, 0.08).
+Intake actually eaten = available × personal appetite × (stress factor after the event) × noise Normal(1, 0.08).
 
 **3. Body pool (first order, capped).**
 

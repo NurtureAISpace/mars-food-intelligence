@@ -46,7 +46,7 @@ Deep space missions cannot rely on Earth resupply. If a mission reaches **Sol-45
 
 ## 2. 3-Dəqiqəlik Təqdimat Nitqi (Pitch Script)
 
-*(Zaman: 3 dəqiqə • Dil: Azərbaycan dili)*
+*(Zaman: 3 dəqiqə | Dil: Azərbaycan dili)*
 
 ### [0:00 - 0:40] Problem & Qarmaq (Hook)
 "Hörmətli münsiflər və ekspertlər, uzaq kosmosa uçuş sadəcə raket mühəndisliyi deyil — bu, bioloji sağ qalma məsələsidir. Kosmosda Sol-450-yə çatdıqda, ekipajın ən böyük düşməni aclıq yox, **gözəgörünməz vitamin deqradasiyasıdır**.

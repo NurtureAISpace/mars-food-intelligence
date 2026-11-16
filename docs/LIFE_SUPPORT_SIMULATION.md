@@ -6,7 +6,7 @@
 
 ---
 
-## 🛰️ 1. Executive Summary & Engineering Motivation
+## 1. Executive Summary and Engineering Motivation
 
 Long-duration human habitation on the surface of Mars (e.g. 450 to 1000 Sols) requires an autonomous, resilient, and closed-loop **Environmental Control and Life Support System (ECLSS)**. Without closed-loop recycling, delivering consumables (Oxygen and Water) from Earth to Mars would require an unsustainable launch payload ($> 15,000\text{ kg}$ per crew of 4).
 
@@ -26,7 +26,7 @@ This module delivers a complete **Computer Engineering and Life Support Simulati
 
 ---
 
-## 📐 2. Biophysical & Chemical Formulations
+## 2. Biophysical and Chemical Formulations
 
 ### 2.1 Crew Metabolic Baseline (NASA BVAD)
 Per-crewmember rates come from NASA BVAD: Anderson MS, Ewert MK, Keener JF, *Life Support Baseline Values and Assumptions Document*, NASA/TP-2015-218570/REV1, Jan 2018 (https://ntrs.nasa.gov/citations/20180001338). They are given per crewmember-day; the code converts them to per Sol ($\times 1.02749$). For a crew of $N$ astronauts:
@@ -71,7 +71,7 @@ Where evapotranspiration rate $\text{ET}(T) = 1.8 \times (1 + 0.04(T_{\text{ambi
 
 ---
 
-## 💻 3. Code Architecture & Map
+## 3. Code Architecture and Map
 
 | File Path | Role & Technical Description |
 |---|---|
@@ -84,7 +84,7 @@ Where evapotranspiration rate $\text{ET}(T) = 1.8 \times (1 + 0.04(T_{\text{ambi
 
 ---
 
-## 📡 4. REST API Documentation
+## 4. REST API Documentation
 
 ### 1. Snapshot Telemetry
 `GET /api/v1/life-support/telemetry`

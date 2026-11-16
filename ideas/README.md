@@ -1,11 +1,11 @@
 # Confidential Research & Mission Ideas Repository
 
-> 🔒 **Məxfi / Private Materiallar — NurtureAI**  
+> **Məxfi / Private Materiallar — NurtureAI**  
 > Bu qovluq "Mars Food Intelligence" layihəsinin ilkin ideya konsepsiyalarını, təqdimat slaydlarını və torpaq rütubəti/reqolit hidro-idarəetmə platforması sənədlərini ehtiva edir.
 
 ---
 
-## 📂 Qovluğun Tərkibi
+## Qovluğun Tərkibi
 
 1. **`MARS_Heyatda_Qal_10_Slayd.pptx`**  
    - Mars missiyası üçün 10 slayddan ibarət strateji həyatda qalma, qida təhlükəsizliyi və bioloji dayanıqlılıq təqdimatı.

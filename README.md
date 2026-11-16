@@ -6,10 +6,10 @@
   <p><strong>Autonomous Space Nutrition, Blood Baseline &amp; Health Early Warning</strong></p>
   <p>NASA Space Apps Challenge 2026: <em>Create Health Monitoring Software for Astronauts on Space Missions</em></p>
   <p>
-    <a href="https://nurtureaispace.github.io"><strong>Live Mission Platform »</strong></a> •
-    <a href="https://nurtureaispace.github.io/app/"><strong>Astronaut App »</strong></a> •
-    <a href="https://nurtureaispace.github.io/slides.html"><strong>Official 7-Slide Deck »</strong></a> •
-    <a href="docs/NASA_Space_Apps_Challenge_2026_Certificate.pdf"><strong>Official NASA Certificate »</strong></a>
+    <a href="https://nurtureaispace.github.io">Live Mission Platform</a> |
+    <a href="https://nurtureaispace.github.io/app/">Astronaut App</a> |
+    <a href="https://nurtureaispace.github.io/slides.html">Slide Deck</a> |
+    <a href="docs/NASA_Space_Apps_Challenge_2026_Certificate.pdf">Official NASA Certificate</a>
   </p>
 </div>
 
@@ -22,21 +22,21 @@
 > Developed by **NurtureAISpace**  
 > **Team:** Suleyman Hajizadeh (Lead Systems Architect), Banu Gurbanzada (Frontend & UI/UX), Yunis Allahverdi (AI/ML), Faruk Karimli (Computer Engineering)  
 > Live Platform: [https://nurtureaispace.github.io](https://nurtureaispace.github.io)  
-> Official Certificate: [NASA Space Apps 2026 Certificate (PDF)](docs/NASA_Space_Apps_Challenge_2026_Certificate.pdf) • [Verified Dossier](https://suleimancertificates.github.io/certificates/nasa-space-apps-challenge-2026/)  
+> Official Certificate: [NASA Space Apps 2026 Certificate (PDF)](docs/NASA_Space_Apps_Challenge_2026_Certificate.pdf) | [Verified Dossier](https://suleimancertificates.github.io/certificates/nasa-space-apps-challenge-2026/)  
 > Organization: [https://github.com/NurtureAISpace](https://github.com/NurtureAISpace)
 
 > **Prototype, not a medical device.** Every number in this project is either real NASA data, a value from a cited NASA
-> document or peer-reviewed paper, or a clearly labeled synthetic scenario value. See [Data sources](#-data-sources).
+> document or peer-reviewed paper, or a clearly labeled synthetic scenario value. See [Data sources](#data-sources).
 
 ---
 
-## 🌟 Executive Summary
+## Executive Summary
 
 On a long mission (for example 450 Sols on Mars), heat-sensitive vitamins in stored food, such as thiamine (B1) and
 vitamin C, keep breaking down. A cooling failure speeds this up. The crew can run short of a vitamin long before the
 calories run out.
 
-**The core story:** food storage → vitamin loss → astronaut body vitamin level → personal-baseline early warning → what to eat.
+**The core story:** food storage leads to vitamin loss, impacting astronaut body vitamin levels, triggering personal-baseline early warning, and guiding dietary intake.
 
 1. **Crew Health Monitor (core):** follows vitamin losses into each astronaut's body pool and compares every astronaut
    with their own baseline. It raises explainable NOMINAL / WATCH / ACT alerts with a corrective action. Physiology
@@ -54,7 +54,7 @@ calories run out.
 
 ---
 
-## 🩺 Crew Health Monitoring
+## Crew Health Monitoring
 
 NurtureAISpace follows food degradation all the way to the astronaut.
 
@@ -88,9 +88,9 @@ idea to **real** Inspiration4 blood panels from NASA OSDR (OSD-569, OSD-575). It
 
 ---
 
-## 🌿 ECLSS & Smart Regolith Hydro-Management Simulation
+## ECLSS and Habitat Mass Balance Simulation
 
-Engineered by **Faruk Karimli (Computer Engineering & Life Support Simulation)**. This module models the life-support
+Engineered by **Faruk Karimli (Computer Engineering and Life Support Simulation)**. This module models the life-support
 consumables loop:
 
 - **Oxygen generation and Sabatier recovery:** water electrolysis ($2\text{H}_2\text{O} \to 2\text{H}_2 + \text{O}_2$)
@@ -107,7 +107,7 @@ Details & equations: [docs/LIFE_SUPPORT_SIMULATION.md](docs/LIFE_SUPPORT_SIMULAT
 
 ---
 
-## 📚 Data sources
+## Data Sources
 
 Full list with citations, DOIs/URLs and page numbers: **[docs/DATA_SOURCES.md](docs/DATA_SOURCES.md)**.
 
@@ -132,7 +132,7 @@ Full list with citations, DOIs/URLs and page numbers: **[docs/DATA_SOURCES.md](d
 
 ---
 
-## 🚀 Quick Start Guide
+## Quick Start Guide
 
 ### Option 1: Native Run with Shell Script (Fastest)
 
@@ -159,7 +159,7 @@ docker-compose up --build
 
 ---
 
-## 🧪 Running the Test Suite
+## Running the Test Suite
 
 ```bash
 ./start.sh test
@@ -177,7 +177,7 @@ The backend suite (49 tests plus 3 expected failures that document known model l
 
 ---
 
-## 📐 Scientific Architecture & Formulations
+## Scientific Architecture and Formulations
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for full equations and Mermaid diagrams.
 
@@ -192,7 +192,7 @@ $$\min_{x} c^T x \quad \text{s.t.} \quad A_{\text{ub}} x \ge b_{\text{ub}}$$
 
 ---
 
-## 🕒 Built before vs during the hackathon
+## Development Timeline
 
 The hackathon started on **2026-11-14 at 11:10 (+04:00)**. These are commit dates from `git log --all`. They show when
 work was committed, not when it was written.
@@ -220,7 +220,7 @@ work was committed, not when it was written.
 
 ---
 
-## 👥 Organization, Team & Credits
+## Organization and Team
 - **Organization**: [NurtureAISpace](https://github.com/NurtureAISpace)
 - **Team Members**:
   - **Suleyman Hajizadeh** — Lead Systems Architect & Research ([`suleyman.hacizade1@gmail.com`](mailto:suleyman.hacizade1@gmail.com))
