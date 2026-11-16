@@ -8,7 +8,8 @@
   <p>
     <a href="https://nurtureaispace.github.io"><strong>Live Mission Platform »</strong></a> •
     <a href="https://nurtureaispace.github.io/app/"><strong>Astronaut App »</strong></a> •
-    <a href="https://nurtureaispace.github.io/slides.html"><strong>Official 7-Slide Deck »</strong></a>
+    <a href="https://nurtureaispace.github.io/slides.html"><strong>Official 7-Slide Deck »</strong></a> •
+    <a href="docs/NASA_Space_Apps_Challenge_2026_Certificate.pdf"><strong>Official NASA Certificate »</strong></a>
   </p>
 </div>
 
@@ -21,6 +22,7 @@
 > Developed by **NurtureAISpace**  
 > **Team:** Suleyman Hajizadeh (Lead Systems Architect), Banu Gurbanzada (Frontend & UI/UX), Yunis Allahverdi (AI/ML), Faruk Karimli (Computer Engineering)  
 > Live Platform: [https://nurtureaispace.github.io](https://nurtureaispace.github.io)  
+> Official Certificate: [NASA Space Apps 2026 Certificate (PDF)](docs/NASA_Space_Apps_Challenge_2026_Certificate.pdf) • [Verified Dossier](https://suleimancertificates.github.io/certificates/nasa-space-apps-challenge-2026/)  
 > Organization: [https://github.com/NurtureAISpace](https://github.com/NurtureAISpace)
 
 > **Prototype, not a medical device.** Every number in this project is either real NASA data, a value from a cited NASA
