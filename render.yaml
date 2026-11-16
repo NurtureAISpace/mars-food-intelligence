@@ -1,0 +1,19 @@
+# Render Blueprint: the FastAPI backend as one free web service (render.com -> New -> Blueprint -> this repo).
+# The static site (https://nurtureaispace.github.io) calls it with VITE_API_BASE=<this service's URL>
+# (scripts/build_site.ps1 -ApiBase ...). Free instances sleep after ~15 min idle; the first request wakes them
+# (~30-60 s), and the apps show "Waking up the server..." meanwhile. The disk is wiped on every restart, so check-ins
+# are temporary; the backend re-seeds the labeled demo check-ins (C001-C003) when the store is empty.
+services:
+  - type: web
+    name: nurtureai-backend
+    runtime: python
+    plan: free
+    branch: main
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/v1/health/checkin/guide
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.4

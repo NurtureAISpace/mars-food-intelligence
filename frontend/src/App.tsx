@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { STATIC_DEMO } from './api';
+import { useServerWaking } from './serverWake';
 import { Navbar } from './components/Navbar';
 import { DashboardView } from './components/DashboardView';
 import { DataLabView } from './components/DataLabView';
@@ -34,6 +35,7 @@ export function App() {
   const [missionSol, setMissionSol] = useState<number>(450); // hidden Mission Dashboard only
   const crew = useCrewCheckins(); // latest Astronaut App check-ins (Crew screen)
   const goHome = () => { setActiveTab('crewhealth'); window.scrollTo({ top: 0 }); };
+  const waking = useServerWaking(); // hosted backend cold start (live mode only)
 
   return (
     <div className="relative flex min-h-screen flex-col">
@@ -44,8 +46,14 @@ export function App() {
           Demo snapshot — live check-ins run in our laptop demo.
         </div>
       )}
+      {waking && (
+        <div role="status" aria-live="polite" data-testid="server-waking-banner"
+          className="relative z-10 border-b border-sky-400/30 bg-sky-500/15 px-4 py-2 text-center text-sm font-medium text-sky-100">
+          Waking up the server… the free server sleeps when idle; this can take up to a minute.
+        </div>
+      )}
 
-      <main key={activeTab} className="relative z-10 mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6 sm:py-14">
+      <main key={activeTab} className="relative z-10 mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6 sm:py-14 max-lg:!px-0 max-lg:!pb-8 max-lg:!pt-0">
         {/* The 3 screens in navigation */}
         {activeTab === 'crewhealth' && <CrewHealthView crew={crew} onNavigate={setActiveTab} />}
         {activeTab === 'realdata' && <RealDataView onBack={goHome} />}

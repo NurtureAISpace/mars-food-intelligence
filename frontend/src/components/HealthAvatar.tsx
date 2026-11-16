@@ -58,14 +58,14 @@ export const HealthAvatar: React.FC<{ person: SeatState | null }> = ({ person })
   const who = person ? `${person.guest ? 'Guest' : 'Seat'} ${person.seat}` : '—';
 
   return (
-    <div className="section-card !p-6 flex flex-col gap-3">
+    <div className="section-card !p-6 flex flex-col gap-3 max-lg:!p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <span className="text-[0.8889rem] font-medium uppercase tracking-wider text-slate-300">Body view · {who}</span>
         {person?.pseudonym && <span className="font-mono text-[0.8889rem] text-slate-300">{person.pseudonym}</span>}
       </div>
       <p className="text-[0.8889rem] text-slate-300">Tap a body area to see readings.</p>
-      <div className="flex items-start gap-4">
-        <svg viewBox="0 0 250 340" className="w-[9.4444rem] shrink-0" role="group" aria-label={`Body figure for ${who}`}>
+      <div className="flex items-start gap-4 max-lg:flex-col max-lg:items-stretch">
+        <svg viewBox="0 0 250 340" className="w-[9.4444rem] shrink-0 max-lg:mx-auto max-lg:w-[13rem]" role="group" aria-label={`Body figure for ${who}`}>
           <Silhouette />
           {ZONES.map((z) => {
             const c = zoneColor(e, z.keys);

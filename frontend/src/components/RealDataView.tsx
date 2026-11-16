@@ -49,7 +49,7 @@ const ResearchSection: React.FC = () => (
           <span className="flex flex-wrap items-center gap-x-5 gap-y-2">
             <Chip tone="blue">Used for: {r.usedFor}</Chip>
             <a href={r.url} target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-[0.8889rem] text-indigo-200 underline-offset-4 hover:text-white hover:underline">
+              className="inline-flex items-center gap-1 text-[0.8889rem] text-indigo-200 underline-offset-4 hover:text-white hover:underline max-lg:inline max-lg:break-all max-lg:[&>svg]:inline max-lg:[&>svg]:align-[-0.15em]">
               {r.url.replace(/^https:\/\/(www\.)?/, '').replace(/\/$/, '')} <ExternalLink className="h-4 w-4" aria-hidden />
             </a>
           </span>

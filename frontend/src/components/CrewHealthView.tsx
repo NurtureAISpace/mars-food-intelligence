@@ -151,7 +151,7 @@ export const CrewHealthView: React.FC<{ crew: CrewCheckinsState; onNavigate: (ta
             ) : '—'} />
           </KVList>
         </Section>
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6 max-lg:grid max-lg:grid-cols-2 max-lg:gap-4">
           <StatTile label="All readings in range" value={seats ? allGood : '—'} tone="text-nominal"
             source={seats ? <SeatSources seats={seats} /> : undefined} />
           <StatTile label="Need attention" value={seats ? needAttention : '—'} tone={needAttention ? 'text-watch' : 'text-white'}
@@ -169,7 +169,7 @@ export const CrewHealthView: React.FC<{ crew: CrewCheckinsState; onNavigate: (ta
               {seats.map((s) => <SeatCard key={s.astronautId} s={s} currentSol={currentSol}
                 selected={selected?.astronautId === s.astronautId} onSelect={() => setSelectedId(s.astronautId)} />)}
             </div>
-            <h3 className="mt-2 flex items-center gap-2 text-[1.1111rem] font-semibold text-slate-200">
+            <h3 className="mt-2 flex items-center gap-2 text-[1.1111rem] font-semibold text-slate-200 max-lg:flex-wrap">
               <UserPlus className="h-5 w-5" aria-hidden /> Guests <span className="text-[0.8889rem] font-normal text-slate-400">· live check-ins from the QR code</span>
             </h3>
             {guests.length > 0 ? (
@@ -188,12 +188,12 @@ export const CrewHealthView: React.FC<{ crew: CrewCheckinsState; onNavigate: (ta
         )}
       </Section>
 
-      <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap gap-3">
+      <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between max-lg:!flex-col max-lg:!items-stretch">
+        <div className="flex flex-wrap gap-3 max-lg:flex-col max-lg:[&>*]:w-full">
           <a href={appUrl} target="_blank" rel="noopener noreferrer" className="btn-primary">
             <Smartphone className="h-5 w-5" aria-hidden /> Open Astronaut App <ExternalLink className="h-4 w-4" aria-hidden />
           </a>
-          <button onClick={() => setJoinOpen(true)} className="btn-secondary">
+          <button onClick={() => setJoinOpen(true)} className="btn-secondary max-lg:hidden">
             <QrCode className="h-5 w-5" aria-hidden /> Join the crew
           </button>
           <button onClick={() => onNavigate('realdata')} className="btn-secondary">

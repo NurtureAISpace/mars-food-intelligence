@@ -1,30 +1,42 @@
 # Static demo site for GitHub Pages (https://nurtureaispace.github.io):
 #   site-dist/        dashboard (frontend/, base '/')
 #   site-dist/app/    Astronaut App (apps/astronaut/, base '/app/')
-# Both are built with VITE_STATIC_DEMO=1: they read the JSON snapshot (public/snapshot/, written by
-# scripts/export_snapshot.py) instead of /api. The live laptop demo builds (npm run build) are not affected.
+# Two modes:
+#   -ApiBase <url>  LIVE: both apps call the hosted backend (Render, render.yaml) at <url>/api/... (VITE_API_BASE):
+#                   real check-ins and sync, no snapshot, no "Online demo" banner.
+#   (no -ApiBase)   SNAPSHOT: built with VITE_STATIC_DEMO=1, they read the JSON snapshot (public/snapshot/, written by
+#                   scripts/export_snapshot.py) instead of /api.
+# The QR code / "Open Astronaut App" link defaults to https://nurtureaispace.github.io/app/ in both modes.
+# The live laptop demo builds (npm run build) are not affected.
 #
-# Usage (PowerShell, repo root):  .\scripts\build_site.ps1
+# Usage (PowerShell, repo root):
+#   .\scripts\build_site.ps1 -ApiBase https://nurtureai-backend.onrender.com
+#   .\scripts\build_site.ps1
+param([string]$ApiBase = '')
 $ErrorActionPreference = 'Stop'
+$ApiBase = $ApiBase.Trim().TrimEnd('/')
+if ($ApiBase -and $ApiBase -notmatch '^https?://') { throw "-ApiBase must start with https:// (got '$ApiBase')" }
 $root = Split-Path -Parent $PSScriptRoot
 $out = Join-Path $root 'site-dist'
 
 function Invoke-Build([string]$dir, [string]$base, [string]$outDir) {
     Push-Location (Join-Path $root $dir)
     try {
-        $env:VITE_STATIC_DEMO = '1'
+        if ($ApiBase) { $env:VITE_API_BASE = $ApiBase } else { $env:VITE_STATIC_DEMO = '1' }
         $env:VITE_BASE = $base
         npm run build -- --outDir $outDir --emptyOutDir
         if ($LASTEXITCODE -ne 0) { throw "build failed in $dir" }
     } finally {
-        Remove-Item Env:VITE_STATIC_DEMO, Env:VITE_BASE -ErrorAction SilentlyContinue
+        Remove-Item Env:VITE_STATIC_DEMO, Env:VITE_API_BASE, Env:VITE_BASE -ErrorAction SilentlyContinue
         Pop-Location
     }
 }
 
-foreach ($snap in @('frontend\public\snapshot', 'apps\astronaut\public\snapshot')) {
-    if (-not (Test-Path (Join-Path $root "$snap\health_checkin_guide.json"))) {
-        throw "Missing snapshot in $snap - run scripts/export_snapshot.py with the backend on 127.0.0.1:8001"
+if (-not $ApiBase) {
+    foreach ($snap in @('frontend\public\snapshot', 'apps\astronaut\public\snapshot')) {
+        if (-not (Test-Path (Join-Path $root "$snap\health_checkin_guide.json"))) {
+            throw "Missing snapshot in $snap - run scripts/export_snapshot.py with the backend on 127.0.0.1:8001"
+        }
     }
 }
 
@@ -34,4 +46,5 @@ Invoke-Build 'frontend' '/' $out
 Invoke-Build 'apps\astronaut' '/app/' (Join-Path $out 'app')
 New-Item -ItemType File -Force (Join-Path $out '.nojekyll') | Out-Null
 
-Write-Host "site-dist ready: $out"
+if ($ApiBase) { Write-Host "site-dist ready (LIVE, API: $ApiBase): $out" }
+else { Write-Host "site-dist ready (snapshot demo): $out" }
